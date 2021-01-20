@@ -23,7 +23,7 @@ Namespace* CoreIRLoadHeader_corebit(Context* c) {
     {"out",c->Bit()}
   });
 
-  vector<string> bitops = {"and","or","xor"};
+  vector<string> bitops = {"and","or","xor","xnor"};
   for (auto op : bitops) {
     bitop->newModuleDecl(op, bitBinaryType);
   }
@@ -49,6 +49,7 @@ Namespace* CoreIRLoadHeader_corebit(Context* c) {
   //Const and Term
   bitop->newModuleDecl("const",c->Record({{"out",c->Bit()}}),{{"value",c->Bool()}});
   bitop->newModuleDecl("term",c->Record({{"in",c->BitIn()}}));
+  bitop->newModuleDecl("undriven",c->Record({{"out",c->Bit()}}));
 
 
 

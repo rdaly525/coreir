@@ -1,29 +1,13 @@
 .SUFFIXES:
-#COREIRCONFIG ?= g++
-#CXX ?= g++
-#
-#ifeq ($(COREIRCONFIG),g++)
-#CXX = g++
-#endif
-#
-#ifeq ($(COREIRCONFIG),g++-4.9)
-#CXX = g++-4.9
-#endif
-#
-#CXXFLAGS = -std=c++11  -Wall -fPIC -Werror
-#
-#ifdef COREDEBUG
-#CXXFLAGS += -std=c++11 -Wall -fPIC -Werror -O0 -g3 -D_GLIBCXX_DEBUG 
-#endif
-
 
 HOME = ../..
 INCS = -I$(HOME)/include -I.
 LPATH = -L$(HOME)/lib
-LIBS =  -Wl,-rpath,$(HOME)/lib -lcoreir -lcoreirsim -lcoreir-commonlib -lcoreir-aetherlinglib
+LIBS =  -Wl,-rpath,$(HOME)/lib -lverilogAST -lcoreir -lcoreirsim -lcoreir-commonlib -lcoreir-aetherlinglib -lcoreir-float
 SRCFILES = $(wildcard [^_]*.cpp)
 OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES))
 EXES = $(patsubst %.cpp,build/%,$(SRCFILES))
+CXXFLAGS += -Wno-unused-variable
 
 #all: $(EXES)
 

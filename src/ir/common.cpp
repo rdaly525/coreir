@@ -11,6 +11,20 @@
 using namespace std;
 namespace CoreIR {
 
+//TODO get this to work with coreir_unreachable()
+//void coreir_unreachable_internal(const char* file=nullptr, unsigned line=0)
+//{
+//  std::cerr << "Reached the Unreachable!\n";
+//  if (file) {
+//    std::cerr << " at "  << file << ":" << line;
+//  }
+//  abort();
+//#ifdef LLVM_BUILTIN_UNREACHABLE
+//  LLVM_BUILTIN_UNREACHABLE;
+//#endif
+//}
+
+
 bool isNumber(string s) {
   return !s.empty() && s.find_first_not_of("0123456789") == string::npos;
 }

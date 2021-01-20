@@ -1,11 +1,10 @@
-//#define CATCH_CONFIG_MAIN
-
 #include "catch.hpp"
 
 #include "coreir.h"
 #include "coreir/passes/transform/rungenerators.h"
 #include "coreir/simulator/interpreter.h"
 #include "coreir/libs/commonlib.h"
+#include "coreir/libs/float.h"
 
 #include "fuzzing.hpp"
 
@@ -17,6 +16,10 @@ using namespace std;
 
 namespace CoreIR {
 
+  string quote(string s) {
+    return "\""+s+"\"";
+  }
+  
   void addCounter(Context* c, Namespace* global) {
 
     //assert(false);
@@ -283,7 +286,1271 @@ namespace CoreIR {
 
     deleteContext(c);
   }
+
+  TEST_CASE("Run 32 bit float add") {
+
+    // New context
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    CoreIRLoadLibrary_float(c);
+
+    int expBits = 8;
+    int fracBits = 23;
+    int width = 1 + expBits + fracBits;
+    
+    Type* faddType =
+      c->Record({
+          {"in0", c->BitIn()->Arr(width)},
+            {"in1", c->BitIn()->Arr(width)},
+              {"out",c->Bit()->Arr(width)}
+        });
+
+    Module* faddM = c->getGlobal()->newModuleDecl("faddM", faddType);
+    ModuleDef* def = faddM->newModuleDef();
+
+    def->addInstance("add0",
+                     "float.add",
+                     {{"exp_bits", Const::make(c, expBits)},
+                         {"frac_bits", Const::make(c, fracBits)}});
+
+    def->connect("add0.in0", "self.in0");
+    def->connect("add0.in1", "self.in1");        
+    def->connect("add0.out", "self.out");
+    faddM->setDef(def);
+
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    SimulatorState state(faddM);
+
+    SECTION("0 + 0 == 0") {
+      state.setValue("self.in0", BitVector(width, 0));
+      state.setValue("self.in1", BitVector(width, 0));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(width, 0));
+    }
+
+    SECTION("1.73 + 2.34") {
+      float a = 1.73;
+      float b = 2.34;
+
+      state.setValue("self.in0", BitVector(width, bitCastToInt(a)));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b)));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(width, bitCastToInt(a + b)));
+    }
+  }
+
+  TEST_CASE("Run 16 bit float div") {
+
+    // New context
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    CoreIRLoadLibrary_float(c);
+
+    int expBits = 8;
+    int fracBits = 7;
+    int width = 1 + expBits + fracBits;
+    
+    Type* faddType =
+      c->Record({
+          {"in0", c->BitIn()->Arr(width)},
+            {"in1", c->BitIn()->Arr(width)},
+              {"out",c->Bit()->Arr(width)}
+        });
+
+    Module* faddM = c->getGlobal()->newModuleDecl("faddM", faddType);
+    ModuleDef* def = faddM->newModuleDef();
+
+    def->addInstance("add0",
+                     "float.div",
+                     {{"exp_bits", Const::make(c, expBits)},
+                         {"frac_bits", Const::make(c, fracBits)}});
+
+    def->connect("add0.in0", "self.in0");
+    def->connect("add0.in1", "self.in1");        
+    def->connect("add0.out", "self.out");
+    faddM->setDef(def);
+
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    SimulatorState state(faddM);
+
+    SECTION("22.0 / PI") {
+      float a = 22.0;
+      float b = 3.14159;
+
+      cout << "Float div = " << (a / b) << endl;
+
+      state.setValue("self.in0", BitVector(width, bitCastToInt(a) >> 16));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b) >> 16));
+
+      state.execute();
+
+      BitVector res(16, "0100000011100000");
+
+      cout << "result as float = " << bitCastToFloat(res.to_type<int>() << 16) << endl;
+      REQUIRE(state.getBitVec("self.out") == res);
+    }
+
+    SECTION("3.17187 / PI") {
+      float a = 3.17187;
+      float b = 3.14159;
+
+      cout << "Float div = " << (a / b) << endl;
+
+      state.setValue("self.in0", BitVector(width, bitCastToInt(a) >> 16));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b) >> 16));
+
+      state.execute();
+
+      BitVector res("16'h3f81");
+
+      cout << "result as float = " << bitCastToFloat(res.to_type<int>() << 16) << endl;
+      REQUIRE(state.getBitVec("self.out") == res);
+    }
+
+    SECTION("0.0352941 / PI") {
+      float a = 0.0352941;
+      float b = 3.14159;
+
+      cout << "Float div = " << (a / b) << endl;
+
+      state.setValue("self.in0", BitVector(width, bitCastToInt(a) >> 16));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b) >> 16));
+
+      state.execute();
+
+      BitVector res("16'h3c37");
+
+      cout << "result as float = " << bitCastToFloat(res.to_type<int>() << 16) << endl;
+      REQUIRE(state.getBitVec("self.out") == res);
+    }
+    
+  }
+
+  TEST_CASE("Run 32 bit float mul") {
+
+    // New context
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    CoreIRLoadLibrary_float(c);
+
+    int expBits = 8;
+    int fracBits = 23;
+    int width = 1 + expBits + fracBits;
+    
+    Type* faddType =
+      c->Record({
+          {"in0", c->BitIn()->Arr(width)},
+            {"in1", c->BitIn()->Arr(width)},
+              {"out",c->Bit()->Arr(width)}
+        });
+
+    Module* faddM = c->getGlobal()->newModuleDecl("faddM", faddType);
+    ModuleDef* def = faddM->newModuleDef();
+
+    def->addInstance("mul0",
+                     "float.mul",
+                     {{"exp_bits", Const::make(c, expBits)},
+                         {"frac_bits", Const::make(c, fracBits)}});
+
+    def->connect("mul0.in0", "self.in0");
+    def->connect("mul0.in1", "self.in1");        
+    def->connect("mul0.out", "self.out");
+    faddM->setDef(def);
+
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    SimulatorState state(faddM);
+
+    SECTION("0 + 0 == 0") {
+      state.setValue("self.in0", BitVector(width, 0));
+      state.setValue("self.in1", BitVector(width, 0));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(width, 0));
+    }
+
+    SECTION("1.73 * 2.34") {
+      float a = 1.73;
+      float b = 2.34;
+
+      state.setValue("self.in0", BitVector(width, bitCastToInt(a)));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b)));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(width, bitCastToInt(a * b)));
+    }
+  }
+
+  TEST_CASE("Floating point gt") {
+
+    // New context
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    CoreIRLoadLibrary_float(c);
+
+    int expBits = 8;
+    int fracBits = 23;
+    int width = 1 + expBits + fracBits;
+    
+    Type* faddType =
+      c->Record({
+          {"in0", c->BitIn()->Arr(width)},
+            {"in1", c->BitIn()->Arr(width)},
+              {"out",c->Bit()}
+        });
+
+    Module* faddM = c->getGlobal()->newModuleDecl("faddM", faddType);
+    ModuleDef* def = faddM->newModuleDef();
+
+    def->addInstance("mul0",
+                     "float.gt",
+                     {{"exp_bits", Const::make(c, expBits)},
+                         {"frac_bits", Const::make(c, fracBits)}});
+
+    def->connect("mul0.in0", "self.in0");
+    def->connect("mul0.in1", "self.in1");        
+    def->connect("mul0.out", "self.out");
+    faddM->setDef(def);
+
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    SimulatorState state(faddM);
+
+    SECTION("27.0 > 9.4") {
+      float a = 27.0;
+      float b = 9.4;
+
+      state.setValue("self.in0", BitVector(width, bitCastToInt(a)));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b)));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(1, 1));
+    }
+  }
+
+  TEST_CASE("Floating point ge") {
+
+    // New context
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    CoreIRLoadLibrary_float(c);
+
+    int expBits = 8;
+    int fracBits = 23;
+    int width = 1 + expBits + fracBits;
+    
+    Type* faddType =
+      c->Record({
+          {"in0", c->BitIn()->Arr(width)},
+            {"in1", c->BitIn()->Arr(width)},
+              {"out",c->Bit()}
+        });
+
+    Module* faddM = c->getGlobal()->newModuleDecl("faddM", faddType);
+    ModuleDef* def = faddM->newModuleDef();
+
+    def->addInstance("mul0",
+                     "float.ge",
+                     {{"exp_bits", Const::make(c, expBits)},
+                         {"frac_bits", Const::make(c, fracBits)}});
+
+    def->connect("mul0.in0", "self.in0");
+    def->connect("mul0.in1", "self.in1");        
+    def->connect("mul0.out", "self.out");
+    faddM->setDef(def);
+
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    SimulatorState state(faddM);
+
+    SECTION("!(-1.2 >= 0.4)") {
+      float a = -1.2;
+      float b = 0.4;
+
+      state.setValue("self.in0", BitVector(width, bitCastToInt(a)));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b)));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(1, 0));
+    }
+  }
+
+  TEST_CASE("Floating point lt") {
+
+    // New context
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    CoreIRLoadLibrary_float(c);
+
+    int expBits = 8;
+    int fracBits = 23;
+    int width = 1 + expBits + fracBits;
+    
+    Type* faddType =
+      c->Record({
+          {"in0", c->BitIn()->Arr(width)},
+            {"in1", c->BitIn()->Arr(width)},
+              {"out",c->Bit()}
+        });
+
+    Module* faddM = c->getGlobal()->newModuleDecl("faddM", faddType);
+    ModuleDef* def = faddM->newModuleDef();
+
+    def->addInstance("mul0",
+                     "float.lt",
+                     {{"exp_bits", Const::make(c, expBits)},
+                         {"frac_bits", Const::make(c, fracBits)}});
+
+    def->connect("mul0.in0", "self.in0");
+    def->connect("mul0.in1", "self.in1");        
+    def->connect("mul0.out", "self.out");
+    faddM->setDef(def);
+
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    SimulatorState state(faddM);
+
+    SECTION("27.0 < 9.4") {
+      float a = 27.0;
+      float b = 9.4;
+
+      state.setValue("self.in0", BitVector(width, bitCastToInt(a)));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b)));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(1, 0));
+    }
+  }
+
+  TEST_CASE("Floating point le") {
+
+    // New context
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    CoreIRLoadLibrary_float(c);
+
+    int expBits = 8;
+    int fracBits = 23;
+    int width = 1 + expBits + fracBits;
+    
+    Type* faddType =
+      c->Record({
+          {"in0", c->BitIn()->Arr(width)},
+            {"in1", c->BitIn()->Arr(width)},
+              {"out",c->Bit()}
+        });
+
+    Module* faddM = c->getGlobal()->newModuleDecl("faddM", faddType);
+    ModuleDef* def = faddM->newModuleDef();
+
+    def->addInstance("mul0",
+                     "float.le",
+                     {{"exp_bits", Const::make(c, expBits)},
+                         {"frac_bits", Const::make(c, fracBits)}});
+
+    def->connect("mul0.in0", "self.in0");
+    def->connect("mul0.in1", "self.in1");        
+    def->connect("mul0.out", "self.out");
+    faddM->setDef(def);
+
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    SimulatorState state(faddM);
+
+    SECTION("-1.2 <= 0.4") {
+      float a = -1.2;
+      float b = 0.4;
+
+      state.setValue("self.in0", BitVector(width, bitCastToInt(a)));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b)));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(1, 1));
+    }
+  }
   
+  TEST_CASE("16 bit bfloat multiply") {
+
+    // New context
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    CoreIRLoadLibrary_float(c);
+
+    int expBits = 8;
+    int fracBits = 7;
+    int width = 1 + expBits + fracBits;
+    
+    Type* faddType =
+      c->Record({
+          {"in0", c->BitIn()->Arr(width)},
+            {"in1", c->BitIn()->Arr(width)},
+              {"out",c->Bit()->Arr(width)}
+        });
+
+    Module* faddM = c->getGlobal()->newModuleDecl("faddM", faddType);
+    ModuleDef* def = faddM->newModuleDef();
+
+    def->addInstance("mul0",
+                     "float.mul",
+                     {{"exp_bits", Const::make(c, expBits)},
+                         {"frac_bits", Const::make(c, fracBits)}});
+
+    def->connect("mul0.in0", "self.in0");
+    def->connect("mul0.in1", "self.in1");        
+    def->connect("mul0.out", "self.out");
+    faddM->setDef(def);
+
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    SimulatorState state(faddM);
+
+    SECTION("0 * 0 == 0") {
+      state.setValue("self.in0", BitVector(width, 0));
+      state.setValue("self.in1", BitVector(width, 0));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(width, 0));
+    }
+
+    SECTION("3.140625 * 7 == 22") {
+      float a = 3.140625;
+      float b = 7.0;
+      float res = 22.0;
+      auto a_bv = BitVector(width, bitCastToInt(a) >> 16);
+      auto b_bv = BitVector(width, bitCastToInt(b) >> 16);
+      auto res_bv = BitVector(width, bitCastToInt(res) >> 16);
+      state.setValue("self.in0", a_bv);
+      state.setValue("self.in1", b_bv);
+      state.execute();
+      REQUIRE(state.getBitVec("self.out") == res_bv);
+    }
+
+  }
+
+  TEST_CASE("32 bit bfloat sub") {
+
+    // New context
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    CoreIRLoadLibrary_float(c);
+
+    int expBits = 8;
+    int fracBits = 23;
+    int width = 1 + expBits + fracBits;
+    
+    Type* faddType =
+      c->Record({
+          {"in0", c->BitIn()->Arr(width)},
+            {"in1", c->BitIn()->Arr(width)},
+              {"out",c->Bit()->Arr(width)}
+        });
+
+    Module* faddM = c->getGlobal()->newModuleDecl("faddM", faddType);
+    ModuleDef* def = faddM->newModuleDef();
+
+    def->addInstance("mul0",
+                     "float.sub",
+                     {{"exp_bits", Const::make(c, expBits)},
+                         {"frac_bits", Const::make(c, fracBits)}});
+
+    def->connect("mul0.in0", "self.in0");
+    def->connect("mul0.in1", "self.in1");        
+    def->connect("mul0.out", "self.out");
+    faddM->setDef(def);
+
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    SimulatorState state(faddM);
+
+    SECTION("0 - 0 == 0") {
+      state.setValue("self.in0", BitVector(width, 0));
+      state.setValue("self.in1", BitVector(width, 0));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(width, 0));
+    }
+
+    SECTION("7.0 - 9.7") {
+      float a = 7.0;
+      float b = 9.7;
+
+      state.setValue("self.in0", BitVector(width, bitCastToInt(a)));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b)));
+
+      state.execute();
+
+      float res = a - b;
+      BitVector expectedFp = BitVector(width, bitCastToInt(a - b));
+      cout << "Expected fsub     = " << expectedFp << endl;
+      cout << "Actual fsub       = " << state.getBitVec("self.out") << endl;      
+      REQUIRE(state.getBitVec("self.out") == expectedFp);
+    }
+    
+  }  
+
+  TEST_CASE("16 bit bfloat sub") {
+
+    // New context
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    CoreIRLoadLibrary_float(c);
+
+    int expBits = 8;
+    int fracBits = 7;
+    int width = 1 + expBits + fracBits;
+    
+    Type* faddType =
+      c->Record({
+          {"in0", c->BitIn()->Arr(width)},
+            {"in1", c->BitIn()->Arr(width)},
+              {"out",c->Bit()->Arr(width)}
+        });
+
+    Module* faddM = c->getGlobal()->newModuleDecl("faddM", faddType);
+    ModuleDef* def = faddM->newModuleDef();
+
+    def->addInstance("mul0",
+                     "float.sub",
+                     {{"exp_bits", Const::make(c, expBits)},
+                         {"frac_bits", Const::make(c, fracBits)}});
+
+    def->connect("mul0.in0", "self.in0");
+    def->connect("mul0.in1", "self.in1");        
+    def->connect("mul0.out", "self.out");
+    faddM->setDef(def);
+
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    SimulatorState state(faddM);
+
+    SECTION("0 - 0 == 0") {
+      state.setValue("self.in0", BitVector(width, 0));
+      state.setValue("self.in1", BitVector(width, 0));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(width, 0));
+    }
+
+    SECTION("7.0 - 9.7") {
+      float a = 7.0;
+      float b = 9.7;
+
+      state.setValue("self.in0", BitVector(width, bitCastToInt(a) >> 16));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b) >> 16));
+
+      state.execute();
+
+      float res = a - b;
+      BitVector expectedFp = BitVector(width, bitCastToInt(a - b) >> 16);
+      cout << "Expected fsub     = " << expectedFp << endl;
+      cout << "Actual fsub       = " << state.getBitVec("self.out") << endl;      
+      REQUIRE(state.getBitVec("self.out") == expectedFp);
+    }
+    
+  }  
+  
+  TEST_CASE("32 bit negate") {
+
+    // New context
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    CoreIRLoadLibrary_float(c);
+
+    int expBits = 8;
+    int fracBits = 23;
+    int width = 1 + expBits + fracBits;
+    
+    Type* faddType =
+      c->Record({
+          {"in", c->BitIn()->Arr(width)},
+              {"out",c->Bit()->Arr(width)}
+        });
+
+    Module* faddM = c->getGlobal()->newModuleDecl("faddM", faddType);
+    ModuleDef* def = faddM->newModuleDef();
+
+    def->addInstance("mul0",
+                     "float.neg",
+                     {{"exp_bits", Const::make(c, expBits)},
+                         {"frac_bits", Const::make(c, fracBits)}});
+
+    def->connect("mul0.in", "self.in");
+    def->connect("mul0.out", "self.out");
+    faddM->setDef(def);
+
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    SimulatorState state(faddM);
+
+    SECTION("-(12.7) == -12.7") {
+      float a = 12.7;
+      state.setValue("self.in", BitVector(width, bitCastToInt(a)));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(width, bitCastToInt(-a)));
+    }
+
+  }  
+
+  // Define unified buffer generator simulation class
+  class UnifiedBufferStub : public SimulatorPlugin {
+    BitVector lastVal;
+
+    int width;
+
+  public:
+
+    void initialize(vdisc vd, SimulatorState& simState) {
+      auto wd = simState.getCircuitGraph().getNode(vd);
+      Wireable* w = wd.getWire();
+
+      assert(isInstance(w));
+
+      Instance* inst = toInstance(w);
+      width = inst->getModuleRef()->getGenArgs().at("width")->get<int>();
+      lastVal = BitVector(width, 0);
+
+    }
+
+    void exeSequential(vdisc vd, SimulatorState& simState) {
+      auto wd = simState.getCircuitGraph().getNode(vd);
+
+      simState.updateInputs(vd);
+
+      assert(isInstance(wd.getWire()));
+      
+      Instance* inst = toInstance(wd.getWire());
+
+      auto inSels = getInputSelects(inst);
+
+      Select* arg1 = toSelect(CoreIR::findSelect("in", inSels));
+      assert(arg1 != nullptr);
+      
+      lastVal = simState.getBitVec(arg1);
+    }
+
+    void exeCombinational(vdisc vd, SimulatorState& simState) {
+      auto wd = simState.getCircuitGraph().getNode(vd);
+      
+      Instance* inst = toInstance(wd.getWire());
+      
+      simState.setValue(toSelect(inst->sel("out")), lastVal);
+
+    }
+
+  };
+  
+  TEST_CASE("Unified buffer simulation stub") {
+    std::cout << "unified buffer sim stub running...\n";
+    Context* c = newContext();
+    Namespace* g = c->newNamespace("bufferLib");    
+
+    // Define (dummy) unified buffer generator
+    Params params = {{"width", c->Int()}, {"depth", c->Int()}};
+    auto ubufstubTg = g->newTypeGen(
+                  "ubufstub_type",
+                  params,
+                  [](Context* c, Values genargs) {
+                    uint width = genargs.at("width")->get<int>();
+                    uint depth = genargs.at("depth")->get<int>();
+
+                    return c->Record({
+                        {"clk",c->Named("coreir.clkIn")},
+                          {"in", c->BitIn()->Arr(width)},
+                            {"out", c->Bit()->Arr(width)}});
+                  }
+                  );
+
+    g->newGeneratorDecl("ubufstub", ubufstubTg, params);
+
+    // Build container module
+    Namespace* global = c->getNamespace("global");
+    int width = 16;
+    Type* bufWrapperType =
+        c->Record({
+            {"clk",c->Named("coreir.clkIn")},            
+            {"in",c->BitIn()->Arr(width)},
+            {"out",c->Bit()->Arr(width)}
+          });
+
+    Module* wrapperMod =
+      c->getGlobal()->newModuleDecl("bufWrapper", bufWrapperType);
+    ModuleDef* def = wrapperMod->newModuleDef();
+
+    def->addInstance("buf0",
+                       "bufferLib.ubufstub",
+                       {{"width", Const::make(c, width)},
+                           {"depth", Const::make(c, 64)}});
+
+    def->connect("buf0.out", "self.out");
+    def->connect("buf0.in", "self.in");
+    def->connect("buf0.clk", "self.clk");
+
+    wrapperMod->setDef(def);
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    // Build the simulator with the new model
+    auto modBuilder = [](WireNode& wd) {
+      UnifiedBufferStub* simModel = new UnifiedBufferStub();
+      return simModel;
+    };
+
+    map<std::string, SimModelBuilder> qualifiedNamesToSimPlugins{{string("bufferLib.ubufstub"), modBuilder}};
+
+    SimulatorState state(wrapperMod, qualifiedNamesToSimPlugins);
+
+    state.setValue("self.in", BitVector(width, 89));
+    state.setClock("self.clk", 0, 1);
+
+    state.resetCircuit();
+
+    state.execute();
+
+    REQUIRE(state.getBitVec("self.out") == BitVector(width, 89));
+
+    state.setValue("self.in", BitVector(width, 7));
+    
+    state.execute();
+
+    REQUIRE(state.getBitVec("self.out") == BitVector(width, 7));
+    
+    deleteContext(c);
+    std::cout << "PASSED: unified buffer stub simulation!\n";
+  }
+
+  // Define address generator simulation class
+  class UnifiedBufferAddressGenerator : public SimulatorPlugin {
+    int width;
+    vector<int> iter_list;
+
+    vector<int> output_range;
+    vector<int> output_stride;
+    vector<int> output_start;
+    
+    size_t dimension;
+    size_t port;
+    int total_iter;
+    bool is_done;
+
+    vector<int> get_dims(Type* type) {
+      vector<int> lengths;
+      uint bitwidth = 1;
+      Type* cType = type;
+      while(!cType->isBaseType()) {
+        if (auto aType = dyn_cast<ArrayType>(cType)) {
+      
+          uint length = aType->getLen();
+          
+          cType = aType->getElemType();
+          if (cType->isBaseType()) {
+            bitwidth = length;
+          } else {
+            lengths.insert(lengths.begin(), length);
+            //lengths.push_back(length);
+          }
+        }
+      }
+
+      lengths.insert(lengths.begin(), bitwidth);
+      return lengths;
+    }
+
+  public:
+    UnifiedBufferAddressGenerator() {
+      is_done = false;
+    }
+    
+    UnifiedBufferAddressGenerator(vector<int> range, vector<int> stride, vector<int> start, int myWidth) :
+      is_done(false) {
+      init_parameters(myWidth, range, stride, start);
+    }
+
+    bool isDone() {
+      return is_done;
+    }
+
+    void restart() {
+      is_done = false;
+      for (auto &iter : iter_list) {
+        iter = 0;
+      }
+    }
+
+    void updateIterator(BitVector resetVal) {
+      if (resetVal == BitVector(1, 1)) {
+        restart();
+        return;
+      }
+
+      // logic to update the internal iterator
+      for (size_t dim = 0; dim < dimension; dim++) {
+        iter_list[dim] += 1;
+
+        //return to zero for the previous dim if we enter the next dim
+        if (dim > 0)
+          iter_list[dim - 1] = 0;
+
+        //not the last dimension
+        if (dim < dimension - 1) {
+          if (iter_list[dim] < output_range[dim]) {
+            is_done = false;
+            break;
+          }
+        } else {
+          if (iter_list[dim] == output_range[dim]){
+            is_done = true;
+            break;
+          }
+        }
+      }
+    }
+
+    int calcBaseAddress() {
+      std::cout << "dims=" << dimension << std::endl;
+      int addr_offset = 0;
+      assert(iter_list.size() <= dimension);
+      assert(output_stride.size() <= dimension);
+      for (size_t i = 0; i < dimension; i++) {
+        addr_offset += iter_list.at(i) * output_stride.at(i);
+      }
+      return addr_offset;
+    }
+
+    vector<int> getAddresses() {
+      vector<int> addresses = vector<int>(output_start.size());
+      auto baseAddr = calcBaseAddress();
+
+      for (size_t i=0; i<addresses.size(); ++i) {
+        addresses.at(i) = baseAddr + output_start.at(i);
+      }
+
+      return addresses;
+    }
+
+
+    void init_parameters(int _width, vector<int> _output_range, vector<int> _output_stride, vector<int> _output_start) {
+      width = _width;
+      output_range = _output_range;
+      output_stride = _output_stride;
+      output_start = _output_start;
+      
+      // start values all need to decrement 1
+      for (auto& start_num : output_start) {
+        start_num -= 1;
+      }
+
+      // deduce from other parameters
+      assert(output_range.size() == output_stride.size());
+      dimension = output_range.size();
+      std::cout << "buffer has " << dimension << " dims\n";
+      port = output_start.size();
+      total_iter = 1;
+
+      for (size_t i = 0; i < dimension; ++i) {
+        total_iter *= output_range.at(i) / output_stride.at(i);
+      }
+
+      // initialize parameters
+      iter_list = vector<int>(dimension);
+      assert(iter_list.size() == dimension);
+      restart();
+    }
+                        
+
+    void initialize(vdisc vd, SimulatorState& simState) {
+      auto wd = simState.getCircuitGraph().getNode(vd);
+      Wireable* w = wd.getWire();
+
+      assert(isInstance(w));
+
+      // extract parameters
+      Instance* inst = toInstance(w);
+      auto myWidth = inst->getModuleRef()->getGenArgs().at("width")->get<int>();
+      auto rangeType = inst->getModuleRef()->getGenArgs().at("range_type")->get<Type*>();
+      auto strideType = inst->getModuleRef()->getGenArgs().at("stride_type")->get<Type*>();
+      auto startType = inst->getModuleRef()->getGenArgs().at("start_type")->get<Type*>();
+
+      init_parameters(myWidth, get_dims(rangeType), get_dims(strideType), get_dims(startType));
+    }
+
+    void exeSequential(vdisc vd, SimulatorState& simState) {
+      auto wd = simState.getCircuitGraph().getNode(vd);
+
+      simState.updateInputs(vd);
+
+      assert(isInstance(wd.getWire()));
+      
+      Instance* inst = toInstance(wd.getWire());
+
+      auto inSels = getInputSelects(inst);
+
+      Select* arg1 = toSelect(CoreIR::findSelect("reset", inSels));
+      assert(arg1 != nullptr);
+      BitVector resetVal = simState.getBitVec(arg1);
+
+      updateIterator(resetVal);
+    }
+
+    void exeCombinational(vdisc vd, SimulatorState& simState) {
+      std::cout << "execomb..\n";
+      auto wd = simState.getCircuitGraph().getNode(vd);
+      
+      Instance* inst = toInstance(wd.getWire());
+
+      int addr_offset = calcBaseAddress();
+      simState.setValue(toSelect(inst->sel("out")), BitVector(width, addr_offset));
+    }
+
+  };
+  
+  TEST_CASE("Unified buffer address generator simulation") {
+    std::cout << "unified buffer address generator sim running...\n";
+    Context* c = newContext();
+    Namespace* g = c->newNamespace("bufferLib");
+
+    // Define unified buffer address generator
+    Params params =
+      {{"width", c->Int()},
+       {"range_type", CoreIRType::make(c)},
+       {"stride_type", CoreIRType::make(c)},
+       {"start_type", CoreIRType::make(c)}
+      };
+    auto uBufAddrTg = g->newTypeGen(
+                  "ubufaddrgen_type",
+                  params,
+                  [](Context* c, Values genargs) {
+                    uint width = genargs.at("width")->get<int>();
+
+                    return c->Record({
+                        {"clk",c->Named("coreir.clkIn")},
+                        {"reset", c->BitIn()},
+                        {"out", c->Bit()->Arr(width)}});
+                  }
+                  );
+
+    g->newGeneratorDecl("ubufaddr", uBufAddrTg, params);
+
+    // Build container module
+    Namespace* global = c->getNamespace("global");
+    int width = 16;
+    Type* bufaddrWrapperType =
+        c->Record({
+            {"clk",c->Named("coreir.clkIn")},            
+            {"reset",c->BitIn()},
+            {"out",c->Bit()->Arr(width)}
+          });
+
+    Module* wrapperMod =
+      c->getGlobal()->newModuleDecl("bufaddrWrapper", bufaddrWrapperType);
+    ModuleDef* def = wrapperMod->newModuleDef();
+
+    def->addInstance("bufaddr0",
+                       "bufferLib.ubufaddr",
+                       {{"width",       Const::make(c, width)},
+                        {"range_type",  Const::make(c, c->Bit()->Arr(6)->Arr(3)->Arr(32)->Arr(32))},
+                        {"stride_type", Const::make(c, c->Bit()->Arr(4)->Arr(272)->Arr(8)->Arr(272))},
+                        {"start_type",  Const::make(c, c->Bit()->Arr(0)->Arr(2)->Arr(3)->Arr(4))}
+                     });
+
+    def->connect("bufaddr0.out", "self.out");
+    def->connect("bufaddr0.reset", "self.reset");
+    def->connect("bufaddr0.clk", "self.clk");
+
+    wrapperMod->setDef(def);
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    // Build the simulator with the new model
+    auto modBuilder = [](WireNode& wd) {
+      UnifiedBufferAddressGenerator* simModel = new UnifiedBufferAddressGenerator();
+      return simModel;
+    };
+
+    map<std::string, SimModelBuilder> qualifiedNamesToSimPlugins{{string("bufferLib.ubufaddr"), modBuilder}};
+
+    SimulatorState state(wrapperMod, qualifiedNamesToSimPlugins);
+
+    state.setValue("self.reset", BitVector(1, 1));
+    state.setClock("self.clk", 0, 1);
+
+    state.resetCircuit();
+
+    state.execute();
+
+    REQUIRE(state.getBitVec("self.out") == BitVector(width, 0));
+
+    state.setValue("self.reset", BitVector(1, 0));
+    
+    state.execute();
+
+    REQUIRE(state.getBitVec("self.out") == BitVector(width, 4));
+    
+    deleteContext(c);
+    std::cout << "PASSED: unified buffer address generator simulation!\n";
+  }
+
+
+  // Define address generator simulation class
+  class UnifiedBuffer : public SimulatorPlugin {
+    //int input_port;
+    //int output_port;
+    int capacity;
+    int select;
+    int width;
+
+    UnifiedBufferAddressGenerator write_iterator;
+    UnifiedBufferAddressGenerator read_iterator;
+    vector< vector<int> > data;
+
+    vector<int> get_dims(Type* type) {
+      vector<int> lengths;
+      uint bitwidth = 1;
+      Type* cType = type;
+      while(!cType->isBaseType()) {
+        if (auto aType = dyn_cast<ArrayType>(cType)) {
+      
+          uint length = aType->getLen();
+          
+          cType = aType->getElemType();
+          if (cType->isBaseType()) {
+            bitwidth = length;
+          } else {
+            lengths.insert(lengths.begin(), length);
+            //lengths.push_back(length);
+          }
+        }
+      }
+
+      lengths.insert(lengths.begin(), bitwidth);
+      return lengths;
+    }
+
+  public:
+
+    void initialize(vdisc vd, SimulatorState& simState) {
+      auto wd = simState.getCircuitGraph().getNode(vd);
+      Wireable* w = wd.getWire();
+
+      assert(isInstance(w));
+
+      // extract parameters
+      Instance* inst = toInstance(w);
+      width = inst->getModuleRef()->getGenArgs().at("width")->get<int>();
+      auto outputRangeType = inst->getModuleRef()->getGenArgs().at("output_range_type")->get<Type*>();
+      auto outputStrideType = inst->getModuleRef()->getGenArgs().at("output_stride_type")->get<Type*>();
+      auto outputStartType = inst->getModuleRef()->getGenArgs().at("output_start_type")->get<Type*>();
+
+      auto inputRangeType = inst->getModuleRef()->getGenArgs().at("input_range_type")->get<Type*>();
+      auto inputStrideType = inst->getModuleRef()->getGenArgs().at("input_stride_type")->get<Type*>();
+      auto inputStartType = inst->getModuleRef()->getGenArgs().at("input_start_type")->get<Type*>();
+
+      auto output_range = get_dims(outputRangeType);
+      auto output_stride = get_dims(outputStrideType);
+      auto output_start = get_dims(outputStartType);
+            
+      write_iterator = UnifiedBufferAddressGenerator(
+        get_dims(inputRangeType), get_dims(inputRangeType), get_dims(inputStartType), width);
+      read_iterator = UnifiedBufferAddressGenerator(
+        get_dims(outputRangeType), get_dims(outputStrideType), get_dims(outputStartType), width);
+      
+      
+      // deduce capacity from other output iterator
+      capacity = 1;
+      size_t dimension = output_range.size();
+
+      for (size_t i = 0; i < dimension; ++i) {
+        capacity += (output_range.at(i) - 1) * max(output_stride.at(i), 0);
+      }
+
+      int max_start = 0;
+      for (const auto &start_value : output_start) {
+        max_start = max(max_start, start_value);
+      }
+      capacity += max_start;
+
+      // initialize data and select
+      data = vector< vector<int> >(2, vector<int>(capacity, 0));
+      select = 0;
+
+    }
+
+    void switch_check() {
+      if (write_iterator.isDone() && read_iterator.isDone()) {
+        select = select ^ 1;
+        read_iterator.restart();
+        write_iterator.restart();
+      }
+    }
+    
+
+    void exeSequential(vdisc vd, SimulatorState& simState) {
+      auto wd = simState.getCircuitGraph().getNode(vd);
+
+      simState.updateInputs(vd);
+
+      assert(isInstance(wd.getWire()));
+      
+      Instance* inst = toInstance(wd.getWire());
+
+      auto inSels = getInputSelects(inst);
+
+      Select* arg1 = toSelect(CoreIR::findSelect("reset", inSels));
+      Select* arg2 = toSelect(CoreIR::findSelect("datain", inSels));
+      assert(arg1 != nullptr);
+      BitVector resetVal = simState.getBitVec(arg1);
+      //auto in_data = simState.getBitVec(arg2);
+
+      assert((!write_iterator.isDone()) && "No more write allowed.\n");
+      write_iterator.updateIterator(resetVal);
+      
+      auto write_addr_array = write_iterator.getAddresses();
+      //assert((write_addr_array.size() == in_data.size()) && "Input data width not equals to port width.\n");
+      for (size_t i = 0; i < write_addr_array.size(); i++) {
+        int write_addr = write_addr_array[i];
+        auto in_data = simState.getBitVec(arg2->sel(i));
+        data[0x1 ^ select][write_addr] = in_data.to_type<int>();
+      }
+
+      switch_check(); 
+    }
+
+    void exeCombinational(vdisc vd, SimulatorState& simState) {
+      auto wd = simState.getCircuitGraph().getNode(vd);
+      
+      Instance* inst = toInstance(wd.getWire());
+
+      assert((!read_iterator.isDone()) && "No more read allowed.\n");
+      read_iterator.updateIterator(BitVector(1, 0));
+      
+      vector<int> out_data;
+      for (auto read_addr : read_iterator.getAddresses()) {
+        out_data.push_back(data[select][read_addr]);
+      }
+
+      switch_check();
+
+      for (size_t i=0; i<out_data.size(); ++i) {
+        simState.setValue(toSelect(inst->sel("dataout")->sel(i)), BitVector(width, out_data.at(i)));
+      }
+    }
+  };
+
+/*
+  TEST_CASE("Unified buffer simulation") {
+    std::cout << "unified buffer address generator sim running...\n";
+    Context* c = newContext();
+    Namespace* g = c->newNamespace("bufferLib");
+    CoreIRLoadLibrary_commonlib(c);
+
+    // Define unified buffer generator
+    Params params =
+      {{"width", c->Int()},
+       {"range_type", CoreIRType::make(c)},
+       {"stride_type", CoreIRType::make(c)},
+       {"start_type", CoreIRType::make(c)}
+      };
+    auto uBufTg = g->newTypeGen(
+                  "ubufgen_type",
+                  params,
+                  [](Context* c, Values genargs) {
+                    uint width = genargs.at("width")->get<int>();
+
+                    return c->Record({
+                        {"clk",c->Named("coreir.clkIn")},
+                        {"reset", c->BitIn()},
+                        {"out", c->Bit()->Arr(width)}});
+                  }
+                  );
+
+    g->newGeneratorDecl("ubuf", uBufTg, params);
+
+    // Build container module
+    Namespace* global = c->getNamespace("global");
+    int width = 16;
+    Type* bufWrapperType =
+        c->Record({
+            {"clk",c->Named("coreir.clkIn")},            
+            {"reset",c->BitIn()},
+            {"out",c->Bit()->Arr(width)}
+          });
+
+    Module* wrapperMod =
+      c->getGlobal()->newModuleDecl("bufWrapper", bufWrapperType);
+    ModuleDef* def = wrapperMod->newModuleDef();
+
+    def->addInstance("buf0",
+                       "bufferLib.ubuf",
+                       {{"width",       Const::make(c, width)},
+                        {"range_type",  Const::make(c, c->Bit()->Arr(6)->Arr(3)->Arr(32)->Arr(32))},
+                        {"stride_type", Const::make(c, c->Bit()->Arr(4)->Arr(272)->Arr(8)->Arr(272))},
+                        {"start_type",  Const::make(c, c->Bit()->Arr(0)->Arr(2)->Arr(3)->Arr(4))}
+                     });
+
+    def->connect("buf0.out", "self.out");
+    def->connect("buf0.reset", "self.reset");
+    def->connect("buf0.clk", "self.clk");
+
+    wrapperMod->setDef(def);
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    // Build the simulator with the new model
+    auto modBuilder = [](WireNode& wd) {
+      UnifiedBuffer* simModel = new UnifiedBuffer();
+      return simModel;
+    };
+
+    map<std::string, SimModelBuilder> qualifiedNamesToSimPlugins{{string("bufferLib.ubuf"), modBuilder}};
+
+    SimulatorState state(wrapperMod, qualifiedNamesToSimPlugins);
+
+    state.setValue("self.reset", BitVector(1, 1));
+    state.setClock("self.clk", 0, 1);
+
+    state.resetCircuit();
+
+    state.execute();
+
+    REQUIRE(state.getBitVec("self.out") == BitVector(width, 0));
+
+    state.setValue("self.reset", BitVector(1, 0));
+    
+    state.execute();
+
+    REQUIRE(state.getBitVec("self.out") == BitVector(width, 4));
+    
+    deleteContext(c);
+    std::cout << "PASSED: unified buffer simulation!\n";
+  }
+*/
+
+
+    
   TEST_CASE("Interpret simulator graphs") {
 
     // New context
@@ -1002,6 +2269,134 @@ namespace CoreIR {
       REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 5));
 
     }
+
+    SECTION("ROM") {
+      uint width = 20;
+      uint depth = 4;
+      uint index = 2;
+
+      Type* memoryType = c->Record({
+      	  {"clk", c->Named("coreir.clkIn")},
+            {"read_data", c->Bit()->Arr(width)},
+              {"read_addr", c->BitIn()->Arr(index)}
+      	});
+
+      
+      Module* memory = c->getGlobal()->newModuleDecl("memory0", memoryType);
+      ModuleDef* def = memory->newModuleDef();
+
+      Json vals;
+      for (int i = 0; i < (int) depth; i++) {
+        //BitVector bv(width, i);
+        //vals.emplace_back(bv.hex_string());
+        //vals.emplace_back(to_string(i));
+        //vals["init"].emplace_back(i);
+        vals["init"].emplace_back(i);
+      }
+      
+      def->addInstance("m0",
+      		       "memory.rom",
+      		       {{"width", Const::make(c,width)},{"depth", Const::make(c,depth)}},
+                       {{"init", Const::make(c, vals)}});
+
+      def->addInstance("rdConst","coreir.const",{{"width",Const::make(c,1)}},{{"value",Const::make(c,BitVector(1,1))}});      
+
+      def->connect("self.clk", "m0.clk");
+      def->connect("self.read_data", "m0.rdata");
+      def->connect("self.read_addr", "m0.raddr");
+      def->connect("m0.ren", "rdConst.out.0");
+
+      memory->setDef(def);
+
+      if (!saveToFile(g, "rom_unit_test_mod.json", memory)) {
+        cout << "Could not save to json!!" << endl;
+        c->die();
+      }
+
+      c->runPasses({"rungenerators","flattentypes","flatten"});
+
+      if (!saveToFile(g, "rom_unit_test_mod_inlined.json", memory)) {
+        cout << "Could not save to json!!" << endl;
+        c->die();
+      }
+      cout << "Starting test of ROM" << endl;
+      SimulatorState state(memory);
+
+      state.setClock("self.clk", 0, 1);
+      state.setValue("self.read_addr", BitVec(index, 1));
+      state.exeCombinational();
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 1));
+
+
+      cout << "Done with ROM" << endl;
+    }
+
+    SECTION("ROM2") {
+
+     
+      cout << "Starting ROM2" << endl;
+
+      uint width = 16;
+      uint depth = 4;
+      uint index = width;
+
+      Type* memoryType = c->Record({
+      	  {"clk", c->Named("coreir.clkIn")},
+            {"read_data", c->Bit()->Arr(width)},
+              {"read_addr", c->BitIn()->Arr(index)}
+      	});
+
+      
+      Module* memory = c->getGlobal()->newModuleDecl("memory0", memoryType);
+      ModuleDef* def = memory->newModuleDef();
+
+      Json vals;
+      for (int i = 0; i < (int) depth; i++) {
+        //vals.emplace_back(to_string(i));
+        vals["init"].emplace_back(i);
+      }
+      
+      def->addInstance("m0",
+      		       "memory.rom2",
+      		       {{"width", Const::make(c,width)},{"depth", Const::make(c,depth)}},
+                       {{"init", Const::make(c, vals)}});
+
+      def->addInstance("rdConst","coreir.const",{{"width",Const::make(c,1)}},{{"value",Const::make(c,BitVector(1,1))}});      
+
+      def->connect("self.clk", "m0.clk");
+      def->connect("self.read_data", "m0.rdata");
+      def->connect("self.read_addr", "m0.raddr");
+      def->connect("m0.ren", "rdConst.out.0");
+
+      memory->setDef(def);
+
+      if (!saveToFile(g, "rom2_unit_test_mod.json", memory)) {
+        cout << "Could not save to json!!" << endl;
+        c->die();
+      }
+
+      c->runPasses({"rungenerators","flattentypes","flatten"});
+
+      if (!saveToFile(g, "rom2_unit_test_mod_after_opt.json", memory)) {
+        cout << "Could not save to json!!" << endl;
+        c->die();
+      }
+
+      cout << "After optimization" << endl;
+      memory->print();
+      
+      cout << "Starting test of ROM" << endl;
+      SimulatorState state(memory);
+
+      state.setClock("self.clk", 0, 1);
+      state.setValue("self.read_addr", BitVec(index, 1));
+      state.exeCombinational();
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 1));
+    }
     
     SECTION("Memory2") {
       uint width = 20;
@@ -1120,6 +2515,7 @@ namespace CoreIR {
       
     }
 
+/*
     SECTION("Rowbuffer") {
 
       uint index = 4;
@@ -1253,7 +2649,8 @@ namespace CoreIR {
       }
 
     }
-
+*/
+/*
     SECTION("Rowbuffer power of 2") {
 
       uint index = 4;
@@ -1387,7 +2784,7 @@ namespace CoreIR {
       }
 
     }
-    
+*/
     SECTION("Slice") {
       uint inLen = 7;
       uint lo = 2;

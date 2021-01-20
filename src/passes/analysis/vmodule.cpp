@@ -56,7 +56,6 @@ static bool is_input_from_self(Wireable* wireable) {
 // def outputs
 static void init_worklist(ModuleDef* def, std::queue<Connection> &worklist) {
   for (auto conn : def->getSortedConnections()) {
-    cout << toString(conn) << endl;
     if (is_input_from_self(conn.first) || is_input_from_self(conn.second)) {
       worklist.push(conn);
     }
@@ -315,13 +314,8 @@ void VModules::addModule(Module* m) {
     genHasVerilog = g->getMetaData().count("verilog") > 0;
   }
   bool modHasVerilog = m->getMetaData().count("verilog") > 0;
-  //Linking concerns:
-  //coreir Def and Verilog Def
-  //TODO should probably let the verilog def override the coreir def
-  if (hasDef) {
-    ASSERT(!genHasVerilog && !modHasVerilog,"NYI, Verilog def with coreir def");
-  }
-  //Two Verilog defs, should be an error
+  // Linking concerns:
+  //   Two Verilog defs, should be an error.
   ASSERT(!(modHasVerilog && genHasVerilog),"Linking issue!");
 
   bool isExtern = !hasDef && !genHasVerilog && !modHasVerilog;
@@ -369,7 +363,7 @@ string VModule::toString() const {
   vector<string> pdecs;
   if (interface.size()>0) {
     pdecs = interface;
-    if (this->vmods->_verilator_debug) {
+    if (!this->isExternal && this->vmods->_verilator_debug) {
       for (auto& pdec : pdecs) {
         pdec += "/*verilator public*/";
       }
@@ -379,7 +373,7 @@ string VModule::toString() const {
     for (auto pmap : ports) {
       auto port = pmap.second;
       string pdec = port.dirstr() + " " + port.dimstr() + " " + port.getName();
-      if (this->vmods->_verilator_debug) {
+      if (!this->isExternal && this->vmods->_verilator_debug) {
           pdec += "/*verilator public*/";
       }
       pdecs.push_back(pdec);
@@ -417,6 +411,9 @@ string VModule::toInstanceString(Instance* inst) {
   string instname = inst->getInstname();
   Module* mref = inst->getModuleRef();
   SParams params_bk = this->params;
+  for (auto p : mref->getModParams()) {
+    this->params.insert(p.first);
+  }
 
   ostringstream o;
   string tab = "  ";

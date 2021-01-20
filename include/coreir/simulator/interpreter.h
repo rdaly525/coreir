@@ -120,14 +120,15 @@ namespace CoreIR {
 
   typedef BitVec (*BitVecBinop)(const BitVec& l, const BitVec& r);
   typedef BitVec (*BitVecUnop)(const BitVec& l);
-
+  typedef float (*FloatOp)(const float l, const float r);
+  
   typedef std::function<bool()> StopFunction;
 
   struct StopCondition {
     std::string name;
     StopFunction stopTest;
   };
-
+  
   class SimulatorState {
     CoreIR::Module* mod;
     std::map<std::string, json> symTable;
@@ -146,17 +147,24 @@ namespace CoreIR {
     std::set<SimValue*> allocatedValues;
 
     bool hasCombinationalLoop;
+    std::map<vdisc, SimulatorPlugin*> plugMods;
 
   public:
 
     SimulatorState(CoreIR::Module* mod_);
+    SimulatorState(CoreIR::Module* mod_,
+                   std::map<std::string, SimModelBuilder>& pluginBuilders);
 
+    void initializeState(CoreIR::Module* mod_,
+                       std::map<std::string, SimModelBuilder>& pluginBuilders);
+    
     int numCircStates() const;
 
     void findMainClock();
     void setInputDefaults();
     std::vector<vdisc> unsetInputs();
-
+    void setNodeDefaults();
+    
     std::vector<CircuitState> getCircStates() const;
 
     NGraph& getCircuitGraph() { return gr; }
@@ -310,7 +318,6 @@ namespace CoreIR {
                                 const BitVec& bv);
 
     // Destructor
-
     ~SimulatorState();
   };
 
@@ -320,5 +327,8 @@ namespace CoreIR {
   std::string concatInlined(const std::vector<std::string>& str);
   std::string concatSelects(const std::deque<std::string>& str);
   std::string concatSelects(const std::vector<std::string>& str);
+
+  int bitCastToInt(float val);  
+  float bitCastToFloat(int val);
 
 }

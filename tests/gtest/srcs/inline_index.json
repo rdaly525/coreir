@@ -1,0 +1,27 @@
+
+{"top":"global.Main",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Main":{
+        "type":["Record",[
+          ["I0",["Array",8,"BitIn"]],
+          ["I1",["Array",8,"BitIn"]],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "magma_Bits_8_add_inst0":{
+            "genref":"coreir.add",
+            "genargs":{"width":["Int",8]}
+          }
+        },
+        "connections":[
+          ["self.I0","magma_Bits_8_add_inst0.in0"],
+          ["self.I1","magma_Bits_8_add_inst0.in1"],
+          ["self.O","magma_Bits_8_add_inst0.out.0"]
+        ]
+      }
+    }
+  }
+}
+}

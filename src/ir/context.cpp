@@ -282,10 +282,11 @@ BoolType* Context::Bool() { return BoolType::make(this);}
 IntType* Context::Int(){ return IntType::make(this);}
 BitVectorType* Context::BitVector(int width) { return BitVectorType::make(this,width);}
 StringType* Context::String() { return StringType::make(this);}
+JsonType* Context::Json() { return JsonType::make(this);}
 //CoreIRType* Context::CoreIRType() { return CoreIRType::make(this);}
 
 void Context::setTop(Module* top) {
-  ASSERT(top && top->hasDef(), top->toString() + " has no def!");
+  ASSERT(top && (top->hasDef() || top->hasVerilogDef()), top->toString() + " has no def!");
   this->top = top;
 }
 
@@ -296,7 +297,7 @@ void Context::setTop(string topRef) {
   Namespace* topns = this->getNamespace(topsplit[0]);
   ASSERT(topns->hasModule(topsplit[1]),"Missing module " + topRef);
   this->top = topns->getModule(topsplit[1]);
-  ASSERT(this->top->hasDef(),topRef + " has no def!");
+  ASSERT(this->top->hasDef() || this->top->hasVerilogDef(),topRef + " has no def!");
 }
 
 void Context::removeTop() {

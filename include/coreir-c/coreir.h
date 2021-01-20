@@ -31,6 +31,11 @@ extern bool COREContextRunPasses(COREContext* ctx, char** passes, int num_passes
                                            char** namespaces, int num_namespaces);
 
 
+extern bool COREInlineInstance(COREWireable* inst);
+extern COREWireable* COREAddPassthrough(COREWireable* w);
+extern void CORERemoveInstance(COREWireable* inst);
+
+
 extern COREModule* CORELoadModule(COREContext* c, char* filename, COREBool* err);
 
 //Errors:
@@ -38,11 +43,15 @@ extern COREModule* CORELoadModule(COREContext* c, char* filename, COREBool* err)
 extern void CORESaveModule(COREModule* module, char* filename, COREBool* err);
 extern CORENamespace* COREGetGlobal(COREContext* c);
 extern CORENamespace* COREGetNamespace(COREContext* c, char* name);
+extern CORENamespace* CORENewNamespace(COREContext* c, char* name);
 
 extern COREModule* COREGetModuleRef(COREWireable* iref);
 extern bool COREModuleIsGenerated(COREModule* mod);
 extern COREGenerator* COREModuleGetGenerator(COREModule* mod);
 void COREModuleGetGenArgs(COREModule* mod, char*** names, COREValue** args, int* num_args);
+
+void COREModuleGetModParams(COREModule* mod, char*** names, COREValueType*** params, int* num_params);
+
 extern const char* COREModuleGetName(COREModule* module);
 extern const char* COREGeneratorGetName(COREModule* module);
 void COREGeneratorGetGenParams(COREGenerator* core_gen, char*** names, COREValueType*** params, int* num_params);
@@ -79,8 +88,14 @@ extern bool COREHasModArg(COREWireable* i, char* s);
 //  Wire Error;
 //  Typechecking errors
 extern void COREModuleDefConnect(COREModuleDef* module_def, COREWireable* a, COREWireable* b);
+extern void COREModuleDefDisconnect(COREModuleDef* module_def, COREWireable* a, COREWireable* b);
+
 extern COREWireable* COREWireableSelect(COREWireable* w, char* sel);
 extern COREBool COREWireableCanSelect(COREWireable* w, char* sel);
+
+//Only valid for Wireable == Select
+extern COREWireable* COREWireableGetParent(COREWireable* w);
+
 extern COREWireable* COREModuleDefInstancesIterBegin(COREModuleDef* module_def);
 extern COREWireable* COREModuleDefInstancesIterEnd(COREModuleDef* module_def);
 extern COREWireable* COREModuleDefInstancesIterNext(COREModuleDef* module_def, COREWireable* curr);
@@ -100,6 +115,9 @@ extern void COREWireableAddMetaDataStr(COREWireable* wireable, char *key, char *
 extern void COREModuleDefAddConnectionMetaDataStr(COREModuleDef* module_def,
         COREWireable* a, COREWireable* b, char *key, char *value);
 extern void COREModuleAddMetaDataStr(COREModule* module, char *key, char *value);
+
+//This returns a malloc'd string that should be freed by the user
+extern const char* COREModuleGetMetaData(COREModule* module);
 
 // BEGIN : directedview
 extern const char** COREDirectedConnectionGetSrc(COREDirectedConnection* directed_connection);

@@ -14,15 +14,15 @@ DirectedConnection::DirectedConnection(Connection& c) : c(c) {
   //Confirm that one is definitely only inputs and one is only outputs
   Type* ta = wa->getType();
   Type* tb = wb->getType();
-  assert(!ta->isUnknown() && !ta->isMixed());
-  assert(!tb->isUnknown() && !tb->isMixed());
+  ASSERT(!ta->isUnknown() && !ta->isMixed(), "Cannot have mixed type");
+  ASSERT(!tb->isUnknown() && !tb->isMixed(), "Cannot have mixed type");
   if (ta->isInput()) {
-    assert(tb->isOutput());
+    ASSERT(tb->isOutput(), "tb must be an output");
     src = wb;
     snk = wa;
   }
   else {
-    assert(ta->isOutput() && tb->isInput());
+    ASSERT(ta->isOutput() && tb->isInput(), "ta needs to be output, tb needs to be input");
     src = wa;
     snk = wb;
   }

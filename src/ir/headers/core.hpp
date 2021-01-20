@@ -102,11 +102,17 @@ void core_convert(Context* c, Namespace* core) {
       NamedType* ntype = cast<NamedType>(type);
       ASSERT(!ntype->isGen(),"NYI named type generators");
       ASSERT(ntype->getRaw()->isBaseType(), "NYI named type that is not Bit or BitIn");
-      ASSERT(ntype->isOutput(), "NYI named type that is not output");
-      return c->Record({
-        {"in",ntype->getRaw()->getFlipped()},
-        {"out",ntype}
-      });
+      if (ntype->isOutput()) {
+          return c->Record({
+            {"in",ntype->getRaw()->getFlipped()},
+            {"out",ntype}
+          });
+      } else {
+          return c->Record({
+            {"in",ntype},
+            {"out",ntype->getRaw()->getFlipped()}
+          });
+      }
     }
   );
   core->newGeneratorDecl("wrap",wrapTypeGen,wrapParams);
@@ -402,6 +408,20 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
     }
   );
   core->newGeneratorDecl("term",core->getTypeGen("in"),widthparams);
+
+  // Add Undriven
+  core->newTypeGen(
+    "out",
+    widthparams,
+    [](Context* c, Values args) {
+      uint width = args.at("width")->get<int>();
+      Type* ptype = c->Bit()->Arr(width);
+      return c->Record({
+        {"out",ptype}
+      });
+    }
+  );
+  core->newGeneratorDecl("undriven",core->getTypeGen("out"),widthparams);
 
   /////////////////////////////////
   // Stdlib convert primitives

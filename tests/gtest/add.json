@@ -1,0 +1,26 @@
+{"top":"global.Top",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Top":{
+        "type":["Record",[
+          ["I0",["Array",8,"BitIn"]],
+          ["I1",["Array",8,"BitIn"]],
+          ["O",["Array",8,"Bit"]]
+        ]],
+        "instances":{
+          "inst0":{
+            "genref":"coreir.add",
+            "genargs":{"width":["Int",8]}
+          }
+        },
+        "connections":[
+          ["self.I0","inst0.in0"],
+          ["self.I1","inst0.in1"],
+          ["self.O","inst0.out"]
+        ]
+      }
+    }
+  }
+}
+}

@@ -107,6 +107,27 @@ extern "C" {
     return context->runPasses(vec_passes, vec_namespaces);
   }
 
+
+  bool COREInlineInstance(COREWireable* inst) {
+    Instance* i = cast<Instance>(rcast<Wireable*>(inst));
+    return inlineInstance(i);
+  }
+  
+  COREWireable* COREAddPassthrough(COREWireable* corew) {
+    Wireable* w = rcast<Wireable*>(corew);
+    Context* c = w->getContext();
+    Instance* inst = addPassthrough(w, "pt" + c->getUnique());
+    return rcast<COREWireable*>(cast<Wireable>(inst));
+  }
+  
+
+  void CORERemoveInstance(COREWireable* inst) {
+    Instance* i = cast<Instance>(rcast<Wireable*>(inst));
+    ModuleDef* def = i->getContainer();
+    def->removeInstance(i);
+  }
+
+
   void COREGetModArgs(COREWireable* core_wireable, char*** keys, COREValue*** values, int* num_items) {
     Values modargs = cast<Instance>(rcast<Wireable*>(core_wireable))->getModArgs();
     *num_items = modargs.size();
@@ -174,6 +195,10 @@ extern "C" {
     return rcast<CORENamespace*>(rcast<Context*>(c)->getNamespace(std::string(name)));
   }
 
+  CORENamespace* CORENewNamespace(COREContext* c, char* name) {
+    return rcast<CORENamespace*>(rcast<Context*>(c)->newNamespace(std::string(name)));
+  }
+
   CORENamespace* COREGlobalValueGetNamespace(COREGlobalValue* value) {
     return rcast<CORENamespace*>(rcast<GlobalValue*>(value)->getNamespace());
   }
@@ -213,6 +238,34 @@ extern "C" {
           count++;
       }
   }
+
+  void COREModuleGetModParams(COREModule* core_mod, char*** names, COREValueType*** params, int* num_params) {
+    Module* mod = rcast<Module*>(core_mod);
+    Params modParams = mod->getModParams();
+    int size = modParams.size();
+    Context* context = mod->getContext();
+    *names = context->newStringArray(size);
+    *params = (COREValueType **) context->newValueTypeArray(size);
+    *num_params = size;
+    int count = 0;
+    for (auto element : modParams) {
+      std::size_t name_length = element.first.size();
+      (*names)[count] = context->newStringBuffer(name_length + 1);
+      memcpy((*names)[count], element.first.c_str(), name_length + 1);
+      (*params)[count] = rcast<COREValueType*>(element.second);
+      count++;
+    }
+  }
+  
+  const char* COREModuleGetMetaData(COREModule* core_mod) {
+    Module* mod = rcast<Module*>(core_mod);
+    string mstr = mod->getMetaData().dump();
+    std::size_t len = mstr.size() + 1;
+    char* cstr = (char*) malloc(len);
+    strcpy(cstr,mstr.c_str());
+    return cstr;
+  }
+
 
   const char* COREModuleGetName(COREModule* module) {
     return rcast<Module*>(module)->getName().c_str();
@@ -271,6 +324,10 @@ extern "C" {
 
   void COREModuleDefConnect(COREModuleDef* module_def, COREWireable* a, COREWireable* b) {
     rcast<ModuleDef*>(module_def)->connect(rcast<Wireable*>(a), rcast<Wireable*>(b));
+  }
+  
+  void COREModuleDefDisconnect(COREModuleDef* module_def, COREWireable* a, COREWireable* b) {
+    rcast<ModuleDef*>(module_def)->disconnect(rcast<Wireable*>(a), rcast<Wireable*>(b));
   }
 
   COREWireable* COREModuleDefGetInterface(COREModuleDef* module_def) {
@@ -349,6 +406,13 @@ extern "C" {
   COREBool COREWireableCanSelect(COREWireable* w, char* sel) {
     return rcast<Wireable*>(w)->canSel(string(sel));
   }
+
+  COREWireable* COREWireableGetParent(COREWireable* cw) {
+    Wireable* w = rcast<Wireable*>(cw);
+    ASSERT(isa<Select>(w),"Can only get the parent of a Select");
+    return rcast<COREWireable*>(cast<Select>(w)->getParent());
+  }
+
 
   COREType* COREWireableGetType(COREWireable* wireable) {
     return rcast<COREType*>(rcast<Wireable*>(wireable)->getType());
@@ -584,6 +648,10 @@ extern "C" {
   }
 
   const char* COREInstanceGetInstname(COREWireable* instance) {
+      return rcast<Instance*>(instance)->getInstname().c_str();
+  }
+
+  const char* COREInstanceGetModArgs(COREWireable* instance) {
       return rcast<Instance*>(instance)->getInstname().c_str();
   }
 

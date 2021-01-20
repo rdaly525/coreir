@@ -3,16 +3,13 @@
 #include <fstream>
 #include <memory>
 #include "passlib.h"
-
 #include "coreir/common/logging_lite.hpp"
-
 #include "coreir/passes/analysis/smtlib2.h"
 #include "coreir/passes/analysis/smv.h"
 #include "coreir/passes/analysis/firrtl.h"
 #include "coreir/passes/analysis/magma.h"
 #include "coreir/passes/analysis/coreirjson.h"
 #include "coreir/passes/analysis/verilog.h"
-
 #include "coreir/definitions/coreVerilog.hpp"
 #include "coreir/definitions/corebitVerilog.hpp"
 #include "coreir/definitions/coreFirrtl.hpp"
@@ -33,8 +30,8 @@ int main(int argc, char *argv[]) {
   cxxopts::Options options("coreir", "a simple hardware compiler");
   options.add_options()
     ("h,help","help")
-    ("v,verbose","Set verbose")
-    ("i,input","input file: '<file1>.json,<file2.jsom,...'",cxxopts::value<std::string>())
+    ("v,verbose", "Set verbosity", cxxopts::value<int>())
+    ("i,input","input file: '<file1>.json,<file2.json,...'",cxxopts::value<std::string>())
     ("o,output","output file: <file>.<json|fir|v|py|dot>",cxxopts::value<std::string>())
     ("p,passes","Run passes in order: '<pass1> <pass1args>;<pass2> <pass2args>;...'",cxxopts::value<std::string>())
     ("e,load_passes","external passes: '<path1.so>,<path2.so>,<path3.so>,...'",cxxopts::value<std::string>())
@@ -45,6 +42,7 @@ int main(int argc, char *argv[]) {
     ("z,inline","inlines verilog primitives")
     ("y,verilator_debug","mark signals with /*veriltor public*/")
     ("s,split","splits output files by name (expects '-o <path>/*.<ext>')")
+    ("product", "specify product list filename", cxxopts::value<std::string>())
     ;
   
   //Do the parsing of the arguments
@@ -75,7 +73,11 @@ int main(int argc, char *argv[]) {
   }
   
   if (opts.count("v")) {
-    c->getPassManager()->setVerbosity(opts["v"].as<bool>());
+    const auto verbosity = opts["v"].as<int>();
+    if (verbosity < 0 || verbosity >= NUM_LOG_LEVELS) {
+      LOG(FATAL) << "Unsupported verbosity: " << verbosity;
+    }
+    ::common::SetLogLevel(verbosity);
   }
 
   ASSERT(opts.count("i"),"No input specified");
@@ -184,7 +186,7 @@ int main(int argc, char *argv[]) {
     CoreIRLoadVerilog_coreir(c);
     CoreIRLoadVerilog_corebit(c);
 
-    LOG(INFO) << "Running Runningvpasses";
+    LOG(DEBUG) << "Running Runningvpasses";
     string vstr = "verilog";
     if (opts.count("z")) {
       vstr += " -i";
@@ -193,12 +195,17 @@ int main(int argc, char *argv[]) {
       vstr += " -y";
     }
     modified |= c->runPasses({"rungenerators","removebulkconnections","flattentypes",vstr},namespaces);
-    LOG(INFO) << "Running vpasses";
+    LOG(DEBUG) << "Running vpasses";
 
     auto vpass = static_cast<Passes::Verilog*>(c->getPassManager()->getAnalysisPass("verilog"));
 
     if (split_files) {
-      vpass->writeToFiles(output_dir);
+      std::unique_ptr<std::string> product_file;
+      if (opts.count("product")) {
+        const auto val = opts["product"].as<std::string>();
+        product_file.reset(new std::string(val));
+      }
+      vpass->writeToFiles(output_dir, std::move(product_file));
     } else {
       vpass->writeToStream(*sout);
     }
@@ -227,9 +234,9 @@ int main(int argc, char *argv[]) {
     vpass->writeToStream(*sout);
   }
   else {
-    LOG(INFO) << "NYI";
+    LOG(DEBUG) << "NYI";
   }
-  LOG(INFO) << "Modified?: " << (modified ? "Yes" : "No");
+  LOG(DEBUG) << "Modified?: " << (modified ? "Yes" : "No");
 
   return 0;
 }

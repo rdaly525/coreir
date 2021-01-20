@@ -252,7 +252,7 @@ namespace CoreIR {
         return CoreIR::outputVarName(val);
       }
 
-      assert(false);
+      coreir_unreachable();
     }
 
     std::string outputVarName(const InstanceValue& val) {

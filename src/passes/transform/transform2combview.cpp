@@ -27,7 +27,7 @@ struct Helper {
       for (auto spair : selects) {
         assert(isNumber(spair.first));
         Type* checktype = spair.second->getType();
-        assert(checktype == elemtype);
+        ASSERT(checktype == elemtype,"Type is incorrect");
         int i = stoi(spair.first);
         nums.insert(i);
         if (i>max) max = i;

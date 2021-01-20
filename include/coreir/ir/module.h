@@ -5,10 +5,11 @@
 #include "fwd_declare.h"
 #include "args.h"
 #include "globalvalue.h"
+#include "coreir/primitive.h"
 
 namespace CoreIR {
 
-class Module : public GlobalValue, public Args {
+class Module : public GlobalValue, public Args, public VerilogPrimitive {
   RecordType* type;
   ModuleDef* def = nullptr;
   
@@ -35,6 +36,8 @@ class Module : public GlobalValue, public Args {
     ModuleDef* getDef() const;
     //This will validate def
     void setDef(ModuleDef* def, bool validate=true);
+
+    bool hasVerilogDef();
    
     ModuleDef* newModuleDef();
     
@@ -65,6 +68,9 @@ class Module : public GlobalValue, public Args {
     //This will add (and override) defaultModArgs
     void addDefaultModArgs(Values defaultModArgs);
     Values& getDefaultModArgs() { return defaultModArgs;}
+
+    bool canSel(std::string sel_str);
+    bool canSel(SelectPath sel_path);
 
   private :
     //This should be used very carefully. Could make things inconsistent

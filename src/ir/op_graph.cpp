@@ -7,6 +7,28 @@ using namespace std;
 
 namespace CoreIR {
 
+  bool isSequentialPlugin(CoreIR::Wireable* fst, PluginMap& pluginMap) {
+    if (!isInstance(fst)) {
+      return false;
+    }
+
+    CoreIR::Instance* inst = toInstance(fst);
+    std::string name = inst->getModuleRef()->getRefName();
+
+    return contains_key(name, pluginMap);
+  }
+  
+  bool isSequential(CoreIR::Wireable* p1, PluginMap& pluginMap) {
+    if (isRegisterInstance(p1) ||
+        isMemoryInstance(p1) ||
+        isDFFInstance(p1) ||
+        isSequentialPlugin(p1, pluginMap)) {
+      return true;
+    }
+
+    return false;
+  }
+
   void addConnection(std::unordered_map<WireNode, vdisc>& imap,
 		     Conn& conn,
 		     NGraph& g);
@@ -54,7 +76,7 @@ namespace CoreIR {
 
 	CoreIR::Select* sel = static_cast<Select*>(edge_conn.second.getWire());
 
-	assert(extractSource(sel) == w);
+	ASSERT(extractSource(sel) == w, "DEBUGME");
 
 	inConss.push_back(edge_conn);
       }
@@ -76,7 +98,7 @@ namespace CoreIR {
 
       assert(isSelect(edge_conn.first.getWire()));
       Select* sel = static_cast<Select*>(edge_conn.first.getWire());
-      assert(sel->getParent() == w);
+      ASSERT(sel->getParent() == w,"DEBUGME");
 
       outputs.push_back(edge_conn.second.getWire());
       
@@ -102,7 +124,7 @@ namespace CoreIR {
 
       Select* sel = static_cast<Select*>(edge_conn.second.getWire());
 
-      assert(extractSource(sel) == w); //->getParent() == w);
+      ASSERT(extractSource(sel) == w,"DEBUGME"); //->getParent() == w);
 
       inputs.push_back(edge_conn.first.getWire());
       
@@ -217,7 +239,7 @@ namespace CoreIR {
 	vdisc src = g.source(ed);
 	vdisc dest = g.target(ed);
 
-	assert(src == vd);
+	ASSERT(src == vd,"DEBUGME");
 
 	bool noOtherEdges = true;
 
@@ -302,7 +324,7 @@ namespace CoreIR {
 
       Select* sel = static_cast<Select*>(edge_conn.first.getWire());
 
-      assert(extractSource(sel) == w);
+      ASSERT(extractSource(sel) == w,"DEBUGME");
       //assert(sel->getParent() == w);
 
       outConns.push_back(edge_conn);
@@ -313,7 +335,8 @@ namespace CoreIR {
   }
 
 
-  void addConnection(unordered_map<WireNode, vdisc>& imap,
+  void addConnection(PluginMap& pluginMap,
+                     unordered_map<WireNode, vdisc>& imap,
 		     Conn& conn,
 		     NGraph& g) {
 
@@ -326,30 +349,16 @@ namespace CoreIR {
     Wireable* p1 = extractSource(c1);
 
     vdisc c1_disc;
-    // if (isRegisterInstance(p1) ||
-    //     isMemoryInstance(p1) ||
-    //     isDFFInstance(p1)) {
-    //   auto c1_disc_it = imap.find(outputNode(p1));
 
-    //   assert(c1_disc_it != imap.end());
+    auto c1_disc_it = imap.find(combNode(p1));
 
-    //   c1_disc = (*c1_disc_it).second;
+    if (isSequential(p1, pluginMap)) {
+      c1_disc_it = imap.find(outputNode(p1));
+    }
 
-    // } else {
-    //   assert(!isRegisterInstance(p1));
+    assert(c1_disc_it != imap.end());
 
-      auto c1_disc_it = imap.find(combNode(p1));
-
-      if (isRegisterInstance(p1) ||
-          isMemoryInstance(p1) ||
-          isDFFInstance(p1)) {
-        c1_disc_it = imap.find(outputNode(p1));
-      }
-
-      assert(c1_disc_it != imap.end());
-
-      c1_disc = (*c1_disc_it).second;
-      //}
+    c1_disc = (*c1_disc_it).second;
       
     Wireable* p2 = extractSource(c2);
 
@@ -362,7 +371,6 @@ namespace CoreIR {
       auto c2_disc_it = imap.find(receiverNode(p2));
 
       if (c2->getSelStr() == "raddr") {
-        cout << "Found raddr" << endl;
         c2_disc_it = imap.find(outputNode(p2));
 
         assert(c2_disc_it != imap.end());
@@ -372,9 +380,7 @@ namespace CoreIR {
       } else {
         auto c2_disc_it = imap.find(combNode(p2));
 
-        if (isRegisterInstance(p2) ||
-            isMemoryInstance(p2) ||
-            isDFFInstance(p2)) {
+        if (isSequential(p2, pluginMap)) {          
           c2_disc_it = imap.find(receiverNode(p2));
         }
         
@@ -386,9 +392,7 @@ namespace CoreIR {
     } else {
 
       auto c2_disc_it = imap.find(combNode(p2));
-      if (isRegisterInstance(p2) ||
-          isMemoryInstance(p2) ||
-          isDFFInstance(p2)) {
+      if (isSequential(p2, pluginMap)) {
         c2_disc_it = imap.find(receiverNode(p2));
       }
 
@@ -403,6 +407,7 @@ namespace CoreIR {
   }
 
   void addWireableToGraph(Wireable* w1,
+                          PluginMap& pluginMap,
 			  unordered_map<WireNode, vdisc>& imap,
 			  NGraph& g) {
 
@@ -410,31 +415,20 @@ namespace CoreIR {
       Instance* inst = toInstance(w1);
       string genRefName = getInstanceName(*inst);
 
-      if (isRegisterInstance(inst) ||
-          isMemoryInstance(inst) ||
-          isDFFInstance(inst)) {
+      if (isSequential(inst, pluginMap)) {
 	WireNode wOutput = outputNode(w1);
 	WireNode wInput = receiverNode(w1);
 
-	// bool setV1 = false;
-	// bool setV2 = false;
-	
 	vdisc v1, v2;
 	if (imap.find(wOutput) == end(imap)) {
 	  v1 = g.addVertex(wOutput);
 	  imap.insert({wOutput, v1});
-	  //setV1 = true;
 	}
 
 	if (imap.find(wInput) == end(imap)) {
 	  v2 = g.addVertex(wInput);
 	  imap.insert({wInput, v2});
-	  //setV2 = true;
 	}
-
-	// if (setV1 && setV2) {
-	//   g.addEdge(v1, v2);
-	// }
 
 	return;
       }
@@ -485,7 +479,7 @@ namespace CoreIR {
   
   }
 
-  void buildOrderedGraph(Module* mod, NGraph& g) {
+  void buildOrderedGraph(PluginMap& pluginMap, Module* mod, NGraph& g) {
 
     auto ord_conns = buildOrderedConnections(mod);
 
@@ -500,18 +494,23 @@ namespace CoreIR {
       Wireable* w1 = extractSource(sel1);
       Wireable* w2 = extractSource(sel2);
 
-      addWireableToGraph(w1, imap, g);
-      addWireableToGraph(w2, imap, g);
+      addWireableToGraph(w1, pluginMap, imap, g);
+      addWireableToGraph(w2, pluginMap, imap, g);
 
     }
 
     // Add edges to the graph
     for (Conn conn : ord_conns) {
-      addConnection(imap, conn, g);
+      addConnection(pluginMap, imap, conn, g);
     }
 
   }
 
+  void buildOrderedGraph(Module* mod, NGraph& g) {
+    PluginMap m;
+    buildOrderedGraph(m, mod, g);
+  }
+  
   InstanceValue findArg(string argName, std::vector<Conn>& ins) {
     for (auto& conn : ins) {
       InstanceValue arg = conn.first;
@@ -523,8 +522,7 @@ namespace CoreIR {
     }
 
     cout << "Error: Could not find argument: " << argName << endl;
-
-    assert(false);
+    coreir_unreachable();
   }
 
   void setEdgeClean(const edisc ed,

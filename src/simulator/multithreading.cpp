@@ -45,7 +45,7 @@ namespace CoreIR {
         vdisc other = gr.source(ed);
         vdisc thisN = gr.target(ed);
 
-        assert(thisN == nextNode);
+        ASSERT(thisN == nextNode,"DEBUGME");
 
         if (cc.find(other) == end(cc)) {
           WireNode wd = gr.getNode(other);

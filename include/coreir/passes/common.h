@@ -17,6 +17,8 @@
 #include "analysis/verifyflattenedtypes.h"
 #include "analysis/createinstancemap.h"
 #include "analysis/createcombview.h"
+#include "analysis/instancecount.h"
+
 
 //Transform passes
 #include "transform/flatten.h"
@@ -37,6 +39,7 @@
 #include "transform/removebulkconnections.h"
 #include "transform/removewires.h"
 #include "transform/removeunconnected.h"
+#include "transform/removesinglemuxes.h"
 #include "transform/registerinputs.h"
 #include "transform/wireclocks.h"
 #include "transform/split_inouts.h"
@@ -47,6 +50,9 @@
 #include "transform/adddirected.h"
 #include "transform/transform2combview.h"
 #include "transform/netify.h"
+#include "transform/inline_single_instances.h"
+#include "transform/clock_gate.h"
+
 
 
 //TODO Macrofy this
@@ -69,6 +75,7 @@ namespace CoreIR {
     pm.addPass(new Passes::VerifyConnectivity());
     pm.addPass(new Passes::VerifyFlattenedTypes());
     pm.addPass(new Passes::CreateCombView());
+    pm.addPass(new Passes::InstanceCount());
 
 
     //Transform
@@ -79,6 +86,7 @@ namespace CoreIR {
     pm.addPass(new Passes::RemoveBulkConnections());
     pm.addPass(new Passes::RemoveWires());
     pm.addPass(new Passes::RemoveUnconnected());
+    pm.addPass(new Passes::RemoveSingleMuxes());
     pm.addPass(new Passes::WireClocks("wireclocks-coreir",c->Named("coreir.clkIn")));
     pm.addPass(new Passes::SplitInouts("split-inouts"));
     pm.addPass(new Passes::CullGraph(true));
@@ -100,6 +108,8 @@ namespace CoreIR {
     pm.addPass(new Passes::Transform2CombView());
     pm.addPass(new Passes::Netify());
     pm.addPass(new Passes::MarkDirty());
+    pm.addPass(new Passes::InlineSingleInstances());
+    pm.addPass(new Passes::ClockGate());
   }
 }
 

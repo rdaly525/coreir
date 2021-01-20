@@ -32,9 +32,10 @@ std::string toConstString(Value* v) {
     //return std::to_string(bv.bitLength()) + "'b" + bv.binary_string();
     return bv.hex_string();
   }
-
-  //TODO could add string
-  assert(0);
+  else if (auto sv = dyn_cast<ConstString>(v)) {
+    return std::string("\"") + sv->toString() + std::string("\"");
+  }
+  coreir_unreachable();
 }
 }
 
@@ -83,7 +84,17 @@ struct VWire {
     if (!isArray) return "";
     return "["+std::to_string(dim-1)+":0]";
   }
-  std::string dirstr() { return (dir==Type::DK_In) ? "input" : "output"; }
+  std::string dirstr() { 
+      if (dir==Type::DK_In) {
+          return "input";
+      } else if (dir==Type::DK_Out) {
+          return "output";
+      } else if (dir==Type::DK_InOut) {
+          return "inout";
+      } else {
+          ASSERT(false, "dirstr not implemented for dir=" + toString(dir));
+      }
+  }
   std::string getName() { return name;}
 };
 
@@ -303,6 +314,8 @@ struct VerilogVModule : VModule {
   VerilogVModule(VModules* vmods) : VModule(vmods) {}
   void addJson(json& jmeta,string name) {
     assert(jmeta.count("verilog") > 0);
+    ASSERT(name != "", name);
+    this->modname = name;
     jver = jmeta["verilog"];
     if (jver.count("verilog_string")) {
       this->modname = name;

@@ -33,13 +33,8 @@ namespace CoreIR {
 
     int i = 0;
     while (toConsider.size() > 0) {
-      if ((i % 100) == 0) {
-        cout << "Folding constants, i = " << i << endl;
-      }
 
       i++;
-
-      // assert(sel->getConnectedWireables().size() == 1);
 
       Instance* inst = *std::begin(toConsider);
       toConsider.erase(inst);
@@ -48,29 +43,13 @@ namespace CoreIR {
         continue;
       }
 
-      // cout << "Considering instance " << inst->toString() << endl;
-      // cout << "Module before trying to fold" << endl;
-      // mod->print();
-
-      // cout << "Checking instances " << inst->toString() << endl;
-      // cout << "Instance name = " << getQualifiedOpName(*inst) << endl;
       if (getQualifiedOpName(*(inst)) == "coreir.mux") {
 
-        //cout << "Found mux " << inst->toString() << endl;
         auto wbs = inst->sel("sel")->getConnectedWireables();
-
-        if (wbs.size() != 1) {
-          cout << inst->sel("sel")->toString() << " selects has " << wbs.size() << " connected wireables" << endl;
-          for (auto w : wbs) {
-            cout << "\t" << w->toString() << endl;
-          }
-        }
 
         assert(wbs.size() == 1);
 
         Wireable* ptr = *std::begin(wbs);
-
-        //cout << "Conneted to " << ptr->toString() << endl;
 
         assert(isa<Select>(ptr));
 
@@ -79,25 +58,19 @@ namespace CoreIR {
         if (isa<Instance>(src) &&
             (getQualifiedOpName(*(cast<Instance>(src))) == "coreir.const")) {
           Instance* srcConst = cast<Instance>(src);
-          //cout << "Found constant mux" << endl;
 
           BitVec val =
             (srcConst->getModArgs().find("value"))->second->get<BitVec>();
-
-          //cout << "value = " << val << endl;
 
           Select* bitSelect = cast<Select>(ptr);
 
           string selStr = bitSelect->getSelStr();
           Wireable* parent = cast<Select>(bitSelect->getParent())->getParent();
 
-          assert(parent == src);
-          assert(isNumber(selStr));
+          ASSERT(parent == src,"parent must be src");
+          ASSERT(isNumber(selStr),"Must be a number");
 
           int offset = stoi(selStr);
-
-          // cout << "\tSource = " << srcConst->toString() << endl;
-          // cout << "\tOffset = " << offset << endl;
 
           if (!val.get(offset).is_binary()) {
             continue;
@@ -232,15 +205,6 @@ namespace CoreIR {
         vector<Select*> in0Values = getSignalValues(in0);
         vector<Select*> in1Values = getSignalValues(in1);
 
-        // cout << "in0 values" << endl;
-        // for (auto val : in0Values) {
-        //   cout << "\t" << val->toString() << endl;
-        // }
-        // cout << "in1 values" << endl;
-        // for (auto val : in1Values) {
-        //   cout << "\t" << val->toString() << endl;
-        // }
-
         maybe<BitVec> sigValue0 = getSignalBitVec(in0Values);
         maybe<BitVec> sigValue1 = getSignalBitVec(in1Values);
 
@@ -249,14 +213,12 @@ namespace CoreIR {
           BitVec sigVal0 = sigValue0.get_value();
           BitVec sigVal1 = sigValue1.get_value();
 
-          // cout << "sigVal0 = " << sigVal0 << endl;
-          // cout << "sigVal1 = " << sigVal1 << endl;
           BitVec res = BitVec(1, (sigVal0 == sigVal1) ? 1 : 0);
 
           uint inWidth =
             inst->getModuleRef()->getGenArgs().at("width")->get<int>();
 
-          assert(((uint) sigVal0.bitLength()) == inWidth);
+          ASSERT(((uint) sigVal0.bitLength()) == inWidth,"BitLength is incorrect");
           assert(((uint) sigVal1.bitLength()) == inWidth);
           assert(res.bitLength() == 1);
 
@@ -374,7 +336,41 @@ namespace CoreIR {
                        instPT->sel("in")->sel("out"));
           inlineInstance(instPT);
             
+        } else if (sigValue1.has_value()) {
+          BitVec sigVal1 = sigValue1.get_value();
+
+          if ((sigVal1.bitLength() == 1) && (sigVal1 == BitVec(1, 0))) {
+
+            BitVec res = BitVec(1, 0);
+
+            uint inWidth =
+              inst->getModuleRef()->getGenArgs().at("width")->get<int>();
+
+            auto newConst =
+              def->addInstance(inst->toString() + "_const_replacement",
+                               "coreir.const",
+                               {{"width", Const::make(c, inWidth)}},
+                               {{"value", Const::make(c, res)}});
+
+            auto recInstances = getReceiverSelects(inst);
+            for (auto elem : recInstances) {
+              auto src = extractSource(elem);
+              if (isa<Instance>(src)) {
+                toConsider.insert(cast<Instance>(src));
+              }
+            }
+
+            Instance* instPT = addPassthrough(inst, "_inline_or_PT");
+            Select* replacement = newConst->sel("out");
+
+            def->removeInstance(inst);
+            def->connect(replacement,
+                         instPT->sel("in")->sel("out"));
+            inlineInstance(instPT);
+            
+          }
         }
+
 
       } else if (getQualifiedOpName(*(inst)) == "coreir.or") {
 
@@ -533,7 +529,7 @@ namespace CoreIR {
           uint inWidth =
             inst->getModuleRef()->getGenArgs().at("width")->get<int>();
 
-          assert(((uint) sigVal0.bitLength()) == inWidth);
+          ASSERT(((uint) sigVal0.bitLength()) == inWidth,"BitLength is incorrect");
           assert(res.bitLength() == 1);
 
           bool resVal = res == BitVec(1, 1) ? true : false;
@@ -703,7 +699,7 @@ namespace CoreIR {
           uint inWidth =
             inst->getModuleRef()->getGenArgs().at("width")->get<int>();
 
-          assert(((uint) sigVal0.bitLength()) == inWidth);
+          ASSERT(((uint) sigVal0.bitLength()) == inWidth,"BitLength is incorrect");
           assert(res.bitLength() == 1);
 
           bool resVal = res == BitVec(1, 1) ? true : false;
@@ -731,8 +727,43 @@ namespace CoreIR {
 
         }
 
-      } else {
-        cout << "No folding rule for " << getQualifiedOpName(*inst) << endl;
+      } else if (getQualifiedOpName(*(inst)) == "coreir.wire") {
+
+        Select* in = inst->sel("in");
+
+        vector<Select*> in0Values = getSignalValues(in);
+        maybe<BitVec> sigValue0 = getSignalBitVec(in0Values);
+
+        if (sigValue0.has_value()) {
+
+
+          BitVec sigVal0 = sigValue0.get_value();
+
+          BitVector value = inst->getModArgs().at("init")->get<BitVector>();
+          auto newConst =
+            def->addInstance(inst->toString() + "_reg_const_replacement",
+                             "coreir.const",
+                             {{"width", Const::make(c, value.bitLength())}},
+                             {{"value", Const::make(c, BitVector(value))}});
+
+          auto recInstances = getReceiverSelects(inst);
+          for (auto elem : recInstances) {
+            auto src = extractSource(elem);
+            if (isa<Instance>(src)) {
+              toConsider.insert(cast<Instance>(src));
+            }
+          }
+            
+          Instance* instPT = addPassthrough(inst, "_inline_orr_PT");
+          Select* replacement = newConst->sel("out");
+
+          def->removeInstance(inst);
+          def->connect(replacement,
+                       instPT->sel("in")->sel("out"));
+          inlineInstance(instPT);
+
+        }
+
       }
     }
 

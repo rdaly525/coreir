@@ -67,6 +67,7 @@ namespace bsim {
     }
 
     assert(false);
+    return "";
   }
 
   class quad_value {
@@ -418,11 +419,7 @@ namespace bsim {
       }
     }
 
-    // Note: Need to check that all digits in each clump that
-    // contain 'x' or 'z' values are 'x' or 'z' values
-    std::string hex_string() const {
-      std::string hex = std::to_string(N) + "'h";
-
+    std::string hex_digits() const {
       std::string hex_digits = "";
 
       for (int i = 0; i < ((int) bits.size()); i += 4) {
@@ -457,7 +454,15 @@ namespace bsim {
       }
 
       std::reverse(std::begin(hex_digits), std::end(hex_digits));
-      return hex + hex_digits;
+      return hex_digits;
+    }
+
+    // Note: Need to check that all digits in each clump that
+    // contain 'x' or 'z' values are 'x' or 'z' values
+    std::string hex_string() const {
+      std::string hex = std::to_string(N) + "'h";
+
+      return hex + hex_digits();
     }
     
     quad_value_bit_vector(const quad_value_bit_vector& other) {
@@ -505,6 +510,7 @@ namespace bsim {
     }
     
     inline void set(const int ind, const int v) {
+      assert(ind < (int) bits.size());
       // if ((v != 0) && (v != 1)) {
       //   std::cout << "\tv = " << (int) v << std::endl;
       // }
@@ -514,6 +520,8 @@ namespace bsim {
     }
 
     inline void set(const int ind, const quad_value val) {
+      assert(ind < (int) bits.size());
+      
       //const unsigned char val) {
       // int byte_num = ind / 8;
       // int bit_num = ind % 8;
@@ -527,6 +535,7 @@ namespace bsim {
     }
 
     quad_value get(const int ind) const {
+      assert(ind < (int) bits.size());
       return bits[ind];
       // int byte_num = ind / 8;
       // int bit_num = ind % 8;
@@ -903,7 +912,9 @@ namespace bsim {
       return false;
     }
     
-    assert(a.bitLength() == b.bitLength());
+    ASSERT(a.bitLength() == b.bitLength(),
+           "a=" + std::to_string(a.bitLength()) +
+           " b=" + std::to_string(b.bitLength()));
 
     int N = a.bitLength();
 

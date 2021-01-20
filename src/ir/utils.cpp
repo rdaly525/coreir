@@ -157,7 +157,7 @@ namespace CoreIR {
     }
 
     cout << "ERROR: No type width for " << tp.toString() << endl;
-    assert(false);
+    coreir_unreachable();
   }
 
   uint containerTypeWidth(Type& tp) {
@@ -181,7 +181,7 @@ namespace CoreIR {
       return 64;
     }
 
-    assert(false);
+    coreir_unreachable();
   }
 
   bool standardWidth(Type& tp) {
@@ -231,7 +231,7 @@ namespace CoreIR {
     }
 
     cout << "Could not find select with name = " << selName << endl;
-    assert(false);
+    coreir_unreachable();
   }
 
   bool fromSelfInterface(Select* w) {
@@ -331,6 +331,7 @@ namespace CoreIR {
     //assert(addrBytes.size() == 4);
     int numBits = str.size() * 4;
 
+    //cout << "# of bits in " << str << " is " << numBits << endl;
     reverse(addrBytes);
 
     BitVector configAddr(numBits, 0);
@@ -339,12 +340,15 @@ namespace CoreIR {
     for (auto byte : addrBytes) {
       BitVector tmp(8, byte);
       for (uint i = 0; i < (uint) tmp.bitLength(); i++) {
-        configAddr.set(offset, tmp.get(i));
+        //cout << "offset = " << offset << endl;
+        if (offset < numBits) {
+          configAddr.set(offset, tmp.get(i));
+        }
         offset++;
       }
     }
 
-    assert(offset == 32);
+    //assert(offset == 32);
 
     return configAddr;
   }
