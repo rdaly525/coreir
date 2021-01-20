@@ -8,8 +8,7 @@ void testReplaceArrayPort() {
   Context* c = newContext();
 
   Namespace* g = c->getGlobal();
-  Type* tp = c->Record({{"in", c->BitIn()->Arr(3)},
-        {"out", c->Bit()->Arr(3)}});
+  Type* tp = c->Record({{"in", c->BitIn()->Arr(3)}, {"out", c->Bit()->Arr(3)}});
 
   Module* md = g->newModuleDecl("port_in", tp);
   ModuleDef* def = md->newModuleDef();
@@ -34,15 +33,13 @@ void testReplaceArrayPort() {
   assert(state.getBitVec("self.out") == ~BitVec(3, 5));
 
   deleteContext(c);
-
 }
 
 void testReplaceBitPort() {
   Context* c = newContext();
 
   Namespace* g = c->getGlobal();
-  Type* tp = c->Record({{"in", c->BitIn()},
-        {"out", c->Bit()}});
+  Type* tp = c->Record({{"in", c->BitIn()}, {"out", c->Bit()}});
 
   Module* md = g->newModuleDecl("port_in", tp);
   ModuleDef* def = md->newModuleDef();
@@ -62,7 +59,7 @@ void testReplaceBitPort() {
     cout << "Could not save to json!!" << endl;
     c->die();
   }
-  
+
   cout << "module after" << endl;
   md->print();
 
@@ -80,16 +77,16 @@ void testBuildBitArrayToBit() {
   Context* c = newContext();
 
   Namespace* g = c->getGlobal();
-  Type* tp = c->Record({{"in", c->BitIn()},
-        {"out", c->Bit()}});
+  Type* tp = c->Record({{"in", c->BitIn()}, {"out", c->Bit()}});
 
   Module* md = g->newModuleDecl("port_in", tp);
   ModuleDef* def = md->newModuleDef();
 
-  def->addInstance("def_self_const_replace_0",
-                   "coreir.const",
-                   {{"width", Const::make(c, 1)}},
-                   {{"value", Const::make(c, BitVec(1, 0))}});
+  def->addInstance(
+    "def_self_const_replace_0",
+    "coreir.const",
+    {{"width", Const::make(c, 1)}},
+    {{"value", Const::make(c, BitVec(1, 0))}});
 
   def->addInstance("neg", "corebit.not");
   def->connect("def_self_const_replace_0.out", "neg.in");
@@ -108,7 +105,7 @@ void testBuildBitArrayToBit() {
   //   cout << "Could not save to json!!" << endl;
   //   c->die();
   // }
-  
+
   // cout << "module after" << endl;
   // md->print();
 
@@ -127,5 +124,5 @@ void testBuildBitArrayToBit() {
 int main() {
   testReplaceArrayPort();
   testReplaceBitPort();
-  //testBuildBitArrayToBit();
+  // testBuildBitArrayToBit();
 }

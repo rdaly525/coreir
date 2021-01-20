@@ -4,17 +4,12 @@
 using namespace CoreIR;
 
 class EHello : public NamespacePass {
-  public :
-    static std::string ID;
-    
-    EHello() : NamespacePass(ID,"External Hello Transform") {}
-    bool runOnNamespace(Namespace* n) override;
-    void setAnalysisInfo() override {
-      addDependency("helloa");
-    }
+ public:
+  EHello() : NamespacePass("ehello", "External Hello Transform") {}
+  bool runOnNamespace(Namespace* n) override;
+  void setAnalysisInfo() override { addDependency("helloa"); }
 };
 
-string EHello::ID = "ehello";
 bool EHello::runOnNamespace(Namespace* ns) {
   Passes::HelloA* dp = getAnalysisPass<Passes::HelloA>();
   cout << "EHello!" << endl;
@@ -22,10 +17,6 @@ bool EHello::runOnNamespace(Namespace* ns) {
   return false;
 }
 
-extern "C" Pass* registerPass() {
-  return new EHello;
-}
+extern "C" Pass* registerPass() { return new EHello; }
 
-extern "C" void deletePass(Pass* p) {
-  delete p;
-}
+extern "C" void deletePass(Pass* p) { delete p; }

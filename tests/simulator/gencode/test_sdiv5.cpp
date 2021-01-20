@@ -1,7 +1,7 @@
 #include "sdiv5.h"
 
-#include <iostream>
 #include <bitset>
+#include <iostream>
 
 using namespace std;
 
@@ -14,19 +14,17 @@ int main() {
   // -15 / 2 == -7
   uint8_t expected = 0b11001;
 
-  //uint8_t res = 234;
+  // uint8_t res = 234;
   state.self_out = 234;
 
-  //simulate(&res, A);
+  // simulate(&res, A);
 
   simulate(&state);
 
   cout << "sdiv expected = " << bitset<8>(expected) << endl;
-  //cout << "sdiv res      = " << bitset<8>(res) << endl;
+  // cout << "sdiv res      = " << bitset<8>(res) << endl;
 
-  if (expected == state.self_out) {
-    return 0;
-  }
+  if (expected == state.self_out) { return 0; }
 
   return 1;
 }

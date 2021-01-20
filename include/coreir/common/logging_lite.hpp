@@ -54,8 +54,7 @@ class Logger {
   Logger(const Logger& that) = delete;
   ~Logger();
 
-  template<typename T>
-  static void Write(const T& x) { std::cerr << x; }
+  template <typename T> static void Write(const T& x) { std::cerr << x; }
   static void EndLine() { std::cerr << std::endl; }
 
   bool write() const { return write_; }
@@ -66,39 +65,39 @@ class Logger {
   bool write_;
 };
 
-template<typename T> Logger operator<<(Logger&& l, const T& x) {
+template <typename T> Logger operator<<(Logger&& l, const T& x) {
   if (l.write()) Logger::Write(x);
   return std::move(l);
 }
 
-template<typename T> Logger operator<<(LoggerWrapper l, const T& x) {
+template <typename T> Logger operator<<(LoggerWrapper l, const T& x) {
   return std::move(Logger(true, l.abort(), l.write()) << x);
 }
 
 class LoggerVoidify {
  public:
   LoggerVoidify() {}
-  template<class T> void operator&(T& x) {}
-  template<class T> void operator&(T&& x) {}
+  template <class T> void operator&(T& x) {}
+  template <class T> void operator&(T&& x) {}
 };
 
 }  // namespace internal
 }  // namespace common
 
-#define LOG(severity)                                                   \
-  ::common::internal::LoggerWrapper(severity)                           \
-      << __FILE__ << ":" << __LINE__ << " "
+#define LOG(severity)                                                          \
+  ::common::internal::LoggerWrapper(severity)                                  \
+    << __FILE__ << ":" << __LINE__ << " "
 
-#define LOG_IF(severity, condition)                                     \
-  (!condition) ? ((void) 0) :                                           \
-      ::common::internal::LoggerVoidify() & LOG(severity)
+#define LOG_IF(severity, condition)                                            \
+  (!condition) ? ((void)0) : ::common::internal::LoggerVoidify() & LOG(severity)
 
 #define CHECK(condition) LOG_IF(FATAL, !(condition))
 
 #ifndef NDEBUG
 #define DCHECK(condition) CHECK(condition)
 #else  // !NDEBUG
-#define DCHECK(condition) while(false) CHECK(condition)
+#define DCHECK(condition)                                                      \
+  while (false) CHECK(condition)
 #endif  // NDEBUG
 
 #endif  // COREIR_COMMON_LOGGING_LITE_HPP_

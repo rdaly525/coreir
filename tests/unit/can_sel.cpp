@@ -1,13 +1,13 @@
 #include "coreir.h"
 
-#include <string>
 #include <fstream>
 #include <streambuf>
+#include <string>
 
 #include "coreir/libs/rtlil.h"
 #include "coreir/passes/transform/deletedeadinstances.h"
-#include "coreir/passes/transform/unpackconnections.h"
 #include "coreir/passes/transform/packconnections.h"
+#include "coreir/passes/transform/unpackconnections.h"
 
 using namespace std;
 using namespace CoreIR;
@@ -19,11 +19,9 @@ int main() {
 
   uint width = 4;
 
-  Type* addModTP = c->Record({
-      {"in0", c->BitIn()->Arr(width)},
-        {"in1", c->BitIn()->Arr(width)},
-          {"out", c->Bit()->Arr(width)}
-    });
+  Type* addModTP = c->Record({{"in0", c->BitIn()->Arr(width)},
+                              {"in1", c->BitIn()->Arr(width)},
+                              {"out", c->Bit()->Arr(width)}});
 
   Module* addMod = g->newModuleDecl("addMod", addModTP);
   ModuleDef* def = addMod->newModuleDef();

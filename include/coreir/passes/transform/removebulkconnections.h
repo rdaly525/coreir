@@ -6,16 +6,17 @@
 namespace CoreIR {
 namespace Passes {
 
-
 class RemoveBulkConnections : public ModulePass {
-  public :
-    static std::string ID;
-    
-    RemoveBulkConnections() : ModulePass(ID,"Removes any bulk connections. Only connections will be bits and arrays of bits") {}
-    bool runOnModule(Module* m) override;
+ public:
+  RemoveBulkConnections()
+      : ModulePass(
+          "removebulkconnections",
+          "Removes any bulk connections. Only connections will be bits and "
+          "arrays of bits") {}
+  bool runOnModule(Module* m) override;
 };
 
-}
-}
+}  // namespace Passes
+}  // namespace CoreIR
 
 #endif

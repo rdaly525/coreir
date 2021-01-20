@@ -3,8 +3,8 @@
 
 #include "coreir/libs/rtlil.h"
 #include "coreir/passes/transform/deletedeadinstances.h"
-#include "coreir/passes/transform/unpackconnections.h"
 #include "coreir/passes/transform/packconnections.h"
+#include "coreir/passes/transform/unpackconnections.h"
 
 using namespace std;
 using namespace CoreIR;
@@ -23,9 +23,17 @@ void testFoldEquals() {
 
   def->addInstance("cmp", "coreir.eq", {{"width", Const::make(c, width)}});
 
-  def->addInstance("c0", "coreir.const", {{"width", Const::make(c, cwidth)}}, {{"value", Const::make(c, BitVec(cwidth, 0x00000C00))}});
+  def->addInstance(
+    "c0",
+    "coreir.const",
+    {{"width", Const::make(c, cwidth)}},
+    {{"value", Const::make(c, BitVec(cwidth, 0x00000C00))}});
 
-  def->addInstance("c1", "coreir.const", {{"width", Const::make(c, width)}}, {{"value", Const::make(c, BitVec(width, 3))}});
+  def->addInstance(
+    "c1",
+    "coreir.const",
+    {{"width", Const::make(c, width)}},
+    {{"value", Const::make(c, BitVec(width, 3))}});
 
   def->connect("c0.out.10", "cmp.in0.0");
   def->connect("c0.out.11", "cmp.in0.1");
@@ -36,16 +44,14 @@ void testFoldEquals() {
   def->connect("cmp.out", "self.out");
 
   c->runPasses({"rungenerators"});
-  
+
   eqMod->setDef(def);
-  if (!saveToFile(g, "_eqmod.json",eqMod)) {
-    c->die();
-  }
+  if (!saveToFile(g, "_eqmod.json", eqMod)) { c->die(); }
 
   SimulatorState originalState(eqMod);
   originalState.execute();
   assert(originalState.getBitVec("self.out") == BitVec(1, 1));
-  
+
   foldConstants(eqMod);
   eqMod->print();
   deleteDeadInstances(eqMod);
@@ -67,15 +73,17 @@ void testFoldRegister() {
 
   Namespace* g = c->getGlobal();
   Type* tp = c->Record({{"in", c->BitIn()->Arr(3)},
-        {"clk", c->Named("coreir.clkIn")},
-          {"out", c->Bit()->Arr(3)}});
+                        {"clk", c->Named("coreir.clkIn")},
+                        {"out", c->Bit()->Arr(3)}});
 
   Module* md = g->newModuleDecl("port_in", tp);
   ModuleDef* def = md->newModuleDef();
 
-  def->addInstance("reg", "coreir.reg",
-                   {{"width", Const::make(c, 3)}},
-                   {{"init", Const::make(c, BitVec(3, 2))}});
+  def->addInstance(
+    "reg",
+    "coreir.reg",
+    {{"width", Const::make(c, 3)}},
+    {{"init", Const::make(c, BitVec(3, 2))}});
 
   def->connect("reg.out", "reg.in");
   def->connect("self.clk", "reg.clk");
@@ -110,7 +118,6 @@ void testFoldRegister() {
   assert(state.getBitVec("self.out") == BitVec(3, 2));
 
   deleteContext(c);
-
 }
 
 void testFoldRegArst() {
@@ -118,22 +125,27 @@ void testFoldRegArst() {
 
   Namespace* g = c->getGlobal();
   Type* tp = c->Record({{"in", c->BitIn()->Arr(3)},
-        {"clk", c->Named("coreir.clkIn")},
-          {"out", c->Bit()->Arr(3)}});
+                        {"clk", c->Named("coreir.clkIn")},
+                        {"out", c->Bit()->Arr(3)}});
 
   Module* md = g->newModuleDecl("port_in", tp);
   ModuleDef* def = md->newModuleDef();
 
+  def->addInstance(
+    "rstVal",
+    "corebit.const",
+    {{"value", Const::make(c, true)}});
 
-  def->addInstance("rstVal", "corebit.const", {{"value", Const::make(c, true)}});
+  def->addInstance(
+    "wrapRst",
+    "coreir.wrap",
+    {{"type", Const::make(c, c->Named("coreir.arst"))}});
 
-  def->addInstance("wrapRst",
-                   "coreir.wrap",
-                   {{"type", Const::make(c, c->Named("coreir.arst"))}});
-
-  def->addInstance("reg", "coreir.reg_arst",
-                   {{"width", Const::make(c, 3)}},
-                   {{"init", Const::make(c, BitVec(3, 2))}});
+  def->addInstance(
+    "reg",
+    "coreir.reg_arst",
+    {{"width", Const::make(c, 3)}},
+    {{"init", Const::make(c, BitVec(3, 2))}});
 
   def->connect("reg.out", "reg.in");
   def->connect("rstVal.out", "wrapRst.in");
@@ -170,7 +182,6 @@ void testFoldRegArst() {
   assert(state.getBitVec("self.out") == BitVec(3, 2));
 
   deleteContext(c);
-
 }
 
 int main() {

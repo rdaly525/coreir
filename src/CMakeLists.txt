@@ -2,6 +2,7 @@ message(STATUS ${CMAKE_CURRENT_SOURCE_DIR})
 file(GLOB SRC_FILES 
     ${CMAKE_CURRENT_SOURCE_DIR}/ir/[^_]*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/passes/analysis/[^_]*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/passes/analysis/verilog/[^_]*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/passes/transform/[^_]*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/common/[^_]*.cpp
 )
@@ -38,6 +39,13 @@ target_include_directories(coreir PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 target_link_libraries(coreir dl)
 target_link_libraries(coreir verilogAST)
 
+if (COREIR_PROFILE)
+    # requires gperftools, e.g. brew install gperftools
+    set (Gperftools_DIR "${CMAKE_CURRENT_LIST_DIR}/../cmake/")
+    find_package(Gperftools REQUIRED)
+    target_link_libraries(coreir ${GPERFTOOLS_LIBRARIES})
+endif()
+
 #Install libcoreir
 install(
     TARGETS coreir
@@ -73,6 +81,7 @@ target_link_libraries(coreir-bin PUBLIC coreir)
 target_include_directories(coreir-bin PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 set_target_properties(coreir-bin
     PROPERTIES OUTPUT_NAME coreir
+    COMPILE_FLAGS "-DCOREIR_VERSION=\\\"${COREIR_VERSION}\\\" -DGIT_SHA1=\\\"${GIT_SHA1}\\\""
 )
 add_custom_command(
   TARGET coreir-bin

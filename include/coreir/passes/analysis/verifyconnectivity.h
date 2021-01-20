@@ -6,27 +6,25 @@
 namespace CoreIR {
 namespace Passes {
 
-//This will Verify that all modules have No unconnected ports
+// This will Verify that all modules have No unconnected ports
 class VerifyConnectivity : public ModulePass {
   bool onlyInputs = false;
   bool checkClkRst = true;
-  public :
-    static std::string ID;
-    VerifyConnectivity() : ModulePass(ID,"Checks connectivity",true) {}
-    void setAnalysisInfo() override {
-      addDependency("verifyinputconnections");
-    }
-    void initialize(int argc, char** argv) override;
-    bool runOnModule(Module* m) override;
-    bool finalize() override {
-      getContext()->checkerrors();
-      return false;
-    }
 
-  private:
-    bool checkIfFullyConnected(Wireable* w, Error& e);
+ public:
+  VerifyConnectivity() : ModulePass("verifyconnectivity", "Checks connectivity", true) {}
+  void setAnalysisInfo() override { addDependency("verifyinputconnections"); }
+  void initialize(int argc, char** argv) override;
+  bool runOnModule(Module* m) override;
+  bool finalize() override {
+    getContext()->checkerrors();
+    return false;
+  }
+
+ private:
+  bool checkIfFullyConnected(Wireable* w, Error& e);
 };
 
-}
-}
+}  // namespace Passes
+}  // namespace CoreIR
 #endif

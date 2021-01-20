@@ -6,15 +6,13 @@
 namespace CoreIR {
 namespace Passes {
 
-  class RemoveWires : public InstanceVisitorPass {
-  public :
-    static std::string ID;
-  RemoveWires() : InstanceVisitorPass(ID,"Inlines all wires") {}
-    void setVisitorInfo() override;
-  };
+class RemoveWires : public InstanceVisitorPass {
+ public:
+  RemoveWires() : InstanceVisitorPass("removewires", "Inlines all wires") {}
+  void setVisitorInfo() override;
+};
 
-
-}
-}
+}  // namespace Passes
+}  // namespace CoreIR
 
 #endif

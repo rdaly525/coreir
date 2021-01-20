@@ -1,0 +1,54 @@
+{"top":"global.hcompute_hw_output_stencil",
+"namespaces":{
+  "global":{
+    "modules":{
+      "hcompute_hw_output_stencil":{
+        "type":["Record",[
+          ["clk",["Named","coreir.clkIn"]],
+          ["in0_f6_stencil",["Array",1,["Array",16,"BitIn"]]],
+          ["out_hw_output_stencil",["Array",16,"Bit"]]
+        ]],
+        "instances":{
+          "const0__1598":{
+            "genref":"coreir.const",
+            "genargs":{"width":["Int",16]},
+            "modargs":{"value":[["BitVector",16],"16'h0000"]}
+          },
+          "const1023__1596":{
+            "genref":"coreir.const",
+            "genargs":{"width":["Int",16]},
+            "modargs":{"value":[["BitVector",16],"16'h03ff"]}
+          },
+          "curve$1":{
+            "genref":"memory.rom2",
+            "genargs":{"depth":["Int",255], "width":["Int",16]},
+            "modargs":{"init":["Json",[0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6,7,7,7,7,8,8,8,8,9,9,9,9,10,10,10,10,11,11,11,11,12,12,12,12,13,13,13,13,14,14,14,14,15,15,15,15,16,16,16,16,17,17,17,17,18,18,18,18,19,19,19,19,20,20,20,20,21,21,21,21,22,22,22,22,23,23,23,23,24,24,24,24,25,25,25,25,26,26,26,26,27,27,27,27,28,28,28,28,29,29,29,29,30,30,30,30,31,31,31,31,32,32,32,32,33,33,33,33,34,34,34,34,35,35,35,35,36,36,36,36,37,37,37,37,38,38,38,38,39,39,39,39,40,40,40,40,41,41,41,41,42,42,42,42,43,43,43,43,44,44,44,44,45,45,45,45,46,46,46,46,47,47,47,47,48,48,48,48,49,49,49,49,50,50,50,50,51,51,51,51,52,52,52,52,53,53,53,53,54,54,54,54,55,55,55,55,56,56,56,56,57,57,57,57,58,58,58,58,59,59,59,59,60,60,60,60,61,61,61,61,62,62,62,62,63,63]]}
+          },
+          "curve$1_ren":{
+            "modref":"corebit.const",
+            "modargs":{"value":["Bool",true]}
+          },
+          "smax_1597_1598_1599":{
+            "genref":"commonlib.smax",
+            "genargs":{"width":["Int",16]}
+          },
+          "smin_f6_stencil_1_1596_1597":{
+            "genref":"commonlib.smin",
+            "genargs":{"width":["Int",16]}
+          }
+        },
+        "connections":[
+          ["smax_1597_1598_1599.in1","const0__1598.out"],
+          ["smin_f6_stencil_1_1596_1597.in1","const1023__1596.out"],
+          ["self.clk","curve$1.clk"],
+          ["smax_1597_1598_1599.out","curve$1.raddr"],
+          ["self.out_hw_output_stencil","curve$1.rdata"],
+          ["curve$1_ren.out","curve$1.ren"],
+          ["smin_f6_stencil_1_1596_1597.in0","self.in0_f6_stencil.0"],
+          ["smin_f6_stencil_1_1596_1597.out","smax_1597_1598_1599.in0"]
+        ]
+      }
+    }
+  }
+}
+}

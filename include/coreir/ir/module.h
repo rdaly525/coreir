@@ -1,18 +1,17 @@
 #ifndef COREIR_MODULE_HPP_
 #define COREIR_MODULE_HPP_
 
-
-#include "fwd_declare.h"
 #include "args.h"
-#include "globalvalue.h"
 #include "coreir/primitive.h"
+#include "fwd_declare.h"
+#include "globalvalue.h"
 
 namespace CoreIR {
 
 class Module : public GlobalValue, public Args, public VerilogPrimitive {
   RecordType* type;
   ModuleDef* def = nullptr;
-  
+
   const Params modparams;
   Values defaultModArgs;
 
@@ -21,65 +20,75 @@ class Module : public GlobalValue, public Args, public VerilogPrimitive {
 
   std::string longname;
 
-  //the directedModule View
+  // the directedModule View
   DirectedModule* directedModule = nullptr;
 
-  //Memory Management
+  // Memory Management
   std::vector<ModuleDef*> mdefList;
 
-  public :
-    Module(Namespace* ns,std::string name, Type* type,Params modparams);
-    Module(Namespace* ns,std::string name, Type* type,Params modparams, Generator* g, Values genargs);
-    virtual ~Module();
-    static bool classof(const GlobalValue* i) {return i->getKind()==GVK_Module;}
-    bool hasDef() const { return !!def; }
-    ModuleDef* getDef() const;
-    //This will validate def
-    void setDef(ModuleDef* def, bool validate=true);
+ public:
+  Module(Namespace* ns, std::string name, Type* type, Params modparams);
+  Module(
+    Namespace* ns,
+    std::string name,
+    Type* type,
+    Params modparams,
+    Generator* g,
+    Values genargs);
+  virtual ~Module();
+  static bool classof(const GlobalValue* i) {
+    return i->getKind() == GVK_Module;
+  }
+  bool hasDef() const { return !!def; }
+  ModuleDef* getDef() const;
+  // This will validate def
+  void setDef(ModuleDef* def, bool validate = true);
 
-    bool hasVerilogDef();
-   
-    ModuleDef* newModuleDef();
-    
-    const Params& getModParams() const { return modparams;}
+  bool hasVerilogDef();
 
-    //TODO move this
-    DirectedModule* newDirectedModule();
-    
-    std::string toString() const override;
-    RecordType* getType() { return type;}
-    
-    bool isGenerated() const { return !!g;}
-    Generator* getGenerator() { 
-      ASSERT(isGenerated(),"Cannot getGenerator, is not a generated module: " + this->getRefName());
-      return g;
-    }
-    Values getGenArgs() { 
-      ASSERT(isGenerated(),"Cannot getGenArgs, is not a generated module: " + this->getRefName());
-      return genargs;
-    }
+  ModuleDef* newModuleDef();
 
-    //Only runs a generator if the module does not already have a definition
-    bool runGenerator();
-    std::string getLongName() const {return longname;}
+  const Params& getModParams() const { return modparams; }
 
-    void print(void) const override;
+  // TODO move this
+  DirectedModule* newDirectedModule();
 
-    //This will add (and override) defaultModArgs
-    void addDefaultModArgs(Values defaultModArgs);
-    Values& getDefaultModArgs() { return defaultModArgs;}
+  std::string toString() const override;
+  RecordType* getType() { return type; }
 
-    bool canSel(std::string sel_str);
-    bool canSel(SelectPath sel_path);
+  bool isGenerated() const { return !!g; }
+  Generator* getGenerator() {
+    ASSERT(
+      isGenerated(),
+      "Cannot getGenerator, is not a generated module: " + this->getRefName());
+    return g;
+  }
+  Values getGenArgs() {
+    ASSERT(
+      isGenerated(),
+      "Cannot getGenArgs, is not a generated module: " + this->getRefName());
+    return genargs;
+  }
 
-  private :
-    //This should be used very carefully. Could make things inconsistent
-    friend class InstanceGraphNode;
-    void setType(RecordType* t) {
-      this->type = t;
-    }
+  // Only runs a generator if the module does not already have a definition
+  bool runGenerator();
+  std::string getLongName() const { return longname; }
+
+  void print(void) const override;
+
+  // This will add (and override) defaultModArgs
+  void addDefaultModArgs(Values defaultModArgs);
+  Values& getDefaultModArgs() { return defaultModArgs; }
+
+  bool canSel(std::string sel_str);
+  bool canSel(SelectPath sel_path);
+
+ private:
+  // This should be used very carefully. Could make things inconsistent
+  friend class InstanceGraphNode;
+  void setType(RecordType* t) { this->type = t; }
 };
 
-}//CoreIR namespace
+}  // namespace CoreIR
 
 #endif

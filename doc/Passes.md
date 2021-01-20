@@ -24,7 +24,7 @@ CoreIR has a set of predifined passes described below. (This documentation is a 
   removeconstduplicates
   packconnections
   createfullinstancemap
-  wireclocks-coreir
+  wireclocks-clk
   fold-constants
   flatten
   verilog

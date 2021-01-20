@@ -1,7 +1,7 @@
 #pragma once
 
-#include "coreir/common-macros.h"
 #include "coreir-c/ctypes.h"
+#include "coreir/common-macros.h"
 
 #ifdef __cplusplus
 #include "coreir.h"

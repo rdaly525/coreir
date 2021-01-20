@@ -10,7 +10,6 @@ void printMem(circuit_state& state) {
   for (int i = 0; i < 10; i++) {
     cout << "\tm0$mem[" << i << "] = " << bitset<8>(state.m0$mem[i]) << endl;
   }
-
 }
 
 int main() {
@@ -23,10 +22,8 @@ int main() {
 
   state.m0$raddr$reg0 = 0;
   state.m0$waddr$reg0 = 0;
-  
-  for (int i = 0; i < 10; i++) {
-    state.m0$mem[i] = 0;
-  }
+
+  for (int i = 0; i < 10; i++) { state.m0$mem[i] = 0; }
 
   printMem(state);
 
@@ -35,13 +32,16 @@ int main() {
 
     state.self_clk_last = 0;
 
-    //printMem(state);
-    cout << "state.self_rdata " << i << "             = " << bitset<8>(state.self_rdata) << endl;
-    //cout << "state.self_m0$raddr$reg0     = " << bitset<8>(state.m0$raddr$reg0) << endl;
-    //cout << "state.self_m0$waddr$reg0     = " << bitset<8>(state.m0$waddr$reg0) << endl;
+    // printMem(state);
+    cout << "state.self_rdata " << i << "             = "
+         << bitset<8>(state.self_rdata) << endl;
+    // cout << "state.self_m0$raddr$reg0     = " <<
+    // bitset<8>(state.m0$raddr$reg0) << endl; cout << "state.self_m0$waddr$reg0
+    // = " << bitset<8>(state.m0$waddr$reg0) << endl;
 
-    //cout << "-----------------------------" << endl;
-    //cout << "state->m0$raddr$reg0 = " << bitset<8>(state.m0$raddr$reg0) << endl;
+    // cout << "-----------------------------" << endl;
+    // cout << "state->m0$raddr$reg0 = " << bitset<8>(state.m0$raddr$reg0) <<
+    // endl;
   }
 
   assert(state.self_rdata == 0);
@@ -55,7 +55,6 @@ int main() {
   simulate(&state);
 
   assert(state.self_rdata == 1);
-  
 
   return 0;
 }

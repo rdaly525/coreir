@@ -37,17 +37,19 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
     return {modparams, defaultargs};
   };
 
-  Params regGenParams({{"width", c->Int()},
-                       {"has_en", c->Bool()},
-                       {"has_clr", c->Bool()},
-                       {"has_rst", c->Bool()}});
+  Params regGenParams(
+    {{"width", c->Int()},
+     {"has_en", c->Bool()},
+     {"has_clr", c->Bool()},
+     {"has_rst", c->Bool()}});
   TypeGen* regTypeGen = mantle->newTypeGen("regType", regGenParams, regFun);
 
   auto reg = mantle->newGeneratorDecl("reg", regTypeGen, regGenParams);
   reg->setModParamsGen(regModParamFun);
-  reg->addDefaultGenArgs({{"has_en", Const::make(c, false)},
-                          {"has_clr", Const::make(c, false)},
-                          {"has_rst", Const::make(c, false)}});
+  reg->addDefaultGenArgs(
+    {{"has_en", Const::make(c, false)},
+     {"has_clr", Const::make(c, false)},
+     {"has_rst", Const::make(c, false)}});
 
   reg->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     int width = genargs.at("width")->get<int>();
@@ -81,7 +83,10 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
     if (clr) {
       auto mux = def->addInstance("clrMux", "coreir.mux", wval);
       auto zero = def->addInstance(
-        "c0", "coreir.const", wval, {{"value", Const::make(c, width, 0)}});
+        "c0",
+        "coreir.const",
+        wval,
+        {{"value", Const::make(c, width, 0)}});
       def->connect(mux->sel("out"), toIn);
       def->connect(mux->sel("in1"), zero->sel("out"));
       def->connect(mux->sel("sel"), io->sel("clr"));
@@ -132,8 +137,10 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
   Params wireParams({
     {"type", CoreIRType::make(c)},
   });
-  TypeGen* wireTG =
-    mantle->newTypeGen("wire", wireParams, [](Context* c, Values args) {
+  TypeGen* wireTG = mantle->newTypeGen(
+    "wire",
+    wireParams,
+    [](Context* c, Values args) {
       Type* t = args.at("type")->get<Type*>();
       return c->Record({{"in", t->getFlipped()}, {"out", t}});
     });
@@ -142,15 +149,18 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
     def->connect("self.in", "self.out");
   });
 
-  Params counterParams({{"width", c->Int()},
-                        {"has_en", c->Bool()},
-                        {"has_srst", c->Bool()},
-                        {"has_max", c->Bool()}});
+  wire->setPrimitiveExpressionLambda([]() { return vAST::make_id("in"); });
+
+  Params counterParams(
+    {{"width", c->Int()},
+     {"has_en", c->Bool()},
+     {"has_srst", c->Bool()},
+     {"has_max", c->Bool()}});
   // counter type
   mantle->newTypeGen(
-    "counter_type", // name for the typegen
+    "counter_type",  // name for the typegen
     counterParams,
-    [](Context* c, Values genargs) { // Function to compute type
+    [](Context* c, Values genargs) {  // Function to compute type
       uint width = genargs.at("width")->get<int>();
       uint has_en = genargs.at("has_en")->get<bool>();
       uint has_srst = genargs.at("has_srst")->get<bool>();
@@ -168,18 +178,19 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
     bool has_max = genargs.at("has_max")->get<bool>();
     modparams["init"] = BitVectorType::make(c, width);
     defaultargs["init"] = Const::make(c, BitVector(width, 0));
-    if (has_max) {
-      modparams["max"] = BitVectorType::make(c, width);
-    }
+    if (has_max) { modparams["max"] = BitVectorType::make(c, width); }
     return {modparams, defaultargs};
   };
 
   Generator* counter = mantle->newGeneratorDecl(
-    "counter", mantle->getTypeGen("counter_type"), counterParams);
+    "counter",
+    mantle->getTypeGen("counter_type"),
+    counterParams);
   counter->setModParamsGen(counterModParamFun);
-  counter->addDefaultGenArgs({{"has_max", Const::make(c, false)},
-                              {"has_en", Const::make(c, false)},
-                              {"has_srst", Const::make(c, false)}});
+  counter->addDefaultGenArgs(
+    {{"has_max", Const::make(c, false)},
+     {"has_en", Const::make(c, false)},
+     {"has_srst", Const::make(c, false)}});
   counter->setGeneratorDefFromFun(
     [](Context* c, Values genargs, ModuleDef* def) {
       uint width = genargs.at("width")->get<int>();
@@ -195,12 +206,8 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
          {"has_clr", Const::make(c, has_srst)}},
         {{"init", def->getModule()->getArg("init")}});
       def->connect("self.clk", "r.clk");
-      if (has_en) {
-        def->connect("self.en", "r.en");
-      }
-      if (has_srst) {
-        def->connect("self.srst", "r.clr");
-      }
+      if (has_en) { def->connect("self.en", "r.en"); }
+      if (has_srst) { def->connect("self.srst", "r.clr"); }
       def->addInstance(
         "c1",
         "coreir.const",
@@ -235,7 +242,7 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
       }
     });
 
-  { // Clock en register (no reset)
+  {  // Clock en register (no reset)
     auto regCEFun = [](Context* c, Values args) {
       uint width = args.at("width")->get<int>();
       Type* ptype = c->Bit()->Arr(width);
@@ -249,15 +256,20 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
       return c->Record(r);
     };
     Params regCEGenParams({{"width", c->Int()}});
-    TypeGen* regCETypeGen =
-      mantle->newTypeGen("regCEType", regCEGenParams, regCEFun);
-    auto regCE =
-      mantle->newGeneratorDecl("regCE", regCETypeGen, regCEGenParams);
+    TypeGen* regCETypeGen = mantle->newTypeGen(
+      "regCEType",
+      regCEGenParams,
+      regCEFun);
+    auto regCE = mantle->newGeneratorDecl(
+      "regCE",
+      regCETypeGen,
+      regCEGenParams);
     json vjson;
-    vjson["interface"] = {"input [width-1:0] in",
-                          "input ce",
-                          "output [width-1:0] out",
-                          "input clk"};
+    vjson["interface"] = {
+      "input [width-1:0] in",
+      "input ce",
+      "output [width-1:0] out",
+      "input clk"};
     vjson["definition"] =
       ""
       "  reg [width-1:0] value;\n"
@@ -271,7 +283,7 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
     regCE->getMetaData()["verilog"] = vjson;
   }
 
-  { // Clock en register with reset
+  {  // Clock en register with reset
     auto regCEArstFun = [](Context* c, Values args) {
       uint width = args.at("width")->get<int>();
       Type* ptype = c->Bit()->Arr(width);
@@ -297,10 +309,14 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
     };
 
     Params regCEArstGenParams({{"width", c->Int()}});
-    TypeGen* regCEArstTypeGen =
-      mantle->newTypeGen("regCEArstType", regCEArstGenParams, regCEArstFun);
+    TypeGen* regCEArstTypeGen = mantle->newTypeGen(
+      "regCEArstType",
+      regCEArstGenParams,
+      regCEArstFun);
     auto regCEArst = mantle->newGeneratorDecl(
-      "regCE_arst", regCEArstTypeGen, regCEArstGenParams);
+      "regCE_arst",
+      regCEArstTypeGen,
+      regCEArstGenParams);
     regCEArst->setModParamsGen(regModParamFun);
     json vjson;
     vjson["parameters"] = {"init"};

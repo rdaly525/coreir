@@ -45,8 +45,10 @@ And2 and2_3 (
 // Instance `term0` created at tests/test_circuit/test_define.py:77
 // Connection `(term0.I[1], and2_2_O)` created at tests/test_circuit/test_define.py:103
 // Connection `(term0.I[0], and2_3_O)` created at tests/test_circuit/test_define.py:99
+wire [1:0] term0_I;
+assign term0_I = {and2_2_O,and2_3_O};
 Term2 term0 (
-    .I({and2_2_O,and2_3_O})
+    .I(term0_I)
 );
 // Connection `(O, and2_3_O)` created at tests/test_circuit/test_define.py:70
 assign O = and2_3_O;

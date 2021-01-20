@@ -11,18 +11,11 @@ int main() {
   state.self_in[1] = 1 << 30;
   state.self_out = 1;
 
-  simulate( &state );
+  simulate(&state);
 
-  if (state.self_out != 0) {
-    return 1;
-  }
+  if (state.self_out != 0) { return 1; }
 
-  if (state.self_cout != 1) {
-    return 1;
-  }
-  
-  
+  if (state.self_cout != 1) { return 1; }
 
   return 0;
-
 }

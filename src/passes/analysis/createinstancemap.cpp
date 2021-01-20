@@ -1,10 +1,9 @@
-#include "coreir.h"
 #include "coreir/passes/analysis/createinstancemap.h"
+#include "coreir.h"
 
 using namespace CoreIR;
 using namespace std;
 
-std::string Passes::CreateInstanceMap::ID = "createfullinstancemap";
 bool Passes::CreateInstanceMap::runOnModule(Module* m) {
   for (auto instmap : m->getDef()->getInstances()) {
     Module* m = instmap.second->getModuleRef();

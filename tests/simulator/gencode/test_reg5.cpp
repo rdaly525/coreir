@@ -26,15 +26,14 @@ int main() {
     simulate(&state);
 
     printf("New register value = %c\n", state.r$reg0);
-    
+
     state.self_clk_last = state.self_clk;
   }
 
   printf("Expected       = %c\n", expected);
-  
-  if (expected == state.r$reg0) {
-    return 0;
-  } else {
+
+  if (expected == state.r$reg0) { return 0; }
+  else {
     return 1;
   }
 }

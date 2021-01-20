@@ -1,0 +1,47 @@
+{
+  "top": "global.verilator_compat",
+  "namespaces": {
+    "global": {
+      "modules": {
+        "verilator_compat": {
+          "type": ["Record",[
+            ["in", ["Array",16,"BitIn"]],
+            ["out", ["Array",4,"Bit"]],
+            ["out_undriven", ["Array",4,"Bit"]],
+            ["out_undriven_bit", "Bit"]
+          ]],
+          "instances": {
+            "s": {
+              "genref": "coreir.slice",
+              "genargs": {"width":["Int", 16], "hi":["Int",16], "lo":["Int",12]}
+            },
+            "term": {
+              "genref": "coreir.term",
+              "genargs": {"width":["Int", 4]}
+            },
+            "bit_term": {
+              "modref": "corebit.term"
+            },
+            "undriven": {
+              "genref": "coreir.undriven",
+              "genargs": {"width":["Int", 4]}
+            },
+            "bit_undriven": {
+              "modref": "corebit.undriven"
+            }
+          },
+          "connections": [
+            ["self.in","s.in"],
+            ["s.out","self.out"],
+            ["self.in.0","bit_term.in"],
+            ["self.in.0:4","term.in"],
+            ["self.out_undriven.0:4","undriven.out"],
+            ["self.out_undriven_bit","bit_undriven.out"]
+          ]
+        }
+      }
+    }
+  }
+}
+
+

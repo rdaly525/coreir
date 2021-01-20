@@ -7,13 +7,12 @@ namespace CoreIR {
 namespace Passes {
 
 class MarkDirty : public ContextPass {
-  public :
-    static std::string ID;
-    MarkDirty() : ContextPass(ID,"Forces analysis passes to rerun") {}
-    bool runOnContext(Context* c);
+ public:
+  MarkDirty() : ContextPass("markdirty", "Forces analysis passes to rerun") {}
+  bool runOnContext(Context* c);
 };
 
-}
-}
+}  // namespace Passes
+}  // namespace CoreIR
 
 #endif

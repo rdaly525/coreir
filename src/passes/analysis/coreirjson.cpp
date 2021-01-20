@@ -1,66 +1,62 @@
-#include "coreir.h"
 #include "coreir/passes/analysis/coreirjson.h"
-#include <set>
 #include <map>
+#include <set>
+#include "coreir.h"
 
 using namespace CoreIR;
 using namespace std;
 namespace {
-typedef vector<std::pair<string,string>> VStringPair;
+typedef vector<std::pair<string, string>> VStringPair;
 
 string tab(uint s) {
   string ret = "";
-  for (uint i=0; i<s; ++i) {
-    ret += " ";
-  }
+  for (uint i = 0; i < s; ++i) { ret += " "; }
   return ret;
 }
-string quote(string s) {
-  return "\""+s+"\"";
-}
+string quote(string s) { return "\"" + s + "\""; }
 
 class Dict {
-  string ts="";
+  string ts = "";
   vector<string> fields;
-  map<string,string> sorted;
-  public:
-    Dict(uint i) : ts(tab(i)) {}
-    Dict() {}
-    bool isEmpty() { return fields.size()==0;}
-    void add(string field,string val) { 
-      fields.push_back(quote(field)+":"+val);
-      sorted[field] = quote(field)+":"+val;
-    }
-    string toMultiString(bool sort=false) {
-      if (sort) {
-        fields.clear();
-        for (auto fmap : sorted) {
-          fields.push_back(fmap.second);
-        }
-      }
-      return "{\n" + ts + "  " + join(fields.begin(),fields.end(),",\n"+ts+"  ") + "\n"+ts+"}";
-    }
-    string toString() {
-      return "{"+join(fields.begin(),fields.end(),string(", ")) + "}";
-    }
+  map<string, string> sorted;
 
+ public:
+  Dict(uint i) : ts(tab(i)) {}
+  Dict() {}
+  bool isEmpty() { return fields.size() == 0; }
+  void add(string field, string val) {
+    fields.push_back(quote(field) + ":" + val);
+    sorted[field] = quote(field) + ":" + val;
+  }
+  string toMultiString(bool sort = false) {
+    if (sort) {
+      fields.clear();
+      for (auto fmap : sorted) { fields.push_back(fmap.second); }
+    }
+    return "{\n" + ts + "  " +
+      join(fields.begin(), fields.end(), ",\n" + ts + "  ") + "\n" + ts + "}";
+  }
+  string toString() {
+    return "{" + join(fields.begin(), fields.end(), string(", ")) + "}";
+  }
 };
 
 class Array {
-  string ts="";
+  string ts = "";
   vector<string> fields;
-  public:
-    Array(uint i) : ts(tab(i)) {}
-    Array() {}
-    void add(string field) { fields.push_back(field);}
-    string toString() {
-      return "[" + join(fields.begin(),fields.end(),string(",")) + "]";
-    }
-    string toMultiString() {
-      return "[\n" + ts + "  " + join(fields.begin(),fields.end(),",\n"+ts+"  ") + "\n"+ts+"]";
-    }
-};
 
+ public:
+  Array(uint i) : ts(tab(i)) {}
+  Array() {}
+  void add(string field) { fields.push_back(field); }
+  string toString() {
+    return "[" + join(fields.begin(), fields.end(), string(",")) + "]";
+  }
+  string toMultiString() {
+    return "[\n" + ts + "  " +
+      join(fields.begin(), fields.end(), ",\n" + ts + "  ") + "\n" + ts + "]";
+  }
+};
 
 string ValueType2Json(ValueType* vt) {
   if (auto bvt = dyn_cast<BitVectorType>(vt)) {
@@ -72,10 +68,10 @@ string ValueType2Json(ValueType* vt) {
   return quote(vt->toString());
 }
 
-//Ordere these in order as well
+// Ordere these in order as well
 string Params2Json(Params gp) {
   Dict j;
-  for (auto it : gp) j.add(it.first,ValueType2Json(it.second));
+  for (auto it : gp) j.add(it.first, ValueType2Json(it.second));
   return j.toString();
 }
 
@@ -122,23 +118,23 @@ string Value2Json(Value* v) {
       ret.add(CoreIR::toString(cj->get()));
     }
     else {
-      ASSERT(0,"NYI");
+      ASSERT(0, "NYI");
     }
   }
   else {
-    ASSERT(0,"NYI");
+    ASSERT(0, "NYI");
   }
   return ret.toString();
 }
 
 string Values2Json(Values vs) {
   Dict j;
-  for (auto it : vs) j.add(it.first,Value2Json(it.second));
+  for (auto it : vs) j.add(it.first, Value2Json(it.second));
   return j.toString();
 }
 
-string TopType2Json(Type* t,int taboffset) {
-  ASSERT(isa<RecordType>(t),"Expecting Record type but got " + t->toString());
+string TopType2Json(Type* t, int taboffset) {
+  ASSERT(isa<RecordType>(t), "Expecting Record type but got " + t->toString());
   Array a;
   a.add(quote("Record"));
   auto rt = cast<RecordType>(t);
@@ -153,20 +149,18 @@ string TopType2Json(Type* t,int taboffset) {
   return a.toString();
 }
 
-//One Line
+// One Line
 string Type2Json(Type* t) {
   if (isa<BitType>(t)) return quote("Bit");
   if (isa<BitInType>(t)) return quote("BitIn");
 
-  if (isa<BitInOutType>(t)) {
-    return quote("BitInOut");
-  }
+  if (isa<BitInOutType>(t)) { return quote("BitInOut"); }
   Array a;
   if (auto nt = dyn_cast<NamedType>(t)) {
     a.add(quote("Named"));
     a.add(quote(nt->getNamespace()->getName() + "." + nt->getName()));
   }
-  else if(auto at = dyn_cast<ArrayType>(t)) {
+  else if (auto at = dyn_cast<ArrayType>(t)) {
     a.add(quote("Array"));
     a.add(to_string(at->getLen()));
     a.add(Type2Json(at->getElemType()));
@@ -188,39 +182,50 @@ string Type2Json(Type* t) {
   return a.toString();
 }
 
-string Instances2Json(map<string,Instance*>& insts,int taboffset) {
+string Instances2Json(map<string, Instance*>& insts, int taboffset) {
   Dict jis(taboffset);
   for (auto imap : insts) {
     string iname = imap.first;
     Instance* i = imap.second;
-    Dict j(taboffset+2);
+    Dict j(taboffset + 2);
     Module* m = i->getModuleRef();
     if (m->isGenerated()) {
-      j.add("genref",quote(m->getGenerator()->getRefName()));
-      j.add("genargs",Values2Json(m->getGenArgs()));
+      j.add("genref", quote(m->getGenerator()->getRefName()));
+      j.add("genargs", Values2Json(m->getGenArgs()));
     }
     else {
-      j.add("modref",quote(i->getModuleRef()->getNamespace()->getName() + "." + i->getModuleRef()->getName()));
+      j.add(
+        "modref",
+        quote(
+          i->getModuleRef()->getNamespace()->getName() + "." +
+          i->getModuleRef()->getName()));
     }
-    if (i->hasModArgs()) {
-      j.add("modargs",Values2Json(i->getModArgs()));
-    }
-    if (i->hasMetaData()) {
-      j.add("metadata",toString(i->getMetaData()));
-    }
-    jis.add(iname,j.toMultiString());
+    if (i->hasModArgs()) { j.add("modargs", Values2Json(i->getModArgs())); }
+    if (i->hasMetaData()) { j.add("metadata", toString(i->getMetaData())); }
+    jis.add(iname, j.toMultiString());
   }
   return jis.toMultiString();
 }
 
-string Connections2Json(ModuleDef* def,int taboffset) {
+string build_select_str(SelectPath select_path) {
+  string select_str = "";
+  for (auto select : select_path) {
+    // Don't insert "." when there is the hierarchical select separator
+    // already present
+    if (select_str != "" && select[0] != ';') { select_str += "."; }
+    select_str += select;
+  }
+  return select_str;
+}
+
+string Connections2Json(ModuleDef* def, int taboffset) {
   Array a(taboffset);
-  
+
   for (auto con : def->getSortedConnections()) {
     auto pa = con.first->getSelectPath();
     auto pb = con.second->getSelectPath();
-    string sa = join(pa.begin(),pa.end(),string("."));
-    string sb = join(pb.begin(),pb.end(),string("."));
+    string sa = build_select_str(pa);
+    string sb = build_select_str(pb);
     Array b;
     if (sa > sb) {
       b.add(quote(sa));
@@ -230,44 +235,45 @@ string Connections2Json(ModuleDef* def,int taboffset) {
       b.add(quote(sb));
       b.add(quote(sa));
     }
-    if (def->hasMetaData(con.first,con.second)) {
-      b.add(toString(def->getMetaData(con.first,con.second)));
+    if (def->hasMetaData(con.first, con.second)) {
+      b.add(toString(def->getMetaData(con.first, con.second)));
     }
     a.add(b.toString());
-
   }
   return a.toMultiString();
 }
 
 string Module2Json(Module* m, int taboffset) {
   Dict j(taboffset);
-  j.add("type",TopType2Json(m->getType(),taboffset+2));
+  j.add("type", TopType2Json(m->getType(), taboffset + 2));
   if (!m->getModParams().empty()) {
-    j.add("modparams",Params2Json(m->getModParams()));
+    j.add("modparams", Params2Json(m->getModParams()));
   }
   if (!m->getDefaultModArgs().empty()) {
-    j.add("defaultmodargs",Values2Json(m->getDefaultModArgs()));
+    j.add("defaultmodargs", Values2Json(m->getDefaultModArgs()));
   }
   if (m->hasDef()) {
     ModuleDef* def = m->getDef();
     if (!def->getInstances().empty()) {
       auto insts = def->getInstances();
-      j.add("instances",Instances2Json(insts, taboffset+2));
+      j.add("instances", Instances2Json(insts, taboffset + 2));
     }
     if (!def->getConnections().empty()) {
-      j.add("connections",Connections2Json(def,taboffset+2));
+      j.add("connections", Connections2Json(def, taboffset + 2));
     }
   }
-  if (m->hasMetaData()) {
-    j.add("metadata",toString(m->getMetaData()));
-  }
+  if (m->hasMetaData()) { j.add("metadata", toString(m->getMetaData())); }
   return j.toMultiString();
 }
 
 Json Generator2Json(Generator* g) {
   Dict j(6);
-  j.add("typegen",quote(g->getTypeGen()->getNamespace()->getName() + "."+g->getTypeGen()->getName()));
-  j.add("genparams",Params2Json(g->getGenParams()));
+  j.add(
+    "typegen",
+    quote(
+      g->getTypeGen()->getNamespace()->getName() + "." +
+      g->getTypeGen()->getName()));
+  j.add("genparams", Params2Json(g->getGenParams()));
   auto genmods = g->getGeneratedModules();
   if (!genmods.empty()) {
     Array gms(8);
@@ -275,68 +281,68 @@ Json Generator2Json(Generator* g) {
       Module* m = genmodp.second;
       Array gm;
       gm.add(Values2Json(m->getGenArgs()));
-      gm.add(Module2Json(m,10));
+      gm.add(Module2Json(m, 10));
       gms.add(gm.toString());
     }
-    j.add("modules",gms.toMultiString());
+    j.add("modules", gms.toMultiString());
   }
   if (!g->getDefaultGenArgs().empty()) {
-    j.add("defaultgenargs",Values2Json(g->getDefaultGenArgs()));
+    j.add("defaultgenargs", Values2Json(g->getDefaultGenArgs()));
   }
-  if (g->hasMetaData()) {
-    j.add("metadata",toString(g->getMetaData()));
-  }
+  if (g->hasMetaData()) { j.add("metadata", toString(g->getMetaData())); }
   return j.toMultiString();
 }
-}//anonomous namespace
+}  // namespace
 
-string Passes::CoreIRJson::ID = "coreirjson";
 bool Passes::CoreIRJson::runOnNamespace(Namespace* ns) {
-  Dict jns(2);
   auto modlist = ns->getModules(false);
+  if (
+    ns->getGenerators().empty() && ns->getTypeGens().empty() &&
+    modlist.empty()) {
+    // Skip if empty
+    return false;
+  }
+  Dict jns(2);
   if (!modlist.empty()) {
     Dict jmod(4);
     for (auto m : modlist) {
       string mname = m.first;
       if (m.second->isGenerated()) mname = m.second->getGenerator()->getName();
-      jmod.add(mname,Module2Json(m.second,6));
+      jmod.add(mname, Module2Json(m.second, 6));
     }
-    if (!jmod.isEmpty()) {
-      jns.add("modules",jmod.toMultiString());
-    }
+    if (!jmod.isEmpty()) { jns.add("modules", jmod.toMultiString()); }
   }
   if (!ns->getGenerators().empty()) {
     Dict jgen(4);
-    for (auto g : ns->getGenerators()) jgen.add(g.first,Generator2Json(g.second));
-    jns.add("generators",jgen.toMultiString());
+    for (auto g : ns->getGenerators())
+      jgen.add(g.first, Generator2Json(g.second));
+    jns.add("generators", jgen.toMultiString());
   }
-  //if (!namedTypeNameMap.empty()) {
+  // if (!namedTypeNameMap.empty()) {
   //  ASSERT(0,"NYI");
-    //Dict jntypes;
-    //for (auto nPair : namedTypeNameMap) {
-    //  string n = nPair.first;
-    //  string nFlip = nPair.second;
-    //  NamedType* nt = namedTypeList.at(n);
-    //  Type* raw = nt->getRaw();
-    //  json jntype = {
-    //    {"flippedname",nFlip},
-    //    {"rawtype", raw->toJson()}
-    //  };
-    //  jntypes[n] = jntype;
-    //}
-    //j["namedtypes"] = jntypes;
-  //} 
+  // Dict jntypes;
+  // for (auto nPair : namedTypeNameMap) {
+  //  string n = nPair.first;
+  //  string nFlip = nPair.second;
+  //  NamedType* nt = namedTypeList.at(n);
+  //  Type* raw = nt->getRaw();
+  //  json jntype = {
+  //    {"flippedname",nFlip},
+  //    {"rawtype", raw->toJson()}
+  //  };
+  //  jntypes[n] = jntype;
+  //}
+  // j["namedtypes"] = jntypes;
+  //}
   if (!ns->getTypeGens().empty()) {
     Dict jtypegens(4);
-    //Spit out all of the cached types.
+    // Spit out all of the cached types.
     for (auto tgpair : ns->getTypeGens()) {
       string tgname = tgpair.first;
       TypeGen* tg = tgpair.second;
       Array jtypegen;
       jtypegen.add(Params2Json(tg->getParams()));
-      if (tg->getCached().size()==0) {
-        jtypegen.add(quote("implicit"));
-      }
+      if (tg->getCached().size() == 0) { jtypegen.add(quote("implicit")); }
       else {
         jtypegen.add(quote("sparse"));
         Array jsparselist(6);
@@ -348,26 +354,27 @@ bool Passes::CoreIRJson::runOnNamespace(Namespace* ns) {
         }
         jtypegen.add(jsparselist.toMultiString());
       }
-      jtypegens.add(tgname,jtypegen.toString());
+      jtypegens.add(tgname, jtypegen.toString());
     }
-    jns.add("typegens",jtypegens.toMultiString());
+    jns.add("typegens", jtypegens.toMultiString());
   }
   nsMap[ns->getName()] = jns.toMultiString();
   return false;
 }
 
-
-void Passes::CoreIRJson::writeToStream(std::ostream& os,string topRef) {
+void Passes::CoreIRJson::writeToStream(std::ostream& os, string topRef) {
   os << "{";
-  if (topRef!="") {
-    os << quote("top") << ":" << quote(topRef) << ",";
-  }
+  if (topRef != "") { os << quote("top") << ":" << quote(topRef) << ","; }
   os << endl;
   Dict jn(0);
-  for (auto nmap : nsMap) {
-    jn.add(nmap.first,nmap.second);
-  }
+  for (auto nmap : nsMap) { jn.add(nmap.first, nmap.second); }
   os << quote("namespaces") << ":" << jn.toMultiString();
   os << endl << "}" << endl;
 }
 
+void Passes::CoreIRJson::writeToStream(std::ostream& os) {
+  std::string top = "";
+  Context* c = this->getContext();
+  if (c->hasTop()) { top = c->getTop()->getRefName(); };
+  return Passes::CoreIRJson::writeToStream(os, top);
+}
