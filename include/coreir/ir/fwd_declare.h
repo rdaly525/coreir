@@ -12,7 +12,7 @@
 #include <stdint.h>
 #include <vector>
 
-#include <execinfo.h>
+void print_stack_trace(int skip = 1);
 
 #define UNUSED(var)                                                            \
   do { (void)(var); } while (0)
@@ -20,11 +20,8 @@
 #define ASSERT(C, MSG)                                                         \
   do {                                                                         \
     if (!(C)) {                                                                \
-      void* array[20];                                                         \
-      size_t size;                                                             \
-      size = backtrace(array, 20);                                             \
       std::cerr << "ERROR: " << MSG << std::endl << std::endl;                 \
-      backtrace_symbols_fd(array, size, 2);                                    \
+      print_stack_trace();                                                     \
       exit(1);                                                                 \
     }                                                                          \
   } while (0)
