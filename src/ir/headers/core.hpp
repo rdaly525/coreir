@@ -336,5 +336,55 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
   /////////////////////////////////
   core_convert(c, core);
 
+  //stdlib pack/unpack
+  Params packParams = Params({{"type", c->CoreIRType()}});
+  auto unpackTypeGen = core->newTypeGen("unpackType", packParams, [](Context* c, Values args) {
+    Type* t = args.at("type")->get<Type*>();
+    ASSERT(t->isOutput(), "Type needs to be output type");
+    auto ports = RecordParams();
+    if (auto rt = dyn_cast<RecordType>(t)) {
+      ports.push_back({"in", c->Flip(rt)});
+      for (auto &[field, sub_type]: rt->getRecord()) {
+        ports.push_back({field, sub_type});
+      }
+    }
+    else if (auto at = dyn_cast<ArrayType>(t)) {
+      ports.push_back({"in", c->Flip(at)});
+      auto sub_type = at->getElemType();
+      for (uint i=0; i < at->getSize(); ++i) {
+        ports.push_back({"_" + std::to_string(i), sub_type});
+      }
+    }
+    else {
+      ASSERT(false, "Cannot use on non (array or record) type");
+    }
+    return c->Record(ports);
+  });
+  core->newGeneratorDecl("unpack", unpackTypeGen, packParams);
+
+  auto packTypeGen = core->newTypeGen("packType", packParams, [](Context* c, Values args) {
+    Type* t = args.at("type")->get<Type*>();
+    ASSERT(t->isOutput(), "Type needs to be output type");
+    auto ports = RecordParams();
+    if (auto rt = dyn_cast<RecordType>(t)) {
+      for (auto &[field, sub_type]: rt->getRecord()) {
+        ports.push_back({field, sub_type->getFlipped()});
+      }
+      ports.push_back({"out", rt});
+    }
+    else if (auto at = dyn_cast<ArrayType>(t)) {
+      auto sub_type = at->getElemType()->getFlipped();
+      for (uint i=0; i < at->getSize(); ++i) {
+        ports.push_back({"_" + std::to_string(i), sub_type});
+      }
+      ports.push_back({"out", at});
+    }
+    else {
+      ASSERT(false, "Cannot use on non (array or record) type");
+    }
+    return c->Record(ports);
+  });
+  core->newGeneratorDecl("pack", packTypeGen, packParams);
+
   return core;
 }
