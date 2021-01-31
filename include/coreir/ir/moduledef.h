@@ -35,7 +35,7 @@ class ModuleDef {
     return instances;
   }
 
-  const std::map<std::string, Wireable*>& getInstances(bool include_interface) const;
+  const std::map<std::string, Wireable*> getInstances(bool include_interface) const;
   const std::set<Connection, ConnectionCompFast>& getConnections(void) const {
     return connections;
   }
