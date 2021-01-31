@@ -337,7 +337,7 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
   core_convert(c, core);
 
   //stdlib pack/unpack
-  Params packParams = Params({{"type", c->CoreIRType()}});
+  Params packParams = Params({{"type", CoreIRType::make(c)}});
   auto unpackTypeGen = core->newTypeGen("unpackType", packParams, [](Context* c, Values args) {
     Type* t = args.at("type")->get<Type*>();
     ASSERT(t->isOutput(), "Type needs to be output type");
