@@ -28,13 +28,14 @@ ModuleDef::~ModuleDef() {
   for (auto item : connMetaData) delete item.second;
 }
 
-const std::map<std::string, Wireable*> ModuleDef::getInstances(bool include_interface) const {
-  std::map<std::string, Wireable*> instances_(this->instances.begin(), this->instances.end());
-  if (include_interface) {
-    instances_["self"] = this->interface;
-  }
-  return instances_;
+std::map<std::string, Wireable*> ModuleDef::getWireables(
+    bool include_self) const {
+  std::map<std::string, Wireable*> instances_copy(
+      instances.begin(), instances.end());
+  if (include_self) instances_copy["self"] = interface;
+  return instances_copy;
 }
+
 //
 const std::vector<Connection> ModuleDef::getSortedConnections(void) const {
   vector<Connection> sortedConns;

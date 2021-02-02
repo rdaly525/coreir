@@ -87,19 +87,17 @@ void Wireable::disconnectAll() {
 }
 
 void Wireable::reconnect(Wireable* other) {
-  ASSERT(this->getType() == other->getType(), "Can only reconnect to a wireable of the same type");
+  ASSERT(getType() == other->getType(),
+         "Can only reconnect to a wireable of the same type");
 
-  auto from = this;
-  auto to = other;
-  for (auto from_connected: from->getConnectedWireables()) {
+  for (auto from_connected : getConnectedWireables()) {
     other->connect(from_connected);
   }
-  from->disconnect();
-  for (auto &[field, from_sub]: from->getSelects()) {
-    from_sub->reconnect(to->sel(field));
+  disconnect();
+  for (auto &[field, from_subfield] : getSelects()) {
+    from_subfield->reconnect(other->sel(field));
   }
 }
-
 
 void Wireable::removeSel(string selStr) {
   ASSERT(
