@@ -5,8 +5,6 @@
 
 namespace {
 
-// TODO(rdaly): Finish this comment:
-//   This will make sure to combine all the
 void handleInputPort(CoreIR::Wireable* wireable) {
   ASSERT(wireable->getType()->isInput(), "Expecting type to be input");
   auto context = wireable->getContext();
@@ -55,8 +53,6 @@ void handleOutputPort(CoreIR::Wireable* wireable) {
 namespace CoreIR {
 namespace Passes {
 
-// TODO (rdaly): Finish this comment:
-//   Goal, anytime there is a layer with a select path
 bool Canonicalize::runOnModule(Module* m) {
   if (!m->hasDef()) return false;
 
