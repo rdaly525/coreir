@@ -64,6 +64,7 @@ bool Canonicalize::runOnModule(Module* m) {
 
   // Initially just enforce that the inputs are of the appropriate form.
   for (auto &[iname, inst] : def->getWireables(true)) {
+    (void) iname;
     for (auto &[pname, ptype] : dyn_cast<RecordType>(inst->getType())->getRecord()) {
       if (ptype->isInput()) handleInputPort(inst->sel(pname));
     }
@@ -71,6 +72,7 @@ bool Canonicalize::runOnModule(Module* m) {
 
   // Actually fix up the output ports.
   for (auto &[iname, inst] : def->getWireables(true)) {
+    (void) iname;
     for (auto &[pname, ptype] : dyn_cast<RecordType>(inst->getType())->getRecord()) {
       if (ptype->isOutput()) handleOutputPort(inst->sel(pname));
     }
