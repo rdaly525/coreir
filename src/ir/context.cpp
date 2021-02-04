@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "coreir/ir/context.h"
 #include "coreir/ir/common.h"
 #include "coreir/ir/coreirlib.h"
@@ -73,6 +74,9 @@ Context::~Context() {
   for (auto it : namespaces) delete it.second;
   delete valuecache;
   delete libmanager;
+
+  // Free up scratch pad memory.
+  for (void* ptr : scratchPad) free(ptr);
 }
 
 std::map<std::string, Namespace*> Context::getNamespaces() {
@@ -401,6 +405,12 @@ DirectedInstance** Context::newDirectedInstancePtrArray(int size) {
     sizeof(DirectedInstance*) * size);
   directedInstancePtrArrays.push_back(arr);
   return arr;
+}
+
+void* Context::getScratchMemory(size_t size) {
+  auto buf = malloc(size);
+  scratchPad.emplace_back(buf);
+  return buf;
 }
 
 Context* newContext() {
