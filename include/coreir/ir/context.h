@@ -48,6 +48,8 @@ class Context {
   std::vector<DirectedConnection**> directedConnectionPtrArrays;
   std::vector<DirectedInstance**> directedInstancePtrArrays;
 
+  std::vector<void*> scratchPad;
+
  public:
   Context();
   ~Context();
@@ -75,6 +77,15 @@ class Context {
   bool hasGenerator(std::string ref);
   bool hasModule(std::string ref);
   bool hasGlobalValue(std::string ref);
+
+  // This function provides scratch memory managed by this context. The memory
+  // will be free'd upon deletion of this context.
+  // NOTE(rsetaluri): Using memory provided by this function is a *slight*
+  // improvment over a true memory leak. Likely, the lifetime of the context
+  // will be the lifetime of the program. However, it is preferred to use this
+  // function over a true memory leak, sine all such allocations can be
+  // localized to calls of this function (and therefore easier to find and fix).
+  void* getScratchMemory(size_t size);
 
   std::map<std::string, Namespace*> getNamespaces();
   void addPass(Pass* p);

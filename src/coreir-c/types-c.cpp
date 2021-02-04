@@ -71,8 +71,14 @@ COREType* COREArrayTypeGetElemType(COREType* arrayType) {
 }
 
 const char* CORENamedTypeToString(COREType* namedType) {
-  return rcast<NamedType*>(namedType)->toString().c_str();
+  auto named_type = rcast<NamedType*>(namedType);
+  auto str = named_type->toString();
+  auto copy = static_cast<char*>(
+      named_type->getContext()->getScratchMemory(str.size() + 1));
+  strcpy(copy, str.c_str());
+  return copy;
 }
-}
+
+}  // extern "C"
 
 }  // namespace CoreIR
