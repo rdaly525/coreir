@@ -34,6 +34,8 @@ class ModuleDef {
   const std::map<std::string, Instance*>& getInstances(void) const {
     return instances;
   }
+
+  std::map<std::string, Wireable*> getWireables(bool include_self) const;
   const std::set<Connection, ConnectionCompFast>& getConnections(void) const {
     return connections;
   }

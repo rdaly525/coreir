@@ -281,7 +281,7 @@ BitVectorType* Context::BitVector(int width) {
 }
 StringType* Context::String() { return StringType::make(this); }
 JsonType* Context::Json() { return JsonType::make(this); }
-// CoreIRType* Context::CoreIRType() { return CoreIRType::make(this);}
+//CoreIRType* Context::CoreIRType() { return CoreIRType::make(this);}
 
 void Context::setTop(Module* top) {
   ASSERT(

@@ -112,7 +112,7 @@ class Context {
   BitVectorType* BitVector(int width);
   StringType* String();
   JsonType* Json();
-  // CoreIRType* CoreIRType();
+  //CoreIRType* CoreIRType();
 
   Type* Flip(Type* t);
   Type* In(Type* t);
