@@ -64,6 +64,10 @@ class Wireable : public MetaData {
   void disconnect();
   void disconnectAll();
 
+  // This will (recurisvely) disconnect from 'this' and reconnect everything to
+  // 'other'.
+  void reconnect(Wireable* other);
+
   // if this wireable is from add3inst.a.b[0], then this will look like
   // {add3inst,a,b,0}
   SelectPath& getSelectPath();

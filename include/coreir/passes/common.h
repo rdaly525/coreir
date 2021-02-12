@@ -18,6 +18,7 @@
 #include "coreir/passes/analysis/smtlib2.h"
 #include "coreir/passes/analysis/smv.h"
 #include "coreir/passes/analysis/verifyflatcoreirprims.h"
+#include "coreir/passes/analysis/verify_canonical.h"
 
 // Transform passes
 #include "coreir/passes/transform/deletedeadinstances.h"
@@ -51,6 +52,7 @@
 #include "transform/clock_gate.h"
 #include "transform/inline_single_instances.h"
 #include "transform/transform2combview.h"
+#include "transform/canonicalize.h"
 
 // TODO Macrofy this
 namespace CoreIR {
@@ -74,6 +76,7 @@ void initializePasses(PassManager& pm) {
   pm.addPass(new Passes::VerifyFlattenedTypes());
   pm.addPass(new Passes::CreateCombView());
   pm.addPass(new Passes::InstanceCount());
+  pm.addPass(new Passes::VerifyCanonical());
 
   // Transform
   pm.addPass(new Passes::Flatten());
@@ -110,6 +113,7 @@ void initializePasses(PassManager& pm) {
   pm.addPass(new Passes::InlineSingleInstances());
   pm.addPass(new Passes::ClockGate());
   pm.addPass(new Passes::IsolatePrimitives());
+  pm.addPass(new Passes::Canonicalize());
 }
 }  // namespace CoreIR
 
