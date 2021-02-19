@@ -14,6 +14,7 @@ set(COREIRLIBS
     "float"
     "float_CW"
     "float_DW"
+    "cgralib"
 )
 foreach(CLIB ${COREIRLIBS})
     #message(STATUS ${COREIRLIB})
