@@ -46,15 +46,16 @@ void CORERecordTypeGetItems(
   int* size) {
   RecordType* type = rcast<RecordType*>(recordType);
   auto const& record = type->getRecord();
+  auto const& fields = type->getFields();
   *size = record.size();
   *keys = type->getContext()->newStringArray(*size);
   *values = (COREType**)type->getContext()->newTypeArray(*size);
   int count = 0;
-  for (auto element : record) {
-    std::size_t key_length = element.first.size();
+  for (auto field : fields) {
+    std::size_t key_length = field.size();
     (*keys)[count] = type->getContext()->newStringBuffer(key_length + 1);
-    memcpy((*keys)[count], element.first.c_str(), key_length + 1);
-    (*values)[count] = (COREType*)element.second;
+    memcpy((*keys)[count], field.c_str(), key_length + 1);
+    (*values)[count] = (COREType*)record.at(field);
     count++;
   }
 }
