@@ -1517,6 +1517,9 @@ void Passes::Verilog::compileModule(Module* module) {
   vAST::Parameters parameters = compile_params(module);
 
   std::string name = module->getLongName();
+  // NOTE(rsetaluri): This is an example of updating an entry in the symbol
+  // table.
+  pm->getSymbolTable()->setModuleName(module->name(), name);
   std::unique_ptr<vAST::AbstractModule>
     verilog_module = std::make_unique<vAST::Module>(
       name,
