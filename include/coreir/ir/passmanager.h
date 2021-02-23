@@ -1,8 +1,10 @@
 #ifndef COREIR_PASSMANAGER_HPP_
 #define COREIR_PASSMANAGER_HPP_
 
+#include <memory>
 #include <stack>
 #include "fwd_declare.h"
+#include "ir/symbol_table.hpp"
 
 namespace CoreIR {
 
@@ -40,6 +42,8 @@ class PassManager {
     return passMap[ID];
   }
 
+  SymbolTableInterface* getSymbolTable() { return symbolTable.get(); }
+
  private:
   void pushAllDependencies(std::string oname, std::stack<std::string>& work);
 
@@ -52,6 +56,8 @@ class PassManager {
   bool runInstancePass(Pass* p);
   bool runInstanceVisitorPass(Pass* p);
   bool runInstanceGraphPass(Pass* p);
+
+  std::unique_ptr<SymbolTableInterface> symbolTable = nullptr;
 };
 
 }  // namespace CoreIR
