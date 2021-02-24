@@ -1366,6 +1366,14 @@ Passes::Verilog::compileModuleBody(
         std::move(instance_parameters),
         instance_name,
         std::move(verilog_connections));
+      auto metadata = instance.second->getMetaData();
+      if (metadata.count("compile_guard") > 0) {
+        std::vector<std::unique_ptr<vAST::StructuralStatement>> body;
+        body.push_back(std::move(statement));
+        statement = std::make_unique<vAST::IfDef>(
+          metadata["compile_guard"].get<std::string>(),
+          std::move(body));
+      }
     }
     body.push_back(std::move(statement));
   }
