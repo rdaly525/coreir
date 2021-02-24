@@ -13,6 +13,15 @@ Context* Pass::getContext() {
   assert(pm);
   return pm->c;
 }
+bool Pass::isDebug() {
+  assert(pm);
+  return pm->isDebug();
+}
+
+CoreIRSymbolTable* Pass::getSymbolTable() {
+  assert(pm);
+  return this->pm->getSymbolTable();
+}
 
 bool InstanceVisitorPass::runOnModInstances(
   Module* m,

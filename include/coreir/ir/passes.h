@@ -5,6 +5,8 @@
 
 namespace CoreIR {
 
+class CoreIRSymbolTable;
+
 class Pass {
 
  public:
@@ -45,6 +47,8 @@ class Pass {
   virtual void setAnalysisInfo() {}
   void addDependency(std::string name) { dependencies.push_back(name); }
   Context* getContext();
+  CoreIRSymbolTable* getSymbolTable();
+  bool isDebug();
   std::string getName() { return name; }
   virtual void print() {}
   virtual bool finalize() { return false; }
