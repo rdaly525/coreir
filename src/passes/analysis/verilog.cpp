@@ -7,6 +7,7 @@
 #include "coreir/tools/cxxopts.h"
 #include "verilogAST/assign_inliner.hpp"
 #include "verilogAST/transformer.hpp"
+#include "coreir/ir/symbol_table_interface.hpp"
 
 namespace vAST = verilogAST;
 
@@ -1519,7 +1520,7 @@ void Passes::Verilog::compileModule(Module* module) {
   std::string name = module->getLongName();
   // NOTE(rsetaluri): This is an example of updating an entry in the symbol
   // table.
-  pm->getSymbolTable()->setModuleName(module->name(), name);
+  this->getSymbolTable()->setModuleName(module->getName(), name);
   std::unique_ptr<vAST::AbstractModule>
     verilog_module = std::make_unique<vAST::Module>(
       name,

@@ -4,11 +4,12 @@
 #include <memory>
 #include <stack>
 #include "fwd_declare.h"
-#include "ir/symbol_table.hpp"
 
 namespace CoreIR {
 
+class CoreIRSymbolTable;
 class InstanceGraph;
+
 class PassManager {
   Context* c;
   std::vector<Namespace*> nss;
@@ -20,6 +21,8 @@ class PassManager {
   std::map<std::string, bool> analysisPasses;
 
   std::vector<std::string> passLog;
+
+  bool debug = false;
 
  public:
   explicit PassManager(Context* c);
@@ -41,8 +44,10 @@ class PassManager {
     assert(passMap.count(ID));
     return passMap[ID];
   }
+  void setDebug(bool debug) {this->debug = debug; }
+  bool isDebug() {return this->debug; }
 
-  SymbolTableInterface* getSymbolTable() { return symbolTable.get(); }
+  CoreIRSymbolTable* getSymbolTable() { return symbolTable.get(); }
 
  private:
   void pushAllDependencies(std::string oname, std::stack<std::string>& work);
@@ -57,7 +62,7 @@ class PassManager {
   bool runInstanceVisitorPass(Pass* p);
   bool runInstanceGraphPass(Pass* p);
 
-  std::unique_ptr<SymbolTableInterface> symbolTable = nullptr;
+  std::unique_ptr<CoreIRSymbolTable> symbolTable;
 };
 
 }  // namespace CoreIR
