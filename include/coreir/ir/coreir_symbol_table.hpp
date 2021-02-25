@@ -26,6 +26,8 @@ class CoreIRSymbolTable : public SymbolTableInterface {
     std::string in_module_name, std::string in_instance_name) const override;
   std::pair<std::string, std::string> getPortName(
     std::string in_module_name, std::string in_port_name) const override;
+
+  ::nlohmann::json json() const override;
 };
 
 }  // namespace CoreIR
