@@ -1,0 +1,37 @@
+{"top":"global._Top",
+"namespaces":{
+  "global":{
+    "modules":{
+      "ASSERT_ON_compile_guard":{
+        "type":["Record",[
+          ["I","BitIn"]
+        ]],
+        "instances":{
+          "corebit_term_inst0":{
+            "modref":"corebit.term"
+          }
+        },
+        "connections":[
+          ["self.I","corebit_term_inst0.in"]
+        ]
+      },
+      "_Top":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "ASSERT_ON_compile_guard":{
+            "modref":"global.ASSERT_ON_compile_guard",
+            "metadata":{"compile_guard":"ASSERT_ON"}
+          }
+        },
+        "connections":[
+          ["self.I.","ASSERT_ON_compile_guard.I"],
+          ["self.O","self.I"]
+        ]
+      }
+    }
+  }
+}
+}
