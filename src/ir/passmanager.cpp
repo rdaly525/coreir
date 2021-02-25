@@ -1,21 +1,19 @@
 #include "coreir/ir/passmanager.h"
 #include <stack>
 #include "coreir/common/logging_lite.hpp"
+#include "coreir/ir/coreir_symbol_table.hpp"
 #include "coreir/passes/analysis/createinstancegraph.h"
 #include "coreir/passes/analysis/createinstancemap.h"
 #include "coreir/passes/common.h"
-#include "coreir/ir/symbol_table_interface.hpp"
 
 using namespace CoreIR;
 
-PassManager::PassManager(Context* c) : c(c) {
+PassManager::PassManager(Context* c)
+    : c(c), symbolTable(new CoreIRSymbolTable()) {
   initializePasses(*this);
 
   // Give all the passes access to passmanager
   for (auto pmap : passMap) { pmap.second->addPassManager(this); }
-
-  //Construct the symbol table
-  this->symbolTable = std::make_unique<CoreIRSymbolTable>();
 }
 
 void PassManager::addPass(Pass* p) {
