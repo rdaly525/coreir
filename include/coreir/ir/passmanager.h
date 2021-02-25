@@ -4,10 +4,10 @@
 #include <memory>
 #include <stack>
 #include "fwd_declare.h"
+#include "symbol_table_interface.hpp"
 
 namespace CoreIR {
 
-class CoreIRSymbolTable;
 class InstanceGraph;
 
 class PassManager {
@@ -47,7 +47,7 @@ class PassManager {
   void setDebug(bool debug) {this->debug = debug; }
   bool isDebug() {return this->debug; }
 
-  CoreIRSymbolTable* getSymbolTable() { return symbolTable.get(); }
+  SymbolTableInterface* getSymbolTable() { return symbolTable.get(); }
 
  private:
   void pushAllDependencies(std::string oname, std::stack<std::string>& work);
@@ -62,7 +62,7 @@ class PassManager {
   bool runInstanceVisitorPass(Pass* p);
   bool runInstanceGraphPass(Pass* p);
 
-  std::unique_ptr<CoreIRSymbolTable> symbolTable;
+  std::unique_ptr<SymbolTableInterface> symbolTable;
 };
 
 }  // namespace CoreIR

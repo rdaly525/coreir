@@ -2,10 +2,9 @@
 #define COREIR_PASSES_HPP_
 
 #include "fwd_declare.h"
+#include "symbol_table_interface.hpp"
 
 namespace CoreIR {
-
-class CoreIRSymbolTable;
 
 class Pass {
 
@@ -47,7 +46,7 @@ class Pass {
   virtual void setAnalysisInfo() {}
   void addDependency(std::string name) { dependencies.push_back(name); }
   Context* getContext();
-  CoreIRSymbolTable* getSymbolTable();
+  SymbolTableInterface* getSymbolTable();
   bool isDebug();
   std::string getName() { return name; }
   virtual void print() {}

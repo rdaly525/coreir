@@ -18,7 +18,7 @@ bool Pass::isDebug() {
   return pm->isDebug();
 }
 
-CoreIRSymbolTable* Pass::getSymbolTable() {
+SymbolTableInterface* Pass::getSymbolTable() {
   assert(pm);
   return this->pm->getSymbolTable();
 }
