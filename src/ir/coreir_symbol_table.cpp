@@ -2,6 +2,12 @@
 
 namespace CoreIR {
 
+namespace {
+
+using json = ::nlohmann::json;
+
+}  // namespace
+
 void CoreIRSymbolTable::setModuleName(
     std::string in_module_name, std::string out_module_name) {
 }
@@ -30,6 +36,10 @@ std::string CoreIRSymbolTable::getInstanceName(
 
 std::pair<std::string, std::string> CoreIRSymbolTable::getPortName(
     std::string in_module_name, std::string in_port_name) const {
+  return {};
+}
+
+json CoreIRSymbolTable::json() const {
   return {};
 }
 

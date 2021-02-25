@@ -2,6 +2,7 @@
 
 #include <string>
 #include <utility>
+#include "coreir/ir/json.h"
 
 namespace CoreIR {
 
@@ -26,6 +27,8 @@ class SymbolTableInterface {
       std::string in_module_name, std::string in_instance_name) const = 0;
   virtual std::pair<std::string, std::string> getPortName(
       std::string in_module_name, std::string in_port_name) const = 0;
+
+  virtual ::nlohmann::json json() const = 0;
 };
 
 }  // namespace CoreIR
