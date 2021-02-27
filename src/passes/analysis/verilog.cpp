@@ -1371,7 +1371,8 @@ Passes::Verilog::compileModuleBody(
         std::vector<std::unique_ptr<vAST::StructuralStatement>> body;
         body.push_back(std::move(statement));
         statement = std::make_unique<vAST::IfDef>(
-          metadata["compile_guard"].get<std::string>(),
+          metadata["compile_guard"]["condition_str"].get<std::string>(),
+          metadata["compile_guard"]["invert"],
           std::move(body));
       }
     }

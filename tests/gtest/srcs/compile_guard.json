@@ -23,11 +23,22 @@
         "instances":{
           "ASSERT_ON_compile_guard":{
             "modref":"global.ASSERT_ON_compile_guard",
-            "metadata":{"compile_guard":"ASSERT_ON"}
+            "metadata":{"compile_guard":{
+                "condition_str": "ASSERT_ON",
+                "invert": false
+            }}
+          },
+          "ASSERT_ON_compile_guard_invert":{
+            "modref":"global.ASSERT_ON_compile_guard",
+            "metadata":{"compile_guard":{
+                "condition_str": "ASSERT_ON",
+                "invert": true
+            }}
           }
         },
         "connections":[
           ["self.I.","ASSERT_ON_compile_guard.I"],
+          ["self.I.","ASSERT_ON_compile_guard_invert.I"],
           ["self.O","self.I"]
         ]
       }
