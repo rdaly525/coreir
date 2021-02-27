@@ -365,6 +365,24 @@ TEST(VerilogTests, TestCompileGuard) {
   assertPassEq(c, "verilog", "golds/compile_guard.v");
   deleteContext(c);
 }
+
+TEST(VerilogTests, TestVerilogBody) {
+  Context* c = newContext();
+  Module* top;
+
+  if (!loadFromFile(c, "srcs/verilog_body.json", &top)) { c->die(); }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {
+    "rungenerators",
+    "removebulkconnections",
+    "flattentypes --ndarray",
+    "verilog --inline"};
+  c->runPasses(passes, {});
+  assertPassEq(c, "verilog", "golds/verilog_body.v");
+  deleteContext(c);
+}
 }  // namespace
 
 int main(int argc, char** argv) {

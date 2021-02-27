@@ -1439,6 +1439,26 @@ void Passes::Verilog::compileModule(Module* module) {
       modules.push_back(
         std::make_pair(module->getName(), compile_string_module(verilog_json)));
     }
+    else if (verilog_json.count("verilog_body") > 0) {
+      std::vector<std::unique_ptr<vAST::AbstractPort>> ports = compilePorts(
+        cast<RecordType>(module->getType()));
+
+      std::vector<std::variant<
+        std::unique_ptr<vAST::StructuralStatement>,
+        std::unique_ptr<vAST::Declaration>>>
+        body;
+
+      body.push_back(std::make_unique<vAST::InlineVerilog>(
+        verilog_json["verilog_body"].get<std::string>()));
+
+      std::string name = module->getName();
+      modules.push_back(std::make_pair(
+        name,
+        std::make_unique<vAST::Module>(
+          name,
+          std::move(ports),
+          std::move(body))));
+    }
     else {
       std::string name = make_name(module->getName(), verilog_json);
       modules.push_back(std::make_pair(
