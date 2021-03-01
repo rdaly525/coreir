@@ -1,6 +1,6 @@
-{"top":"global.Foo",
+{"top":"bar.Foo",
 "namespaces":{
-  "global":{
+  "bar":{
     "modules":{
       "Foo":{
         "type":["Record",[
