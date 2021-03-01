@@ -1372,15 +1372,17 @@ Passes::Verilog::compileModuleBody(
         body.push_back(std::move(statement));
         std::string type = metadata["compile_guard"]["type"];
         if (type == "defined") {
-            statement = std::make_unique<vAST::IfDef>(
-              metadata["compile_guard"]["condition_str"].get<std::string>(),
-              std::move(body));
-        } else if (type == "undefined") {
-            statement = std::make_unique<vAST::IfNDef>(
-              metadata["compile_guard"]["condition_str"].get<std::string>(),
-              std::move(body));
-        } else {
-            throw std::runtime_error("Unexpected compile_guard type: " + type);
+          statement = std::make_unique<vAST::IfDef>(
+            metadata["compile_guard"]["condition_str"].get<std::string>(),
+            std::move(body));
+        }
+        else if (type == "undefined") {
+          statement = std::make_unique<vAST::IfNDef>(
+            metadata["compile_guard"]["condition_str"].get<std::string>(),
+            std::move(body));
+        }
+        else {
+          throw std::runtime_error("Unexpected compile_guard type: " + type);
         }
       }
     }
