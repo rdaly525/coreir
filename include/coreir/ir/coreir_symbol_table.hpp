@@ -1,5 +1,7 @@
 #pragma once
 
+#include <map>
+#include <string>
 #include "coreir/ir/symbol_table_interface.hpp"
 
 namespace CoreIR {
@@ -28,6 +30,13 @@ class CoreIRSymbolTable : public SymbolTableInterface {
     std::string in_module_name, std::string in_port_name) const override;
 
   ::nlohmann::json json() const override;
+
+ private:
+  using StringPair = std::pair<std::string, std::string>;
+
+  std::map<std::string, std::string> moduleNames = {};
+  std::map<StringPair, std::string> instanceNames = {};
+  std::map<StringPair, StringPair> portNames = {};
 };
 
 }  // namespace CoreIR
