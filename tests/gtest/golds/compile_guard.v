@@ -22,7 +22,7 @@ ASSERT_ON_compile_guard ASSERT_ON_compile_guard (
 );
 `endif
 `ifndef ASSERT_ON
-ASSERT_ON_compile_guard ASSERT_ON_compile_guard_invert (
+ASSERT_ON_compile_guard ASSERT_ON_compile_guard_undefined (
     .I(I)
 );
 `endif

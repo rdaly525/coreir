@@ -25,20 +25,20 @@
             "modref":"global.ASSERT_ON_compile_guard",
             "metadata":{"compile_guard":{
                 "condition_str": "ASSERT_ON",
-                "invert": false
+                "type": "defined"
             }}
           },
-          "ASSERT_ON_compile_guard_invert":{
+          "ASSERT_ON_compile_guard_undefined":{
             "modref":"global.ASSERT_ON_compile_guard",
             "metadata":{"compile_guard":{
                 "condition_str": "ASSERT_ON",
-                "invert": true
+                "type": "undefined"
             }}
           }
         },
         "connections":[
           ["self.I.","ASSERT_ON_compile_guard.I"],
-          ["self.I.","ASSERT_ON_compile_guard_invert.I"],
+          ["self.I.","ASSERT_ON_compile_guard_undefined.I"],
           ["self.O","self.I"]
         ]
       }
