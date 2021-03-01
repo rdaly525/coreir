@@ -1451,7 +1451,7 @@ void Passes::Verilog::compileModule(Module* module) {
       body.push_back(std::make_unique<vAST::InlineVerilog>(
         verilog_json["verilog_body"].get<std::string>()));
 
-      std::string name = module->getName();
+      std::string name = module->getLongName();
       modules.push_back(std::make_pair(
         name,
         std::make_unique<vAST::Module>(
