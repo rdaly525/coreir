@@ -4,7 +4,58 @@ namespace CoreIR {
 
 namespace {
 
-using json = ::nlohmann::json;
+using json_type = ::nlohmann::json;
+
+// template <typename Key> struct KeyJsonifier {
+//   std::string operator()(const Key& key) const {
+//     return key;
+//   }
+// };
+
+// template <typename Value> struct ValueJsonifier {
+//   std::string operator()(const Value& value) const {
+//     return value;
+//   }
+// };
+
+template <typename Key, typename Value> struct Jsonifier {
+  using map_type = std::map<Key, Value>;
+
+  json_type operator()(const map_type& map) const {
+    return json_type(map);
+  }
+};
+
+template <> struct Jsonifier<std::pair<std::string, std::string>, std::string> {
+  using Key = std::pair<std::string, std::string>;
+  using Value = std::string;
+  using map_type = std::map<Key, Value>;
+
+  json_type operator()(const map_type& map) const {
+    std::map<std::string, std::string> transformed;
+    for (auto& [k, v] : map) {
+      auto new_key = k.first + "," + k.second;
+      transformed[new_key] = v;
+    }
+    return Jsonifier<std::string, std::string>()(transformed);
+  }
+};
+
+template <> struct Jsonifier<std::pair<std::string, std::string>,
+                             std::pair<std::string, std::string>> {
+  using Key = std::pair<std::string, std::string>;
+  using Value = std::pair<std::string, std::string>;
+  using map_type = std::map<Key, Value>;
+
+  json_type operator()(const map_type& map) const {
+    std::map<std::string, std::array<std::string, 2>> transformed;
+    for (auto& [k, v] : map) {
+      auto new_key = k.first + "," + k.second;
+      transformed[new_key] = {v.first, v.second};
+    }
+    return json_type(transformed);
+  }
+};
 
 }  // namespace
 
@@ -45,8 +96,12 @@ std::pair<std::string, std::string> CoreIRSymbolTable::getPortName(
   return portNames.at({in_module_name, in_port_name});
 }
 
-json CoreIRSymbolTable::json() const {
-  return {};
+json_type CoreIRSymbolTable::json() const {
+  json_type ret;
+  ret["module_names"] = Jsonifier<std::string, std::string>()(moduleNames);
+  ret["instance_names"] = Jsonifier<StringPair, std::string>()(instanceNames);
+  ret["port_names"] = Jsonifier<StringPair, StringPair>()(portNames);
+  return ret;
 }
 
 }  // namespace CoreIR
