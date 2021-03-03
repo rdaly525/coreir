@@ -1600,14 +1600,16 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
   return false;
 }
 
-void add_prefix(
+bool add_prefix(
   std::unique_ptr<vAST::AbstractModule>& module,
   std::string prefix) {
   // Note we cannot add prefix to string modules since their
   // module name is inside an opaque verilog string
   if (auto ptr = dynamic_cast<vAST::Module*>(module.get())) {
     ptr->name = prefix + ptr->name;
+    return true;
   }
+  return false;
 }
 
 class InstancePrefixInserter : public vAST::Transformer {
@@ -1641,8 +1643,8 @@ void Passes::Verilog::writeToStream(std::ostream& os) {
   if (this->module_name_prefix != "") {
     std::set<std::string> renamed_modules;
     for (auto& module : modules) {
-      add_prefix(module.second, this->module_name_prefix);
-      renamed_modules.insert(module.first);
+      bool added = add_prefix(module.second, this->module_name_prefix);
+      if (added) { renamed_modules.insert(module.first); }
     }
     InstancePrefixInserter transformer(renamed_modules, module_name_prefix);
     for (auto& module : modules) {
