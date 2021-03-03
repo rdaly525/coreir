@@ -383,6 +383,27 @@ TEST(VerilogTests, TestVerilogBody) {
   assertPassEq(c, "verilog", "golds/verilog_body.v");
   deleteContext(c);
 }
+
+TEST(VerilogTests, TestVerilogBind) {
+  Context* c = newContext();
+  CoreIRLoadVerilog_coreir(c);
+  CoreIRLoadVerilog_corebit(c);
+  CoreIRLoadLibrary_commonlib(c);
+  Module* top;
+
+  if (!loadFromFile(c, "srcs/bind_uniq_test.json", &top)) { c->die(); }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {
+    "rungenerators",
+    "removebulkconnections",
+    "flattentypes --ndarray",
+    "verilog --inline --prefix bar_"};
+  c->runPasses(passes, {});
+  assertPassEq(c, "verilog", "golds/bind_uniq_test.v");
+  deleteContext(c);
+}
 }  // namespace
 
 int main(int argc, char** argv) {
