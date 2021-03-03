@@ -360,7 +360,7 @@ TEST(VerilogTests, TestCompileGuard) {
     "rungenerators",
     "removebulkconnections",
     "flattentypes --ndarray",
-    "verilog --inline"};
+    "verilog --inline --prefix foo_"};
   c->runPasses(passes, {});
   assertPassEq(c, "verilog", "golds/compile_guard.v");
   deleteContext(c);

@@ -1610,6 +1610,27 @@ void add_prefix(
   }
 }
 
+class InstancePrefixInserter : public vAST::Transformer {
+  std::set<std::string> renamed_modules;
+  std::string prefix;
+
+ public:
+  InstancePrefixInserter(
+    std::set<std::string> renamed_modules,
+    std::string prefix)
+      : renamed_modules(renamed_modules),
+        prefix(prefix){};
+
+  using vAST::Transformer::visit;
+  virtual std::unique_ptr<vAST::ModuleInstantiation> visit(
+    std::unique_ptr<vAST::ModuleInstantiation> node) {
+    if (renamed_modules.count(node->module_name)) {
+      node->module_name = prefix + node->module_name;
+    }
+    return node;
+  }
+};
+
 void Passes::Verilog::writeToStream(std::ostream& os) {
   for (auto& module : extern_modules) {
     os << vAST::SingleLineComment(
@@ -1617,10 +1638,18 @@ void Passes::Verilog::writeToStream(std::ostream& os) {
             .toString()
        << std::endl;
   }
-  for (auto& module : modules) {
-    if (this->module_name_prefix != "") {
+  if (this->module_name_prefix != "") {
+    std::set<std::string> renamed_modules;
+    for (auto& module : modules) {
       add_prefix(module.second, this->module_name_prefix);
+      renamed_modules.insert(module.first);
     }
+    InstancePrefixInserter transformer(renamed_modules, module_name_prefix);
+    for (auto& module : modules) {
+      module.second = transformer.visit(std::move(module.second));
+    }
+  }
+  for (auto& module : modules) {
     os << module.second->toString() << std::endl;
   }
 }
