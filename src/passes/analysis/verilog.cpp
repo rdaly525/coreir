@@ -83,12 +83,18 @@ void Passes::Verilog::initialize(int argc, char** argv) {
     "w,disable-width-cast",
     "Omit width cast in generated verilog when using inline")(
     "v,verilator-compat",
-    "Emit primitives with verilator compatibility");
+    "Emit primitives with verilator compatibility")(
+    "p,prefix",
+    "Prefix for emitted module names",
+    cxxopts::value<std::string>());
   auto opts = options.parse(argc, argv);
   if (opts.count("i")) { this->_inline = true; }
   if (opts.count("y")) { this->verilator_debug = true; }
   if (opts.count("w")) { this->disable_width_cast = true; }
   if (opts.count("v")) { this->verilator_compat = true; }
+  if (opts.count("p")) {
+    this->module_name_prefix = opts["p"].as<std::string>();
+  }
 }
 
 // Helper function that prepends a prefix contained in json metadata if it
@@ -1594,6 +1600,16 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
   return false;
 }
 
+void add_prefix(
+  std::unique_ptr<vAST::AbstractModule>& module,
+  std::string prefix) {
+  // Note we cannot add prefix to string modules since their
+  // module name is inside an opaque verilog string
+  if (auto ptr = dynamic_cast<vAST::Module*>(module.get())) {
+    ptr->name = prefix + ptr->name;
+  }
+}
+
 void Passes::Verilog::writeToStream(std::ostream& os) {
   for (auto& module : extern_modules) {
     os << vAST::SingleLineComment(
@@ -1601,7 +1617,12 @@ void Passes::Verilog::writeToStream(std::ostream& os) {
             .toString()
        << std::endl;
   }
-  for (auto& module : modules) { os << module.second->toString() << std::endl; }
+  for (auto& module : modules) {
+    if (this->module_name_prefix != "") {
+      add_prefix(module.second, this->module_name_prefix);
+    }
+    os << module.second->toString() << std::endl;
+  }
 }
 
 void Passes::Verilog::writeToFiles(

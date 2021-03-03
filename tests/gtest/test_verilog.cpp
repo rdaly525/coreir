@@ -378,7 +378,7 @@ TEST(VerilogTests, TestVerilogBody) {
     "rungenerators",
     "removebulkconnections",
     "flattentypes --ndarray",
-    "verilog --inline"};
+    "verilog --inline --prefix foo_"};
   c->runPasses(passes, {});
   assertPassEq(c, "verilog", "golds/verilog_body.v");
   deleteContext(c);
