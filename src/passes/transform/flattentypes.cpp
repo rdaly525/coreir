@@ -80,7 +80,7 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
     newports.push_back({newport, type});
     verifyUnique.insert(newport);
     if (this->isDebug()) {
-      this->getSymbolTable()->setPortName(mod->getName(), ::toString(sp), mod->getName(), newport);
+      this->getSymbolTable()->setPortName(mod->getName(), ::toString(sp), newport);
     }
   }
 

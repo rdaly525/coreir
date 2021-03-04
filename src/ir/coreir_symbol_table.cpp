@@ -6,18 +6,6 @@ namespace {
 
 using json_type = ::nlohmann::json;
 
-// template <typename Key> struct KeyJsonifier {
-//   std::string operator()(const Key& key) const {
-//     return key;
-//   }
-// };
-
-// template <typename Value> struct ValueJsonifier {
-//   std::string operator()(const Value& value) const {
-//     return value;
-//   }
-// };
-
 template <typename Key, typename Value> struct Jsonifier {
   using map_type = std::map<Key, Value>;
 
@@ -41,22 +29,6 @@ template <> struct Jsonifier<std::pair<std::string, std::string>, std::string> {
   }
 };
 
-template <> struct Jsonifier<std::pair<std::string, std::string>,
-                             std::pair<std::string, std::string>> {
-  using Key = std::pair<std::string, std::string>;
-  using Value = std::pair<std::string, std::string>;
-  using map_type = std::map<Key, Value>;
-
-  json_type operator()(const map_type& map) const {
-    std::map<std::string, std::array<std::string, 2>> transformed;
-    for (auto& [k, v] : map) {
-      auto new_key = k.first + "," + k.second;
-      transformed[new_key] = {v.first, v.second};
-    }
-    return json_type(transformed);
-  }
-};
-
 }  // namespace
 
 void CoreIRSymbolTable::setModuleName(
@@ -75,11 +47,9 @@ void CoreIRSymbolTable::setInstanceName(
 void CoreIRSymbolTable::setPortName(
     std::string in_module_name,
     std::string in_port_name,
-    std::string out_module_name,
     std::string out_port_name) {
   portNames.emplace(
-      std::make_pair(in_module_name, in_port_name),
-      std::make_pair(out_module_name, out_port_name));
+      std::make_pair(in_module_name, in_port_name), out_port_name);
 }
 
 std::string CoreIRSymbolTable::getModuleName(std::string in_module_name) const {
@@ -91,7 +61,7 @@ std::string CoreIRSymbolTable::getInstanceName(
   return instanceNames.at({in_module_name, in_instance_name});
 }
 
-std::pair<std::string, std::string> CoreIRSymbolTable::getPortName(
+std::string CoreIRSymbolTable::getPortName(
     std::string in_module_name, std::string in_port_name) const {
   return portNames.at({in_module_name, in_port_name});
 }
@@ -100,7 +70,7 @@ json_type CoreIRSymbolTable::json() const {
   json_type ret;
   ret["module_names"] = Jsonifier<std::string, std::string>()(moduleNames);
   ret["instance_names"] = Jsonifier<StringPair, std::string>()(instanceNames);
-  ret["port_names"] = Jsonifier<StringPair, StringPair>()(portNames);
+  ret["port_names"] = Jsonifier<StringPair, std::string>()(portNames);
   return ret;
 }
 
