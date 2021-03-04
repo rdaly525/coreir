@@ -1367,6 +1367,10 @@ Passes::Verilog::compileModuleBody(
         std::move(instance_parameters),
         instance_name,
         std::move(verilog_connections));
+      this->getSymbolTable()->setInstanceName(
+          definition->getModule()->getName(),
+          instance.second->getInstname(),
+          instance_name);
     }
     body.push_back(std::move(statement));
   }
