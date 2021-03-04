@@ -1411,6 +1411,10 @@ Passes::Verilog::compileModuleBody(
           throw std::runtime_error("Unexpected compile_guard type: " + type);
         }
       }
+      this->getSymbolTable()->setInstanceName(
+          definition->getModule()->getName(),
+          instance.second->getInstname(),
+          instance_name);
     }
     body.push_back(std::move(statement));
   }
