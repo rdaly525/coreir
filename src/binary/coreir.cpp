@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
     "t,top",
     "top: <namespace>.<modulename>",
     cxxopts::value<std::string>())("a,all", "run on all namespaces")
-    ("g, symbols", "create symbol table")(
+    ("g,symbols", "create symbol table", cxxopts::value<std::string>())(
     "z,inline",
     "inlines verilog primitives")(
     "y,verilator_debug",
@@ -294,9 +294,11 @@ int main(int argc, char* argv[]) {
 
   // Dump symbol table if in debug mode.
   if (c->getPassManager()->isDebug()) {
+    const auto filename = opts["g"].as<string>();
     auto const symbolTable = c->getPassManager()->getSymbolTable();
     if (symbolTable != nullptr) {
-      std::cout << symbolTable->json() << std::endl;
+      std::ofstream fout(filename);
+      fout << symbolTable->json();
     }
   }
 
