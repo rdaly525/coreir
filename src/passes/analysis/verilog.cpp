@@ -1368,18 +1368,34 @@ Passes::Verilog::compileModuleBody(
         std::move(verilog_connections));
       auto metadata = instance.second->getMetaData();
       if (metadata.count("compile_guard") > 0) {
-        std::vector<std::unique_ptr<vAST::StructuralStatement>> body;
-        body.push_back(std::move(statement));
+        std::vector<std::unique_ptr<vAST::StructuralStatement>> true_body;
+        true_body.push_back(std::move(statement));
         std::string type = metadata["compile_guard"]["type"];
+
+        std::vector<std::unique_ptr<vAST::StructuralStatement>> else_body;
+        RecordType* record_type = cast<RecordType>(instance_module->getType());
+        for (auto field : record_type->getFields()) {
+          Type* field_type = record_type->getRecord().at(field);
+          std::string wire_name = instance.first + "_" + field;
+          if (!field_type->isInput()) {
+            else_body.push_back(std::make_unique<vAST::ContinuousAssign>(
+              std::make_unique<vAST::Identifier>(
+                getUniquifiedName(non_input_port_map, wire_name)),
+              vAST::make_num("0")));
+          }
+        }
+
         if (type == "defined") {
           statement = std::make_unique<vAST::IfDef>(
             metadata["compile_guard"]["condition_str"].get<std::string>(),
-            std::move(body));
+            std::move(true_body),
+            std::move(else_body));
         }
         else if (type == "undefined") {
           statement = std::make_unique<vAST::IfNDef>(
             metadata["compile_guard"]["condition_str"].get<std::string>(),
-            std::move(body));
+            std::move(true_body),
+            std::move(else_body));
         }
         else {
           throw std::runtime_error("Unexpected compile_guard type: " + type);

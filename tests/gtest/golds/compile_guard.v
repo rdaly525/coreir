@@ -4,6 +4,13 @@ module corebit_term (
 
 endmodule
 
+module ASSERT_ON_compile_guard_with_output (
+    input I,
+    output O
+);
+assign O = I;
+endmodule
+
 module ASSERT_ON_compile_guard (
     input I
 );
@@ -16,16 +23,20 @@ module _Top (
     input I,
     output O
 );
+wire ASSERT_ON_compile_guard_O;
 `ifdef ASSERT_ON
-ASSERT_ON_compile_guard ASSERT_ON_compile_guard (
-    .I(I)
+ASSERT_ON_compile_guard_with_output ASSERT_ON_compile_guard (
+    .I(I),
+    .O(ASSERT_ON_compile_guard_O)
 );
+`else
+assign ASSERT_ON_compile_guard_O = 0;
 `endif
 `ifndef ASSERT_ON
 ASSERT_ON_compile_guard ASSERT_ON_compile_guard_undefined (
     .I(I)
 );
 `endif
-assign O = I;
+assign O = ASSERT_ON_compile_guard_O;
 endmodule
 
