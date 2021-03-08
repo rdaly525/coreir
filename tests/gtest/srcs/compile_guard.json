@@ -2,6 +2,15 @@
 "namespaces":{
   "global":{
     "modules":{
+      "ASSERT_ON_compile_guard_with_output":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"]
+        ]],
+        "connections":[
+          ["self.I","self.O"]
+        ]
+      },
       "ASSERT_ON_compile_guard":{
         "type":["Record",[
           ["I","BitIn"]
@@ -22,7 +31,7 @@
         ]],
         "instances":{
           "ASSERT_ON_compile_guard":{
-            "modref":"global.ASSERT_ON_compile_guard",
+            "modref":"global.ASSERT_ON_compile_guard_with_output",
             "metadata":{"compile_guard":{
                 "condition_str": "ASSERT_ON",
                 "type": "defined"
@@ -39,7 +48,7 @@
         "connections":[
           ["self.I.","ASSERT_ON_compile_guard.I"],
           ["self.I.","ASSERT_ON_compile_guard_undefined.I"],
-          ["self.O","self.I"]
+          ["self.O","ASSERT_ON_compile_guard.O"]
         ]
       }
     }
