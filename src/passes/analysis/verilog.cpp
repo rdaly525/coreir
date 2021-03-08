@@ -83,12 +83,18 @@ void Passes::Verilog::initialize(int argc, char** argv) {
     "w,disable-width-cast",
     "Omit width cast in generated verilog when using inline")(
     "v,verilator-compat",
-    "Emit primitives with verilator compatibility");
+    "Emit primitives with verilator compatibility")(
+    "p,prefix",
+    "Prefix for emitted module names",
+    cxxopts::value<std::string>());
   auto opts = options.parse(argc, argv);
   if (opts.count("i")) { this->_inline = true; }
   if (opts.count("y")) { this->verilator_debug = true; }
   if (opts.count("w")) { this->disable_width_cast = true; }
   if (opts.count("v")) { this->verilator_compat = true; }
+  if (opts.count("p")) {
+    this->module_name_prefix = opts["p"].as<std::string>();
+  }
 }
 
 // Helper function that prepends a prefix contained in json metadata if it
@@ -1594,14 +1600,59 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
   return false;
 }
 
+class InstancePrefixInserter : public vAST::Transformer {
+  std::set<std::string> renamed_modules;
+  std::string prefix;
+
+ public:
+  InstancePrefixInserter(
+    std::set<std::string> renamed_modules,
+    std::string prefix)
+      : renamed_modules(renamed_modules),
+        prefix(prefix){};
+
+  using vAST::Transformer::visit;
+  virtual std::unique_ptr<vAST::ModuleInstantiation> visit(
+    std::unique_ptr<vAST::ModuleInstantiation> node) {
+    if (renamed_modules.count(node->module_name)) {
+      node->module_name = prefix + node->module_name;
+    }
+    return node;
+  }
+};
+
+void Passes::Verilog::addPrefix() {
+  if (this->prefixAdded || this->module_name_prefix == "") return;
+
+  std::set<std::string> renamed_modules;
+  for (auto& module : this->modules) {
+    // Note we cannot add prefix to string modules since their
+    // module name is inside an opaque verilog string
+    if (auto ptr = dynamic_cast<vAST::Module*>(module.second.get())) {
+      ptr->name = this->module_name_prefix + ptr->name;
+      renamed_modules.insert(module.first);
+    }
+  }
+
+  InstancePrefixInserter transformer(renamed_modules, module_name_prefix);
+  for (auto& module : modules) {
+    module.second = transformer.visit(std::move(module.second));
+  }
+
+  this->prefixAdded = true;
+}
+
 void Passes::Verilog::writeToStream(std::ostream& os) {
+  this->addPrefix();
   for (auto& module : extern_modules) {
     os << vAST::SingleLineComment(
             "Module `" + module->getName() + "` defined externally")
             .toString()
        << std::endl;
   }
-  for (auto& module : modules) { os << module.second->toString() << std::endl; }
+  for (auto& module : modules) {
+    os << module.second->toString() << std::endl;
+  }
 }
 
 void Passes::Verilog::writeToFiles(
@@ -1612,6 +1663,7 @@ void Passes::Verilog::writeToFiles(
   ASSERT(
     outExt == "v" || outExt == "sv",
     "Expect outext to be v or sv, not " + outExt);
+  this->addPrefix();
   for (auto& module : modules) {
     const std::string filename = module.first + "." + outExt;
     products.push_back(filename);

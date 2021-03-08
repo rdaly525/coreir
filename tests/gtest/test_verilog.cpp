@@ -360,7 +360,7 @@ TEST(VerilogTests, TestCompileGuard) {
     "rungenerators",
     "removebulkconnections",
     "flattentypes --ndarray",
-    "verilog --inline"};
+    "verilog --inline --prefix foo_"};
   c->runPasses(passes, {});
   assertPassEq(c, "verilog", "golds/compile_guard.v");
   deleteContext(c);
@@ -378,9 +378,30 @@ TEST(VerilogTests, TestVerilogBody) {
     "rungenerators",
     "removebulkconnections",
     "flattentypes --ndarray",
-    "verilog --inline"};
+    "verilog --inline --prefix foo_"};
   c->runPasses(passes, {});
   assertPassEq(c, "verilog", "golds/verilog_body.v");
+  deleteContext(c);
+}
+
+TEST(VerilogTests, TestVerilogBind) {
+  Context* c = newContext();
+  CoreIRLoadVerilog_coreir(c);
+  CoreIRLoadVerilog_corebit(c);
+  CoreIRLoadLibrary_commonlib(c);
+  Module* top;
+
+  if (!loadFromFile(c, "srcs/bind_uniq_test.json", &top)) { c->die(); }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {
+    "rungenerators",
+    "removebulkconnections",
+    "flattentypes --ndarray",
+    "verilog --inline --prefix bar_"};
+  c->runPasses(passes, {});
+  assertPassEq(c, "verilog", "golds/bind_uniq_test.v");
   deleteContext(c);
 }
 }  // namespace

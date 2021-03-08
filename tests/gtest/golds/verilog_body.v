@@ -1,4 +1,4 @@
-module bar_Foo (
+module foo_bar_Foo (
     input I,
     output O
 );
