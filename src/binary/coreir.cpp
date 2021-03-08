@@ -49,6 +49,9 @@ int main(int argc, char* argv[]) {
     "n,namespaces",
     "namespaces to output: '<namespace1>,<namespace2>,<namespace3>,...'",
     cxxopts::value<std::string>()->default_value("global"))(
+    "verilog-prefix",
+    "Prefix for emitted verilog module names",
+    cxxopts::value<std::string>())(
     "t,top",
     "top: <namespace>.<modulename>",
     cxxopts::value<std::string>())("a,all", "run on all namespaces")(
@@ -226,6 +229,9 @@ int main(int argc, char* argv[]) {
     if (opts.count("y")) { vstr += " -y"; }
     if (opts.count("w")) { vstr += " -w"; }
     if (opts.count("u")) { vstr += " -v"; }
+    if (opts.count("verilog-prefix")) {
+      vstr += " --prefix " + opts["verilog-prefix"].as<std::string>();
+    }
     std::string flattentypes_str = "flattentypes";
     if (!opts.count("x")) { flattentypes_str += " --ndarray"; }
     modified |= c->runPasses(
