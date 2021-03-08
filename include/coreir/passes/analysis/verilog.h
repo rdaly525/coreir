@@ -78,6 +78,9 @@ class Verilog : public InstanceGraphPass {
     std::string name,
     Module* module);
 
+  bool prefixAdded = false;
+  void addPrefix();
+
  public:
   Verilog()
       : InstanceGraphPass("verilog", "Compiles IR to Verilog files", true) {}

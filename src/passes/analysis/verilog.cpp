@@ -1600,18 +1600,6 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
   return false;
 }
 
-bool add_prefix(
-  std::unique_ptr<vAST::AbstractModule>& module,
-  std::string prefix) {
-  // Note we cannot add prefix to string modules since their
-  // module name is inside an opaque verilog string
-  if (auto ptr = dynamic_cast<vAST::Module*>(module.get())) {
-    ptr->name = prefix + ptr->name;
-    return true;
-  }
-  return false;
-}
-
 class InstancePrefixInserter : public vAST::Transformer {
   std::set<std::string> renamed_modules;
   std::string prefix;
@@ -1633,23 +1621,34 @@ class InstancePrefixInserter : public vAST::Transformer {
   }
 };
 
+void Passes::Verilog::addPrefix() {
+  if (this->prefixAdded || this->module_name_prefix == "") return;
+
+  std::set<std::string> renamed_modules;
+  for (auto& module : this->modules) {
+    // Note we cannot add prefix to string modules since their
+    // module name is inside an opaque verilog string
+    if (auto ptr = dynamic_cast<vAST::Module*>(module.second.get())) {
+      ptr->name = this->module_name_prefix + ptr->name;
+      renamed_modules.insert(module.first);
+    }
+  }
+
+  InstancePrefixInserter transformer(renamed_modules, module_name_prefix);
+  for (auto& module : modules) {
+    module.second = transformer.visit(std::move(module.second));
+  }
+
+  this->prefixAdded = true;
+}
+
 void Passes::Verilog::writeToStream(std::ostream& os) {
+  this->addPrefix();
   for (auto& module : extern_modules) {
     os << vAST::SingleLineComment(
             "Module `" + module->getName() + "` defined externally")
             .toString()
        << std::endl;
-  }
-  if (this->module_name_prefix != "") {
-    std::set<std::string> renamed_modules;
-    for (auto& module : modules) {
-      bool added = add_prefix(module.second, this->module_name_prefix);
-      if (added) { renamed_modules.insert(module.first); }
-    }
-    InstancePrefixInserter transformer(renamed_modules, module_name_prefix);
-    for (auto& module : modules) {
-      module.second = transformer.visit(std::move(module.second));
-    }
   }
   for (auto& module : modules) {
     os << module.second->toString() << std::endl;
@@ -1664,6 +1663,7 @@ void Passes::Verilog::writeToFiles(
   ASSERT(
     outExt == "v" || outExt == "sv",
     "Expect outext to be v or sv, not " + outExt);
+  this->addPrefix();
   for (auto& module : modules) {
     const std::string filename = module.first + "." + outExt;
     products.push_back(filename);
