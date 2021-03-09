@@ -1674,10 +1674,9 @@ void Passes::Verilog::writeToStream(std::ostream& os) {
     // We do prefix logic here rather than modify the coreir name in the
     // addPrefix logic (since this verilog contained and there's no verilog to
     // modify for this).
-    if (this->prefix_extern) { name = this->module_name_prefix + name; };
-    os << vAST::SingleLineComment("Module `" + name + "` defined externally")
-            .toString()
-       << std::endl;
+    if (this->prefix_extern) name = this->module_name_prefix + name;
+    const auto comment = "Module `" + name + "` defined externally";
+    os << vAST::SingleLineComment(comment).toString() << std::endl;
   }
   for (auto& module : modules) {
     os << module.second->toString() << std::endl;
