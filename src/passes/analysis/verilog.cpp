@@ -1655,6 +1655,11 @@ void Passes::Verilog::addPrefix() {
 
   if (this->prefix_extern) {
     for (auto& module : extern_modules) {
+      if (module->getMetaData().count("verilog_name") > 0) {
+        // Overridden (e.g. for ice40 modules, we don't want the namespace
+        // prefix)
+        continue;
+      }
       renamed_modules.insert(module->getLongName());
     }
   }
@@ -1670,11 +1675,18 @@ void Passes::Verilog::addPrefix() {
 void Passes::Verilog::writeToStream(std::ostream& os) {
   this->addPrefix();
   for (auto& module : extern_modules) {
-    std::string name = module->getLongName();
     // We do prefix logic here rather than modify the coreir name in the
     // addPrefix logic (since this verilog contained and there's no verilog to
     // modify for this).
-    if (this->prefix_extern) name = this->module_name_prefix + name;
+    std::string name;
+    if (module->getMetaData().count("verilog_name") > 0) {
+      // Overridden (e.g. for ice40 modules, where a prefix shouldn't be used)
+      name = module->getMetaData()["verilog_name"].get<std::string>();
+    }
+    else {
+      name = module->getLongName();
+      if (this->prefix_extern) name = this->module_name_prefix + name;
+    }
     const auto comment = "Module `" + name + "` defined externally";
     os << vAST::SingleLineComment(comment).toString() << std::endl;
   }
