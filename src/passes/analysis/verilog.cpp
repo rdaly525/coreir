@@ -86,7 +86,9 @@ void Passes::Verilog::initialize(int argc, char** argv) {
     "Emit primitives with verilator compatibility")(
     "p,prefix",
     "Prefix for emitted module names",
-    cxxopts::value<std::string>());
+    cxxopts::value<std::string>())(
+    "prefix-extern",
+    "Use prefix (-p) for externally defined modules");
   auto opts = options.parse(argc, argv);
   if (opts.count("i")) { this->_inline = true; }
   if (opts.count("y")) { this->verilator_debug = true; }
@@ -95,6 +97,7 @@ void Passes::Verilog::initialize(int argc, char** argv) {
   if (opts.count("p")) {
     this->module_name_prefix = opts["p"].as<std::string>();
   }
+  if (opts.count("prefix-extern")) { this->prefix_extern = true; }
 }
 
 // Helper function that prepends a prefix contained in json metadata if it
@@ -1650,6 +1653,12 @@ void Passes::Verilog::addPrefix() {
     }
   }
 
+  if (this->prefix_extern) {
+    for (auto& module : extern_modules) {
+      renamed_modules.insert(module->getLongName());
+    }
+  }
+
   InstancePrefixInserter transformer(renamed_modules, module_name_prefix);
   for (auto& module : modules) {
     module.second = transformer.visit(std::move(module.second));
@@ -1661,8 +1670,12 @@ void Passes::Verilog::addPrefix() {
 void Passes::Verilog::writeToStream(std::ostream& os) {
   this->addPrefix();
   for (auto& module : extern_modules) {
-    os << vAST::SingleLineComment(
-            "Module `" + module->getName() + "` defined externally")
+    std::string name = module->getLongName();
+    // We do prefix logic here rather than modify the coreir name in the
+    // addPrefix logic (since this verilog contained and there's no verilog to
+    // modify for this
+    if (this->prefix_extern) { name = this->module_name_prefix + name; };
+    os << vAST::SingleLineComment("Module `" + name + "` defined externally")
             .toString()
        << std::endl;
   }
