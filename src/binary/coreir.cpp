@@ -234,6 +234,9 @@ int main(int argc, char* argv[]) {
     if (opts.count("verilog-prefix")) {
       vstr += " --prefix " + opts["verilog-prefix"].as<std::string>();
     }
+    if (opts.count("verilog-prefix-extern")) {
+      vstr += " --prefix-extern";
+    }
     std::string flattentypes_str = "flattentypes";
     if (!opts.count("x")) { flattentypes_str += " --ndarray"; }
     modified |= c->runPasses(
