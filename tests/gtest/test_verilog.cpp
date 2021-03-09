@@ -399,7 +399,7 @@ TEST(VerilogTests, TestVerilogBind) {
     "rungenerators",
     "removebulkconnections",
     "flattentypes --ndarray",
-    "verilog --inline --prefix bar_"};
+    "verilog --inline --prefix bar_ --prefix-extern"};
   c->runPasses(passes, {});
   assertPassEq(c, "verilog", "golds/bind_uniq_test.v");
   deleteContext(c);

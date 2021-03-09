@@ -52,6 +52,8 @@ int main(int argc, char* argv[]) {
     "verilog-prefix",
     "Prefix for emitted verilog module names",
     cxxopts::value<std::string>())(
+    "verilog-prefix-extern",
+    "Use verilog prefix for externally defined modules")(
     "t,top",
     "top: <namespace>.<modulename>",
     cxxopts::value<std::string>())("a,all", "run on all namespaces")(
@@ -231,6 +233,9 @@ int main(int argc, char* argv[]) {
     if (opts.count("u")) { vstr += " -v"; }
     if (opts.count("verilog-prefix")) {
       vstr += " --prefix " + opts["verilog-prefix"].as<std::string>();
+    }
+    if (opts.count("verilog-prefix-extern")) {
+      vstr += " --prefix-extern";
     }
     std::string flattentypes_str = "flattentypes";
     if (!opts.count("x")) { flattentypes_str += " --ndarray"; }

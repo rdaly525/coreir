@@ -22,6 +22,7 @@ class Verilog : public InstanceGraphPass {
   bool disable_width_cast = false;
 
   std::string module_name_prefix = "";
+  bool prefix_extern = false;
 
   // We store a vector of module name, module AST node pairs to support
   // serializing to a single or multiple files

@@ -185,16 +185,7 @@
       "OtherCircuit":{
         "type":["Record",[
           ["x",["Record",[["y",["Array",1,["Array",20,"Bit"]]]]]]
-        ]],
-        "instances":{
-          "undriven_inst0":{
-            "genref":"coreir.undriven",
-            "genargs":{"width":["Int",20]}
-          }
-        },
-        "connections":[
-          ["undriven_inst0.out","self.x.y.0"]
-        ]
+        ]]
       },
       "RTL":{
         "type":["Record",[
