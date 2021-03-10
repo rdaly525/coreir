@@ -1651,6 +1651,9 @@ class InstancePrefixInserter : public vAST::Transformer {
 void Passes::Verilog::addPrefix() {
   if (this->prefixAdded || this->module_name_prefix == "") return;
 
+  // TODO(rsetaluri,rdaly525,leonardt): Instrument symbol table updates for this
+  // routine.
+
   std::set<std::string> renamed_modules;
   for (auto& module : this->modules) {
     // Note we cannot add prefix to string modules since their
