@@ -25,7 +25,8 @@ template <std::size_t N> std::string joinStrings(
   return joined;
 }
 
-template <int N> struct Jsonifier<std::array<std::string, N>, std::string> {
+template <std::size_t N>
+struct Jsonifier<std::array<std::string, N>, std::string> {
   using Key = std::array<std::string, N>;
   using Value = std::string;
   using map_type = std::map<Key, Value>;
