@@ -2,6 +2,7 @@
 #define COREIR_PASSES_HPP_
 
 #include "fwd_declare.h"
+#include "symbol_table_interface.hpp"
 
 namespace CoreIR {
 
@@ -45,6 +46,8 @@ class Pass {
   virtual void setAnalysisInfo() {}
   void addDependency(std::string name) { dependencies.push_back(name); }
   Context* getContext();
+  SymbolTableInterface* getSymbolTable();
+  bool isDebug();
   std::string getName() { return name; }
   virtual void print() {}
   virtual bool finalize() { return false; }

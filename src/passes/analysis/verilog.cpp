@@ -7,6 +7,7 @@
 #include "coreir/tools/cxxopts.h"
 #include "verilogAST/assign_inliner.hpp"
 #include "verilogAST/transformer.hpp"
+#include "coreir/ir/symbol_table_interface.hpp"
 
 namespace vAST = verilogAST;
 
@@ -1410,6 +1411,10 @@ Passes::Verilog::compileModuleBody(
           throw std::runtime_error("Unexpected compile_guard type: " + type);
         }
       }
+      this->getSymbolTable()->setInstanceName(
+          definition->getModule()->getName(),
+          instance.second->getInstname(),
+          instance_name);
     }
     body.push_back(std::move(statement));
   }
@@ -1581,6 +1586,9 @@ void Passes::Verilog::compileModule(Module* module) {
   vAST::Parameters parameters = compile_params(module);
 
   std::string name = module->getLongName();
+  // NOTE(rsetaluri): This is an example of updating an entry in the symbol
+  // table.
+  this->getSymbolTable()->setModuleName(module->getName(), name);
   std::unique_ptr<vAST::AbstractModule>
     verilog_module = std::make_unique<vAST::Module>(
       name,
@@ -1642,6 +1650,9 @@ class InstancePrefixInserter : public vAST::Transformer {
 
 void Passes::Verilog::addPrefix() {
   if (this->prefixAdded || this->module_name_prefix == "") return;
+
+  // TODO(rsetaluri,rdaly525,leonardt): Instrument symbol table updates for this
+  // routine.
 
   std::set<std::string> renamed_modules;
   for (auto& module : this->modules) {

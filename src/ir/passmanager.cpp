@@ -1,13 +1,15 @@
 #include "coreir/ir/passmanager.h"
 #include <stack>
 #include "coreir/common/logging_lite.hpp"
+#include "coreir/ir/coreir_symbol_table.hpp"
 #include "coreir/passes/analysis/createinstancegraph.h"
 #include "coreir/passes/analysis/createinstancemap.h"
 #include "coreir/passes/common.h"
 
 using namespace CoreIR;
 
-PassManager::PassManager(Context* c) : c(c) {
+PassManager::PassManager(Context* c)
+    : c(c), symbolTable(new CoreIRSymbolTable()) {
   initializePasses(*this);
 
   // Give all the passes access to passmanager
@@ -34,6 +36,7 @@ bool PassManager::runNamespacePass(Pass* pass) {
   }
   return modified;
 }
+
 bool PassManager::runContextPass(Pass* pass) {
   return cast<ContextPass>(pass)->runOnContext(c);
 }
