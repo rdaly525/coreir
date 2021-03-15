@@ -6,14 +6,27 @@
 namespace CoreIR {
 namespace {
 
-TEST(InlineInstance, Basic) {
-  Context* ctx = newContext();
-  Module* top;
+class InlineInstance : public ::testing::Test {
+ public:
+  InlineInstance() = default;
 
-  if (!loadFromFile(ctx, "srcs/simple_hierarchy.json", &top)) ctx->die();
-  assert(top != nullptr);
-  ctx->setTop(top->getRefName());
+  void SetUp() override {
+    ctx = newContext();
+    if (!loadFromFile(ctx, "srcs/simple_hierarchy.json", &top)) ctx->die();
+    assert(top != nullptr);
+    ctx->setTop(top->getRefName());
+  }
 
+  void TearDown() override {
+    deleteContext(ctx);
+  }
+
+ protected:
+  Context* ctx = nullptr;
+  Module* top = nullptr;
+};
+
+TEST_F(InlineInstance, Basic) {
   // Grab handles to Top.baz, Top.baz.bar.
   const auto inst_Top_baz = top->getDef()->getInstances().at("baz");
   const auto inst_Top_baz_bar = inst_Top_baz->getModuleRef()->
@@ -34,8 +47,6 @@ TEST(InlineInstance, Basic) {
       EXPECT_TRUE(false) << "Unexpected instance";
     }
   }
-
-  deleteContext(ctx);
 }
 
 }  // namespace
