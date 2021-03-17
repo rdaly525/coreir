@@ -29,11 +29,11 @@ class CoreIRSymbolTable : public SymbolTableInterface {
       std::string in_module_name,
       std::string in_port_name,
       std::string out_port_name) override;
-  void setInlineInstanceName(
+  void setInlinedInstanceName(
       std::string in_module_name,
       std::vector<std::string> in_instance_names,
       std::string out_instance_name) override;
-  void setInlineInstanceName(
+  void setInlinedInstanceName(
       std::string in_module_name,
       std::vector<std::string> in_instance_names,
       SymbolTableSentinel* const out_instance_name) override;
