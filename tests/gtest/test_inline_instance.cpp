@@ -91,7 +91,7 @@ TEST_F(InlineInstance, SymbolTable) {
       const_cast<const SymbolTableSentinel*>(
           symbolTableInlinedInstanceSentinel()));
   VariantExpectEq(
-      table->getInlinedInstanceName("Top", "baz", "bar"),
+      table->getInlinedInstanceName("Top", {"baz", "bar"}),
       std::string("baz$bar"));
 }
 
