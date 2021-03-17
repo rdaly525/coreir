@@ -127,7 +127,7 @@ void CoreIRSymbolTable::setPortName(
   portNames.emplace(key, out_port_name);
 }
 
-void CoreIRSymbolTable::setInlineInstanceName(
+void CoreIRSymbolTable::setInlinedInstanceName(
       std::string in_module_name,
       std::vector<std::string> in_instance_names,
       std::string out_instance_name) {
@@ -135,7 +135,7 @@ void CoreIRSymbolTable::setInlineInstanceName(
   inlinedInstanceNames.emplace(key, out_instance_name);
 }
 
-void CoreIRSymbolTable::setInlineInstanceName(
+void CoreIRSymbolTable::setInlinedInstanceName(
       std::string in_module_name,
       std::vector<std::string> in_instance_names,
       SymbolTableSentinel* const out_instance_name) {
