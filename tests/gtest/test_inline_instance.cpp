@@ -28,6 +28,16 @@ class InlineInstance : public ::testing::Test {
   Module* top = nullptr;
 };
 
+template <typename VariantType, typename T> void VariantExpectEq(
+    const VariantType& container, const T& expected) {
+  try {
+    auto typed = std::get<T>(container);
+    EXPECT_EQ(typed, expected);
+  } catch (const std::bad_variant_access&) {
+    EXPECT_TRUE(false) << "VariantExpectEq failed with wrong type";
+  }
+}
+
 TEST_F(InlineInstance, Basic) {
   // Grab handles to Top.baz, Top.baz.bar.
   const auto inst_Top_baz = top->getDef()->getInstances().at("baz");
@@ -67,17 +77,22 @@ TEST_F(InlineInstance, SymbolTable) {
   EXPECT_EQ(table->getModuleName("Foo"), "Foo");
   EXPECT_EQ(table->getModuleName("Bar"), "Bar");
   // Check non-inlined instance names.
-  auto get_instance_name_string = [&table] (auto m, auto i) {
-    return std::get<std::string>(table->getInstanceName(m, i));
-  };
-  EXPECT_EQ(get_instance_name_string("Bar", "x"), "x");
-  EXPECT_EQ(get_instance_name_string("Foo", "bar"), "bar");
-  EXPECT_EQ(get_instance_name_string("Top", "foo"), "foo");
+  VariantExpectEq(table->getInstanceName("Bar", "x"), std::string("x"));
+  VariantExpectEq(table->getInstanceName("Foo", "bar"), std::string("bar"));
+  VariantExpectEq(table->getInstanceName("Top", "foo"), std::string("foo"));
   // Check inlined instance.
-  auto sentinel = std::get<const SymbolTableSentinel*>(
-      table->getInstanceName("Top", "baz"));
-  EXPECT_EQ(sentinel, symbolTableInlinedInstanceSentinel());
-  EXPECT_EQ(table->getInlinedInstanceName("Top", "baz", "bar"), "baz$bar");
+  // NOTE(rsetaluri): Not exactly sure why the const_cast needs to appear this
+  // away. Ostensibly, the type returned by
+  // symbolTableInlinedInstanceSentinel(), and the type inside the variant are
+  // both 'SymbolTableSentinel* const', but it seems a const gets lost in the
+  // former.
+  VariantExpectEq(
+      table->getInstanceName("Top", "baz"),
+      const_cast<const SymbolTableSentinel*>(
+          symbolTableInlinedInstanceSentinel()));
+  VariantExpectEq(
+      table->getInlinedInstanceName("Top", "baz", "bar"),
+      std::string("baz$bar"));
 }
 
 }  // namespace

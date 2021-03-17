@@ -41,9 +41,9 @@ struct Jsonifier<std::array<std::string, N>, std::string> {
   }
 };
 
-template <>
-struct Jsonifier<StringPair, InstanceNameType> {
-  using Key = StringPair;
+template <std::size_t N>
+struct Jsonifier<std::array<std::string, N>, InstanceNameType> {
+  using Key = std::array<std::string, N>;
   using Value = InstanceNameType;
   using map_type = std::map<Key, Value>;
 
@@ -111,6 +111,16 @@ void CoreIRSymbolTable::setInlineInstanceName(
   inlinedInstanceNames.emplace(key, out_instance_name);
 }
 
+void CoreIRSymbolTable::setInlineInstanceName(
+      std::string in_module_name,
+      std::string in_parent_instance_name,
+      std::string in_child_instance_name,
+      SymbolTableSentinel* const out_instance_name) {
+  std::array key = {
+    in_module_name, in_parent_instance_name, in_child_instance_name};
+  inlinedInstanceNames.emplace(key, out_instance_name);
+}
+
 std::string CoreIRSymbolTable::getModuleName(std::string in_module_name) const {
   return moduleNames.at(in_module_name);
 }
@@ -125,7 +135,7 @@ std::string CoreIRSymbolTable::getPortName(
   return portNames.at({in_module_name, in_port_name});
 }
 
-std::string CoreIRSymbolTable::getInlinedInstanceName(
+InstanceNameType CoreIRSymbolTable::getInlinedInstanceName(
     std::string in_module_name,
     std::string in_parent_instance_name,
     std::string in_child_instance_name) const {
@@ -139,7 +149,7 @@ json_type CoreIRSymbolTable::json() const {
   ret["instance_names"] = Jsonifier<StringPair, InstanceNameType>()(
       instanceNames);
   ret["port_names"] = Jsonifier<StringPair, std::string>()(portNames);
-  ret["inlined_instance_names"] = Jsonifier<StringTriple, std::string>()(
+  ret["inlined_instance_names"] = Jsonifier<StringTriple, InstanceNameType>()(
       inlinedInstanceNames);
   return ret;
 }
