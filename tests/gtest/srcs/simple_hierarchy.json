@@ -1,76 +1,90 @@
-{"top":"global.Top",
+{"top":"global.M1",
 "namespaces":{
   "global":{
     "modules":{
-      "Bar":{
+      "M1":{
         "type":["Record",[
           ["I","BitIn"],
           ["O","Bit"]
         ]],
         "instances":{
-          "x":{
-            "modref":"global.X"
+          "i2":{
+            "modref":"global.M2"
           }
         },
         "connections":[
-          ["x.I","self.I"],
-          ["x.O","self.O"]
+          ["self.I","i2.I"],
+          ["self.O","i2.O"]
         ]
       },
-      "Baz":{
+      "M2":{
         "type":["Record",[
           ["I","BitIn"],
           ["O","Bit"]
         ]],
         "instances":{
-          "bar":{
-            "modref":"global.Bar"
+          "i3":{
+            "modref":"global.M3"
           }
         },
         "connections":[
-          ["self.I","bar.I"],
-          ["self.O","bar.O"]
+          ["self.I","i3.I"],
+          ["self.O","i3.O"]
         ]
       },
-      "Foo":{
+      "M3":{
         "type":["Record",[
           ["I","BitIn"],
           ["O","Bit"]
         ]],
         "instances":{
-          "bar":{
-            "modref":"global.Bar"
+          "i4":{
+            "modref":"global.M4"
           }
         },
         "connections":[
-          ["self.I","bar.I"],
-          ["self.O","bar.O"]
+          ["self.I","i4.I"],
+          ["self.O","i4.O"]
         ]
       },
-      "Top":{
+      "M4":{
         "type":["Record",[
           ["I","BitIn"],
           ["O","Bit"]
         ]],
         "instances":{
-          "baz":{
-            "modref":"global.Baz"
-          },
-          "foo":{
-            "modref":"global.Foo"
+          "i5":{
+            "modref":"global.M5"
           }
         },
         "connections":[
-          ["self.I","baz.I"],
-          ["foo.I","baz.O"],
-          ["self.O","foo.O"]
+          ["self.I","i5.I"],
+          ["self.O","i5.O"]
         ]
       },
-      "X":{
+      "M5":{
         "type":["Record",[
           ["I","BitIn"],
           ["O","Bit"]
-        ]]
+        ]],
+        "instances":{
+          "i6":{
+            "modref":"global.M6"
+          }
+        },
+        "connections":[
+          ["self.I","i6.I"],
+          ["self.O","i6.O"]
+        ]
+      },
+      "M6":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"]
+        ]],
+        "connections":[
+          ["self.O","self.I"]
+        ]
       }
     }
   }
