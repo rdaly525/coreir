@@ -38,6 +38,10 @@ class CoreIRSymbolTable : public SymbolTableInterface {
       std::string in_parent_instance_name,
       std::string in_child_instance_name,
       SymbolTableSentinel* const out_instance_name) override;
+  void setInstanceType(
+      std::string in_module_name,
+      std::string in_instance_name,
+      std::string out_type) override;
 
   std::string getModuleName(std::string in_module_name) const override;
   InstanceNameType getInstanceName(
@@ -48,6 +52,9 @@ class CoreIRSymbolTable : public SymbolTableInterface {
       std::string in_module_name,
       std::string in_parent_instance_name,
       std::string in_child_instance_name) const override;
+  std::string getInstanceType(
+      std::string in_module_name,
+      std::string in_instance_name) const override;
 
   ::nlohmann::json json() const override;
 
@@ -59,6 +66,7 @@ class CoreIRSymbolTable : public SymbolTableInterface {
   std::map<StringPair, InstanceNameType> instanceNames = {};
   std::map<StringPair, std::string> portNames = {};
   std::map<StringTriple, InstanceNameType> inlinedInstanceNames = {};
+  std::map<StringPair, std::string> instanceTypes = {};
 };
 
 }  // namespace CoreIR

@@ -49,6 +49,10 @@ class SymbolTableInterface {
       std::string in_parent_instance_name,
       std::string in_child_instance_name,
       SymbolTableSentinel* const out_instance_name) = 0;
+  virtual void setInstanceType(
+      std::string in_module_name,
+      std::string in_instance_name,
+      std::string out_type) = 0;
 
   virtual std::string getModuleName(std::string in_module_name) const = 0;
   virtual InstanceNameType getInstanceName(
@@ -59,6 +63,9 @@ class SymbolTableInterface {
       std::string in_module_name,
       std::string in_parent_instance_name,
       std::string in_child_instance_name) const = 0;
+  virtual std::string getInstanceType(
+      std::string in_module_name,
+      std::string in_instance_name) const = 0;
 
   virtual ::nlohmann::json json() const = 0;
 };
