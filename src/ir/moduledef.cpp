@@ -7,6 +7,8 @@
 #include "coreir/ir/typegen.h"
 #include "coreir/ir/types.h"
 #include "coreir/ir/value.h"
+#include "coreir/ir/passmanager.h"
+#include "coreir/ir/instance_graph_logger.hpp"
 
 using namespace std;
 
@@ -214,35 +216,27 @@ Instance* ModuleDef::getInstancesIterNext(Instance* instance) {
   return this->instancesIterNextMap[instance];
 }
 
-//   Instance(ModuleDef* container, std::string instname, Module* moduleRef,
-//   Values modargs);
+Instance* ModuleDef::addInstance(string instname, Module* m, Values modargs) {
+  ASSERT(instances.count(instname) == 0, instname + " already an instance");
+  Instance* inst = new Instance(this, instname, m, modargs);
+  instances[instname] = inst;
+  appendInstanceToIter(inst);
+
+  //Log adding an instance in debug mode
+  if (this->getContext()->isDebug()) {
+    auto igl = this->getContext()->getPassManager()->getInstanceGraphLogger();
+    igl->logNewInstance(this->getModule()->getRefName(), m->getRefName(), instname);
+  }
+
+  return inst;
+}
+
 Instance* ModuleDef::addInstance(
   string instname,
   Generator* gen,
   Values genargs,
   Values modargs) {
-  ASSERT(instances.count(instname) == 0, instname + " already an instance");
-
-  Instance* inst = new Instance(
-    this,
-    instname,
-    gen->getModule(genargs),
-    modargs);
-  instances[instname] = inst;
-
-  appendInstanceToIter(inst);
-
-  return inst;
-}
-
-Instance* ModuleDef::addInstance(string instname, Module* m, Values modargs) {
-  ASSERT(instances.count(instname) == 0, instname + " already an instance");
-  Instance* inst = new Instance(this, instname, m, modargs);
-  instances[instname] = inst;
-
-  appendInstanceToIter(inst);
-
-  return inst;
+  return this->addInstance(instname, gen->getModule(genargs), modargs);
 }
 
 Instance* ModuleDef::addInstance(
@@ -419,6 +413,13 @@ void ModuleDef::removeInstance(string iname) {
   removeInstanceFromIter(inst);
 
   delete inst;
+
+  //Log adding an instance in debug mode
+  if (this->getContext()->isDebug()) {
+    auto igl = this->getContext()->getPassManager()->getInstanceGraphLogger();
+    igl->logRemoveInstance(this->getModule()->getRefName(), iname);
+  }
+
 }
 
 }  // namespace CoreIR

@@ -9,6 +9,7 @@
 namespace CoreIR {
 
 class InstanceGraph;
+class InstanceGraphLogger;
 
 class PassManager {
   Context* c;
@@ -44,10 +45,13 @@ class PassManager {
     assert(passMap.count(ID));
     return passMap[ID];
   }
-  void setDebug(bool debug) {this->debug = debug; }
+
+  //This should be called *after* loading your file
+  void setDebug(bool);
   bool isDebug() {return this->debug; }
 
-  SymbolTableInterface* getSymbolTable() { return symbolTable.get(); }
+  SymbolTableInterface* getSymbolTable() { return this->symbolTable.get(); }
+  InstanceGraphLogger* getInstanceGraphLogger() { return this->igl.get(); }
 
  private:
   void pushAllDependencies(std::string oname, std::stack<std::string>& work);
@@ -63,6 +67,7 @@ class PassManager {
   bool runInstanceGraphPass(Pass* p);
 
   std::unique_ptr<SymbolTableInterface> symbolTable;
+  std::unique_ptr<InstanceGraphLogger> igl;
 };
 
 }  // namespace CoreIR

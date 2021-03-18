@@ -180,6 +180,10 @@ void Context::addPass(Pass* p) {
   pm->addPass(p);
 }
 
+bool Context::isDebug() {
+  return this->pm->isDebug();
+}
+
 bool Context::runPasses(vector<string> order, vector<string> namespaces) {
   assert(pm);
   return pm->run(order, namespaces);

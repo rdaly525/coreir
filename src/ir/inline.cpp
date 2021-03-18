@@ -6,6 +6,8 @@
 #include "coreir/ir/types.h"
 #include "coreir/ir/value.h"
 #include "coreir/ir/wireable.h"
+#include "coreir/ir/passmanager.h"
+#include "coreir/ir/instance_graph_logger.hpp"
 
 using namespace std;
 
@@ -182,24 +184,11 @@ void inlinePassthrough(Instance* i) {
   def->removeInstance(i);
 }
 
-void saveSymTable(json& symtable, string path, Wireable* w) {
-  if (w->getConnectedWireables().size() == 0) {
-    for (auto spair : w->getSelects()) {
-      saveSymTable(symtable, path + "." + spair.first, spair.second);
-    }
-  }
-  else {
-    Wireable* other = *(w->getConnectedWireables().begin());
-    assert(other);
-    bool check = symtable.get<map<string, json>>().count(path) == 0;
-    ASSERT(check, "DEBUGME");
-    symtable[path] = other->getSelectPath();
-  }
-}
-
 // This will modify the moduledef to inline the instance
 bool inlineInstance(Instance* inst) {
-  Context* c = inst->getContext();
+  auto c = inst->getContext();
+
+
   // Special case for a passthrough
   // TODO should have a better check for passthrough than string compare
   Module* mref = inst->getModuleRef();
@@ -211,22 +200,20 @@ bool inlineInstance(Instance* inst) {
     return true;
   }
 
+  //Bit of a hack
+  bool old_debug = c->isDebug();
+  c->getPassManager()->setDebug(false);
+
+
+
   Values instModArgs = inst->getModArgs();
   ModuleDef* def = inst->getContainer();
   Module* modInline = mref;
 
   if (!modInline->hasDef()) {
-    // cout << "Inline Pass: " << modInline->getName() << " has no definition,
-    // skipping..." << endl;;
     return false;
   }
   string instname = inst->getInstname();
-
-  // Add a bunch of symbol table metadata
-  // First for each port of instance that is connected
-  // Save that as metadata (inst.port.blah -> its connection)
-  json jsym(json::value_t::object);
-  if (c->hasSymtable()) { saveSymTable(jsym, instname, inst); }
 
   // I will be inlining defInline into def
   // Making a copy because i want to modify it first without modifying all of
@@ -238,10 +225,13 @@ bool inlineInstance(Instance* inst) {
 
   string inlinePrefix = inst->getInstname() + "$";
 
+
+  //Store debug table information
+  std::vector<std::tuple<std::string, std::string, std::string>> debug_info;
   // First add all the instances of defInline into def with a new name
-  for (auto instpair : defInline->getInstances()) {
-    string iname = inlinePrefix + instpair.first;
-    Values modargs = instpair.second->getModArgs();
+  for (auto &[sub_iname, sub_inst] : defInline->getInstances()) {
+    string iname = inlinePrefix + sub_iname;
+    Values modargs = sub_inst->getModArgs();
     // Should do this in a more generic way
     for (auto vpair : modargs) {
       if (Arg* varg = dyn_cast<Arg>(vpair.second)) {
@@ -249,12 +239,18 @@ bool inlineInstance(Instance* inst) {
         modargs[vpair.first] = instModArgs[varg->getField()];
       }
     }
-    Instance* inst = def->addInstance(
+    Instance* new_inst = def->addInstance(
       iname,
-      instpair.second->getModuleRef(),
+      sub_inst->getModuleRef(),
       modargs);
-    inst->setMetaData(instpair.second->getMetaData());
+    new_inst->setMetaData(sub_inst->getMetaData());
+    if (old_debug) {
+      debug_info.push_back({sub_iname, iname, sub_inst->getModuleRef()->getRefName()});
+    }
   }
+  //What I want to do: Is just label the inlined instance (and what module it represents) in the parent module
+  //This would idealy just give me the pointer to all the current instances
+  //Fix: Add a list of all instances assocated with the current mod
 
   // Now add all the easy connections (that do not touch the boundary)
   for (auto cons : defInline->getConnections()) {
@@ -278,6 +274,7 @@ bool inlineInstance(Instance* inst) {
   def->connect("_outsidePT.in", inlinePrefix + "_insidePT.in");
 
   // Now remove the instance (which will remove all the previous connections)
+  std::string orig_iname = inst->getInstname();
   def->removeInstance(inst);
 
   // Now inline both of the passthroughs
@@ -285,43 +282,20 @@ bool inlineInstance(Instance* inst) {
 
   inlineInstance(cast<Instance>(def->sel(inlinePrefix + "_insidePT")));
 
-  // typecheck the module
-  // WARNING: Temporarily removed to check performance impact in _stereo.json
-  // def->validate();
 
-  if (c->hasSymtable()) {
-    // for each entry in instances symbtable
-    // prepend instname to key
-    // determine where new instance is pointing to
-    if (mref->getMetaData().get<map<string, json>>().count("symtable")) {
-      json jisym = mref->getMetaData()["symtable"];
-      for (auto p : jisym.get<map<string, json>>()) {
-        string newkey = instname + "$" + p.first;
-
-        ASSERT(jsym.count(newkey) == 0, "DEBUGME");
-        SelectPath path = p.second.get<SelectPath>();
-        if (path[0] == "self") { path[0] = instname; }
-        else {
-          path[0] = inlinePrefix + path[0];
-        }
-        jsym[newkey] = path;
-      }
-    }
-
-    if (def->getModule()->getMetaData().get<map<string, json>>().count(
-          "symtable")) {
-      json jmerge = def->getModule()->getMetaData()["symtable"];
-      for (auto pair : jsym.get<map<string, json>>()) {
-        bool check = jmerge.get<map<string, json>>().count(pair.first) == 0;
-        ASSERT(check, "DEBUGME");
-        jmerge[pair.first] = pair.second;
-      }
-      def->getModule()->getMetaData()["symtable"] = jmerge;
-    }
-    else {
-      def->getModule()->getMetaData()["symtable"] = jsym;
+  c->getPassManager()->setDebug(old_debug);
+  if (c->isDebug()) {
+    std::string parent = def->getModule()->getRefName();
+    //Log removing old instance
+    auto igl = c->getPassManager()->getInstanceGraphLogger();
+    igl->logRemoveInstance(def->getModule()->getRefName(), orig_iname);
+    for (auto &[sub_iname, inew, sub_mname] : debug_info) {
+      //Log adding new instance
+      igl->logNewInstance(parent, sub_mname, inew);
+      igl->logInlineInstance(parent, orig_iname, sub_iname, inew);
     }
   }
+
 
   return true;
 }

@@ -136,6 +136,8 @@ class Context {
   Params* newParams();
   Values* newValues();
 
+
+  bool isDebug();
   // Unique
   std::string getUnique() { return "_U" + std::to_string(unique++); }
 

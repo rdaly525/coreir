@@ -2,6 +2,7 @@
 #include <stack>
 #include "coreir/common/logging_lite.hpp"
 #include "coreir/ir/coreir_symbol_table.hpp"
+#include "coreir/ir/instance_graph_logger.hpp"
 #include "coreir/passes/analysis/createinstancegraph.h"
 #include "coreir/passes/analysis/createinstancemap.h"
 #include "coreir/passes/common.h"
@@ -9,13 +10,17 @@
 using namespace CoreIR;
 
 PassManager::PassManager(Context* c)
-    : c(c), symbolTable(new CoreIRSymbolTable()) {
+    : c(c), symbolTable(new CoreIRSymbolTable()), igl(new InstanceGraphLogger()) {
   initializePasses(*this);
 
   // Give all the passes access to passmanager
   for (auto pmap : passMap) { pmap.second->addPassManager(this); }
 }
 
+void PassManager::setDebug(bool debug) {
+  this->debug = debug;
+  //this->igl->transform_mode();
+}
 void PassManager::addPass(Pass* p) {
   p->addPassManager(this);
   ASSERT(

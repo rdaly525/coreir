@@ -100,8 +100,8 @@ int main(int argc, char* argv[]) {
     cout << endl;
     return 0;
   }
-  // Will enable symbol table tracking ("debug mode")
-  c->getPassManager()->setDebug(opts.count("g") > 0);
+
+
 
   if (opts.count("version")) {
     cout << COREIR_VERSION << " " << GIT_SHA1 << endl;
@@ -138,6 +138,13 @@ int main(int argc, char* argv[]) {
       c->setTop(topRef);
     }
   }
+
+  //Done loading
+
+  // Will enable symbol table tracking ("debug mode")
+  bool debug = opts.count("g") > 0;
+  c->getPassManager()->setDebug(debug);
+
 
   vector<string> namespaces;
   if (opts.count("a")) {
@@ -293,7 +300,7 @@ int main(int argc, char* argv[]) {
   LOG(DEBUG) << "Modified?: " << (modified ? "Yes" : "No");
 
   // Dump symbol table if in debug mode.
-  if (c->getPassManager()->isDebug()) {
+  if (debug) {
     const auto filename = opts["g"].as<string>();
     auto const symbolTable = c->getPassManager()->getSymbolTable();
     if (symbolTable != nullptr) {
