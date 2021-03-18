@@ -3,7 +3,6 @@
 #include <string>
 #include <utility>
 #include <variant>
-#include <vector>
 #include "coreir/ir/json.h"
 
 namespace CoreIR {
@@ -42,11 +41,13 @@ class SymbolTableInterface {
       std::string out_instance_name) = 0;
   virtual void setInlinedInstanceName(
       std::string in_module_name,
-      std::vector<std::string> in_instance_names,
+      std::string in_parent_instance_name,
+      std::string in_child_instance_name,
       std::string out_instance_name) = 0;
   virtual void setInlinedInstanceName(
       std::string in_module_name,
-      std::vector<std::string> in_instance_names,
+      std::string in_parent_instance_name,
+      std::string in_child_instance_name,
       SymbolTableSentinel* const out_instance_name) = 0;
   virtual void setInstanceType(
       std::string in_module_name,
@@ -60,7 +61,8 @@ class SymbolTableInterface {
       std::string in_module_name, std::string in_port_name) const = 0;
   virtual InstanceNameType getInlinedInstanceName(
       std::string in_module_name,
-      std::vector<std::string> in_instance_names) const = 0;
+      std::string in_parent_instance_name,
+      std::string in_child_instance_name) const = 0;
   virtual std::string getInstanceType(
       std::string in_module_name,
       std::string in_instance_name) const = 0;
