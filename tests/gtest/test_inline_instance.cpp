@@ -39,47 +39,45 @@ template <typename VariantType, typename T> void VariantExpectEq(
 }
 
 TEST_F(InlineInstance, Basic) {
-  // Grab handles to Top.baz, Top.baz.bar.
-  const auto inst_Top_baz = top->getDef()->getInstances().at("baz");
-  const auto inst_Top_baz_bar = inst_Top_baz->getModuleRef()->
-      getDef()->getInstances().at("bar");
+  // Grab handles to M1.i2, M1.i2.i3.
+  const auto inst_M1_i2 = top->getDef()->getInstances().at("i2");
 
-  // Inline Top.baz.
-  inlineInstance(inst_Top_baz);
+  // Inline M1.i2.
+  inlineInstance(inst_M1_i2);
 
-  // Check that top has an instance of Foo (foo) and Bar (baz$bar).
+  // Check that M1 has only an instance of I3 named i2$i3.
   EXPECT_EQ(top->getDef()->getInstances().size(), 2);
   for (auto [name, inst] : top->getDef()->getInstances()) {
-    if (name == "foo") {
-      EXPECT_EQ(inst->getModuleRef()->getName(), "Foo");
-    }
-    else if(name == "baz$bar") {
-      EXPECT_EQ(inst->getModuleRef(), inst_Top_baz_bar->getModuleRef());
+    if (name == "i2$i3") {
+      EXPECT_EQ(inst->getModuleRef()->getName(), "I3");
     } else {
-      EXPECT_TRUE(false) << "Unexpected instance";
+      ASSERT_TRUE(false) << "Unexpected instance";
     }
   }
 }
 
-TEST_F(InlineInstance, SymbolTable) {
-  // Grab handles to Top.baz.
-  const auto inst_Top_baz = top->getDef()->getInstances().at("baz");
-
-  // Inline Top.baz.
-  inlineInstance(inst_Top_baz);
+TEST_F(InlineInstance, SymbolTableBasic) {
+  // Grab handles to M1.i2.
+  const auto inst_M1_i2 = top->getDef()->getInstances().at("i2");
+  // Inline M1.i2.
+  inlineInstance(inst_M1_i2);
 
   std::string flattentypes_str = "flattentypes";
   ctx->runPasses({"flattentypes", "verilog"}, {});
 
   auto table = ctx->getPassManager()->getSymbolTable();
   // Check module names (sanity check).
-  EXPECT_EQ(table->getModuleName("Top"), "Top");
-  EXPECT_EQ(table->getModuleName("Foo"), "Foo");
-  EXPECT_EQ(table->getModuleName("Bar"), "Bar");
+  EXPECT_EQ(table->getModuleName("M1"), "M1");
+  EXPECT_EQ(table->getModuleName("M2"), "M2");
+  EXPECT_EQ(table->getModuleName("M3"), "M3");
+  EXPECT_EQ(table->getModuleName("M4"), "M4");
+  EXPECT_EQ(table->getModuleName("M5"), "M5");
+  EXPECT_EQ(table->getModuleName("M6"), "M6");
   // Check non-inlined instance names.
-  VariantExpectEq(table->getInstanceName("Bar", "x"), std::string("x"));
-  VariantExpectEq(table->getInstanceName("Foo", "bar"), std::string("bar"));
-  VariantExpectEq(table->getInstanceName("Top", "foo"), std::string("foo"));
+  VariantExpectEq(table->getInstanceName("M2", "i3"), std::string("i3"));
+  VariantExpectEq(table->getInstanceName("M3", "i4"), std::string("i4"));
+  VariantExpectEq(table->getInstanceName("M4", "i6"), std::string("i5"));
+  VariantExpectEq(table->getInstanceName("M5", "i6"), std::string("i6"));
   // Check inlined instance.
   // NOTE(rsetaluri): Not exactly sure why the const_cast needs to appear this
   // away. Ostensibly, the type returned by
@@ -87,12 +85,46 @@ TEST_F(InlineInstance, SymbolTable) {
   // both 'SymbolTableSentinel* const', but it seems a const gets lost in the
   // former.
   VariantExpectEq(
-      table->getInstanceName("Top", "baz"),
+      table->getInstanceName("M1", "i2"),
       const_cast<const SymbolTableSentinel*>(
           symbolTableInlinedInstanceSentinel()));
   VariantExpectEq(
-      table->getInlinedInstanceName("Top", {"baz", "bar"}),
-      std::string("baz$bar"));
+      table->getInlinedInstanceName("M1", {"i2", "i3"}),
+      std::string("i2$i3"));
+}
+
+TEST_F(InlineInstance, SymbolTableTopDown) {
+  // Grab handles to M1.i2.
+  const auto inst_M1_i2 = top->getDef()->getInstances().at("i2");
+  // Inline M1.i2.
+  inlineInstance(inst_M1_i2);
+
+  // Grab handles to M1.i2$i3.
+  const auto inst_M1_i2dollari3 = top->getDef()->getInstances().at("i2$i3");
+  // Inline M1.i2$i3.
+  inlineInstance(inst_M1_i2dollari3);
+
+  std::string flattentypes_str = "flattentypes";
+  ctx->runPasses({"flattentypes", "verilog"}, {});
+
+  auto table = ctx->getPassManager()->getSymbolTable();
+  // Check inlined instance.
+  // NOTE(rsetaluri): Not exactly sure why the const_cast needs to appear this
+  // away. Ostensibly, the type returned by
+  // symbolTableInlinedInstanceSentinel(), and the type inside the variant are
+  // both 'SymbolTableSentinel* const', but it seems a const gets lost in the
+  // former.
+  VariantExpectEq(
+      table->getInstanceName("M1", "i2"),
+      const_cast<const SymbolTableSentinel*>(
+          symbolTableInlinedInstanceSentinel()));
+  VariantExpectEq(
+      table->getInlinedInstanceName("M1", {"i2", "i3"}),
+      const_cast<const SymbolTableSentinel*>(
+          symbolTableInlinedInstanceSentinel()));
+  VariantExpectEq(
+      table->getInlinedInstanceName("M1", {"i2", "i3", "i4"}),
+      std::string("i2$i3$i4"));
 }
 
 }  // namespace
