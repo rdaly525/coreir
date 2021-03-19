@@ -201,6 +201,7 @@ bool inlineInstance(Instance* inst) {
   }
 
   //Bit of a hack
+  assert(c->isDebug());
   bool old_debug = c->isDebug();
   c->getPassManager()->setDebug(false);
 
@@ -245,7 +246,11 @@ bool inlineInstance(Instance* inst) {
       modargs);
     new_inst->setMetaData(sub_inst->getMetaData());
     if (old_debug) {
-      debug_info.push_back({sub_iname, iname, sub_inst->getModuleRef()->getRefName()});
+      auto sub_mname = sub_inst->getModuleRef()->getRefName();
+      if (sub_mname != "_.passthrough") {
+        debug_info.push_back(
+          {sub_iname, iname, sub_inst->getModuleRef()->getRefName()});
+      }
     }
   }
   //What I want to do: Is just label the inlined instance (and what module it represents) in the parent module
@@ -281,7 +286,6 @@ bool inlineInstance(Instance* inst) {
   inlineInstance(outsidePT);
 
   inlineInstance(cast<Instance>(def->sel(inlinePrefix + "_insidePT")));
-
 
   c->getPassManager()->setDebug(old_debug);
   if (c->isDebug()) {

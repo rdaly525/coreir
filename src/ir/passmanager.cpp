@@ -19,8 +19,8 @@ PassManager::PassManager(Context* c)
 
 void PassManager::setDebug(bool debug) {
   this->debug = debug;
-  //this->igl->transform_mode();
 }
+
 void PassManager::addPass(Pass* p) {
   p->addPassManager(this);
   ASSERT(

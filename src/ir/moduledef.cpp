@@ -224,6 +224,7 @@ Instance* ModuleDef::addInstance(string instname, Module* m, Values modargs) {
 
   //Log adding an instance in debug mode
   if (this->getContext()->isDebug()) {
+    ASSERT(m->getName() != "passthrough", "");
     auto igl = this->getContext()->getPassManager()->getInstanceGraphLogger();
     igl->logNewInstance(this->getModule()->getRefName(), m->getRefName(), instname);
   }
