@@ -3,7 +3,6 @@
 #include <array>
 #include <map>
 #include <string>
-#include <utility>
 #include "coreir/ir/symbol_table_interface.hpp"
 
 namespace CoreIR {
@@ -12,7 +11,27 @@ SymbolTableSentinel* const symbolTableInlinedInstanceSentinel();
 
 class CoreIRSymbolTable : public SymbolTableInterface {
  public:
-  CoreIRSymbolTable() = default;
+  class LoggerInterface {
+   public:
+    LoggerInterface(SymbolTableInterface* table) : table(table) {}
+    virtual ~LoggerInterface() = default;
+    virtual void logInstanceRename(
+        std::string module_name,
+        std::string instance_name,
+        std::string new_instance_name) = 0;
+    virtual void logInlineInstance(
+        std::string module_name,
+        std::string instance_name,
+        std::string instance_type,
+        std::string child_instance_name,
+        std::string child_instance_type) = 0;
+    virtual bool finalize() = 0;
+
+   protected:
+    SymbolTableInterface* table;
+  };
+
+  CoreIRSymbolTable();
   ~CoreIRSymbolTable() override = default;
 
   void setModuleName(
@@ -31,11 +50,13 @@ class CoreIRSymbolTable : public SymbolTableInterface {
       std::string out_port_name) override;
   void setInlinedInstanceName(
       std::string in_module_name,
-      std::vector<std::string> in_instance_names,
+      std::string in_parent_instance_name,
+      std::string in_child_instance_name,
       std::string out_instance_name) override;
   void setInlinedInstanceName(
       std::string in_module_name,
-      std::vector<std::string> in_instance_names,
+      std::string in_parent_instance_name,
+      std::string in_child_instance_name,
       SymbolTableSentinel* const out_instance_name) override;
   void setInstanceType(
       std::string in_module_name,
@@ -49,22 +70,37 @@ class CoreIRSymbolTable : public SymbolTableInterface {
       std::string in_module_name, std::string in_port_name) const override;
   InstanceNameType getInlinedInstanceName(
       std::string in_module_name,
-      std::vector<std::string> in_instance_names) const override;
+      std::string in_parent_instance_name,
+      std::string in_child_instance_name) const override;
   std::string getInstanceType(
       std::string in_module_name,
       std::string in_instance_name) const override;
+
+  void logInstanceRename(
+      std::string module_name,
+      std::string instance_name,
+      std::string new_instance_name) override;
+  void logInlineInstance(
+      std::string module_name,
+      std::string instance_name,
+      std::string instance_type,
+      std::string child_instance_name,
+      std::string child_instance_type) override;
+  bool finalizeLogs() override;
 
   ::nlohmann::json json() const override;
 
  private:
   using StringPair = std::array<std::string, 2>;
-  using InlinedInstanceKey = std::pair<std::string, std::vector<std::string>>;
+  using StringTriple = std::array<std::string, 3>;
 
   std::map<std::string, std::string> moduleNames = {};
   std::map<StringPair, InstanceNameType> instanceNames = {};
   std::map<StringPair, std::string> portNames = {};
-  std::map<InlinedInstanceKey, InstanceNameType> inlinedInstanceNames = {};
+  std::map<StringTriple, InstanceNameType> inlinedInstanceNames = {};
   std::map<StringPair, std::string> instanceTypes = {};
+
+  std::unique_ptr<LoggerInterface> logger;
 };
 
 }  // namespace CoreIR

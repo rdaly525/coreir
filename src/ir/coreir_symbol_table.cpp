@@ -1,4 +1,5 @@
 #include "coreir/ir/coreir_symbol_table.hpp"
+#include <utility>
 
 namespace CoreIR {
 
@@ -7,7 +8,7 @@ namespace {
 using json_type = ::nlohmann::json;
 using InstanceNameType = SymbolTableInterface::InstanceNameType;
 using StringPair = std::array<std::string, 2>;
-using InlinedInstanceKey = std::pair<std::string, std::vector<std::string>>;
+using StringTriple = std::array<std::string, 3>;
 
 template <typename Key, typename Value> struct Jsonifier {
   using map_type = std::map<Key, Value>;
@@ -17,14 +18,11 @@ template <typename Key, typename Value> struct Jsonifier {
   }
 };
 
-template <typename CollectionType> std::string joinStrings(
-    const CollectionType& collection, std::string seperator = ",") {
-  if (collection.size() == 0) return "";
-  auto joined = collection[0];
-  const auto bound = static_cast<int>(collection.size());
-  for (int i = 1; i < bound; i++) {
-    joined += (seperator + collection[i]);
-  }
+template <std::size_t N> std::string joinStrings(
+    std::array<std::string, N> list, std::string seperator = ",") {
+  static constexpr int bound = static_cast<int>(N);
+  auto joined = list[0];
+  for (int i = 1; i < bound; i++) joined += (seperator + list[i]);
   return joined;
 }
 
@@ -68,27 +66,48 @@ struct Jsonifier<std::array<std::string, N>, InstanceNameType> {
   }
 };
 
-template <> struct Jsonifier<InlinedInstanceKey, InstanceNameType> {
-  using Key = InlinedInstanceKey;
-  using Value = InstanceNameType;
-  using map_type = std::map<Key, Value>;
+class LoggerImpl : public CoreIRSymbolTable::LoggerInterface {
+ public:
+  LoggerImpl(SymbolTableInterface* table)
+      : CoreIRSymbolTable::LoggerInterface(table) {}
+  ~LoggerImpl() = default;
 
-  struct ValueStringifier {
-    std::string operator()(const CoreIR::SymbolTableSentinel *const & s) const {
-      return s->getFlag();
-    }
-    std::string operator()(const std::string& s) const { return s; }
-  };
-
-  json_type operator()(const map_type& map) const {
-    std::map<std::string, std::string> transformed;
-    for (auto& [k, v] : map) {
-      auto new_key = joinStrings(std::vector{k.first, joinStrings(k.second)});
-      auto new_value = std::visit(ValueStringifier{}, v);
-      transformed[new_key] = new_value;
-    }
-    return Jsonifier<std::string, std::string>()(transformed);
+  void logInstanceRename(
+      std::string module_name,
+      std::string instance_name,
+      std::string new_instance_name) override {
+    const auto data = {module_name, instance_name, new_instance_name};
+    log.emplace_back(LogKind::RENAME, data);
   }
+  void logInlineInstance(
+      std::string module_name,
+      std::string instance_name,
+      std::string instance_type,
+      std::string child_instance_name,
+      std::string child_instance_type) override {
+    const auto data = {
+      module_name,
+      instance_name,
+      instance_type,
+      child_instance_name,
+      child_instance_type
+    };
+    log.emplace_back(LogKind::INLINE, data);
+  }
+  bool finalize() override {
+    // TODO(rsetaluri): Implement this logic!
+    return false;
+  }
+
+ private:
+  enum LogKind {
+    RENAME = 0,
+    INLINE = 1
+  };
+  using LogDataType = std::vector<std::string>;
+  using EntryType = std::pair<LogKind, LogDataType>;
+
+  std::vector<EntryType> log;
 };
 
 }  // namespace
@@ -97,6 +116,9 @@ SymbolTableSentinel* const symbolTableInlinedInstanceSentinel() {
   static SymbolTableSentinel sentinel("__SYMBOL_TABLE_INLINED_INSTANCE__");
   return &sentinel;
 }
+
+CoreIRSymbolTable::CoreIRSymbolTable()
+    : logger(new LoggerImpl(this)) {}
 
 void CoreIRSymbolTable::setModuleName(
     std::string in_module_name, std::string out_module_name) {
@@ -129,17 +151,21 @@ void CoreIRSymbolTable::setPortName(
 
 void CoreIRSymbolTable::setInlinedInstanceName(
       std::string in_module_name,
-      std::vector<std::string> in_instance_names,
+      std::string in_parent_instance_name,
+      std::string in_child_instance_name,
       std::string out_instance_name) {
-  const auto key = std::make_pair(in_module_name, in_instance_names);
+  std::array key = {
+    in_module_name, in_parent_instance_name, in_child_instance_name};
   inlinedInstanceNames.emplace(key, out_instance_name);
 }
 
 void CoreIRSymbolTable::setInlinedInstanceName(
       std::string in_module_name,
-      std::vector<std::string> in_instance_names,
+      std::string in_parent_instance_name,
+      std::string in_child_instance_name,
       SymbolTableSentinel* const out_instance_name) {
-  const auto key = std::make_pair(in_module_name, in_instance_names);
+  std::array key = {
+    in_module_name, in_parent_instance_name, in_child_instance_name};
   inlinedInstanceNames.emplace(key, out_instance_name);
 }
 
@@ -165,10 +191,13 @@ std::string CoreIRSymbolTable::getPortName(
   return portNames.at({in_module_name, in_port_name});
 }
 
+
 InstanceNameType CoreIRSymbolTable::getInlinedInstanceName(
     std::string in_module_name,
-    std::vector<std::string> in_instance_names) const {
-  return inlinedInstanceNames.at({in_module_name, in_instance_names});
+    std::string in_parent_instance_name,
+    std::string in_child_instance_name) const {
+  return inlinedInstanceNames.at(
+      {in_module_name, in_parent_instance_name, in_child_instance_name});
 }
 
 std::string CoreIRSymbolTable::getInstanceType(
@@ -176,15 +205,38 @@ std::string CoreIRSymbolTable::getInstanceType(
   return instanceTypes.at({in_module_name, in_instance_name});
 }
 
+void CoreIRSymbolTable::logInstanceRename(
+    std::string module_name,
+    std::string instance_name,
+    std::string new_instance_name) {
+  logger->logInstanceRename(module_name, instance_name, new_instance_name);
+}
+
+void CoreIRSymbolTable::logInlineInstance(
+    std::string module_name,
+    std::string instance_name,
+    std::string instance_type,
+    std::string child_instance_name,
+    std::string child_instance_type) {
+  logger->logInlineInstance(
+      module_name,
+      instance_name,
+      instance_type,
+      child_instance_name,
+      child_instance_type);
+}
+
+bool CoreIRSymbolTable::finalizeLogs() {
+  return logger->finalize();
+}
+
 json_type CoreIRSymbolTable::json() const {
-  using InlinedInstanceJsonifier = Jsonifier<InlinedInstanceKey,
-                                             InstanceNameType>;
   json_type ret;
   ret["module_names"] = Jsonifier<std::string, std::string>()(moduleNames);
   ret["instance_names"] = Jsonifier<StringPair, InstanceNameType>()(
       instanceNames);
   ret["port_names"] = Jsonifier<StringPair, std::string>()(portNames);
-  ret["inlined_instance_names"] = InlinedInstanceJsonifier()(
+  ret["inlined_instance_names"] = Jsonifier<StringTriple, InstanceNameType>()(
       inlinedInstanceNames);
   ret["instance_types"] = Jsonifier<StringPair, std::string>()(instanceTypes);
   return ret;
