@@ -43,7 +43,6 @@ TEST_F(IGL, I2) {
   auto m1 = ctx->getModule("global.M1");
   auto i2 = m1->getDef()->getInstances().at("i2");
   inlineInstance(i2);
-  igl->print_log();
   InstancePath query = {"i2", "i3", "i4", "i5"};
   InstancePath expect = {"i2$i3", "i4", "i5"};
   ASSERT_EQ(igl->getInstancePath("global.M1", query), expect);
@@ -56,7 +55,6 @@ TEST_F(IGL, I3) {
   auto m2 = ctx->getModule("global.M2");
   auto i3 = m2->getDef()->getInstances().at("i3");
   inlineInstance(i3);
-  igl->print_log();
   InstancePath query = {"i2", "i3", "i4", "i5"};
   InstancePath expect = {"i2", "i3$i4", "i5"};
   ASSERT_EQ(igl->getInstancePath("global.M1", query), expect);

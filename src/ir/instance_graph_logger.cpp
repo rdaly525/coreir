@@ -52,16 +52,14 @@ InstancePath InstanceGraphLogger::getInstancePath(std::string mname, InstancePat
       std::string inew = iinfo.inline_info[i1];
       ipath.pop_front();
       ipath.push_front(inew);
-      return this->getInstancePath(mname, ipath);
     }
     else { //Info does not exist (Bottom Up)
       //Recursively get the translation from the instance's original module
-      auto sub_path = this->getInstancePath(iinfo.module, ipath);
-
-      //Now, try the translation again within this curent module
-      sub_path.push_front(i0);
-      return this->getInstancePath(mname, sub_path);
+      ipath = this->getInstancePath(iinfo.module, ipath);
+      //Now, try the translation again within this curent module (and instance)
+      ipath.push_front(i0);
     }
+    return this->getInstancePath(mname, ipath);
   }
 }
 
