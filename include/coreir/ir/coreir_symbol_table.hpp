@@ -11,26 +11,6 @@ SymbolTableSentinel* const symbolTableInlinedInstanceSentinel();
 
 class CoreIRSymbolTable : public SymbolTableInterface {
  public:
-  class LoggerInterface {
-   public:
-    LoggerInterface(SymbolTableInterface* table) : table(table) {}
-    virtual ~LoggerInterface() = default;
-    virtual void logInstanceRename(
-        std::string module_name,
-        std::string instance_name,
-        std::string new_instance_name) = 0;
-    virtual void logInlineInstance(
-        std::string module_name,
-        std::string instance_name,
-        std::string instance_type,
-        std::string child_instance_name,
-        std::string child_instance_type) = 0;
-    virtual bool finalize() = 0;
-
-   protected:
-    SymbolTableInterface* table;
-  };
-
   CoreIRSymbolTable();
   ~CoreIRSymbolTable() override = default;
 
@@ -76,17 +56,8 @@ class CoreIRSymbolTable : public SymbolTableInterface {
       std::string in_module_name,
       std::string in_instance_name) const override;
 
-  void logInstanceRename(
-      std::string module_name,
-      std::string instance_name,
-      std::string new_instance_name) override;
-  void logInlineInstance(
-      std::string module_name,
-      std::string instance_name,
-      std::string instance_type,
-      std::string child_instance_name,
-      std::string child_instance_type) override;
-  bool finalizeLogs() override;
+  SymbolTableLoggerInterface* getLogger() override { return logger.get(); }
+  bool finalizeLogger() override { return logger->finalize(); }
 
   ::nlohmann::json json() const override;
 
@@ -100,7 +71,7 @@ class CoreIRSymbolTable : public SymbolTableInterface {
   std::map<StringTriple, InstanceNameType> inlinedInstanceNames = {};
   std::map<StringPair, std::string> instanceTypes = {};
 
-  std::unique_ptr<LoggerInterface> logger;
+  std::unique_ptr<SymbolTableLoggerInterface> logger;
 };
 
 }  // namespace CoreIR

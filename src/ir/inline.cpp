@@ -256,7 +256,7 @@ bool inlineInstance(Instance* inst) {
       modargs);
     inst->setMetaData(instpair.second->getMetaData());
     // TODO(rdaly525,rsetaluri): Pass in the right things to this fn.!
-    c->getPassManager()->getSymbolTable()->logInlineInstance(
+    c->getPassManager()->getSymbolTable()->getLogger()->logInlineInstance(
         "", "", "", "", "");
   }
 

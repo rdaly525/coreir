@@ -66,10 +66,9 @@ struct Jsonifier<std::array<std::string, N>, InstanceNameType> {
   }
 };
 
-class LoggerImpl : public CoreIRSymbolTable::LoggerInterface {
+class LoggerImpl : public SymbolTableLoggerInterface {
  public:
-  LoggerImpl(SymbolTableInterface* table)
-      : CoreIRSymbolTable::LoggerInterface(table) {}
+  LoggerImpl(SymbolTableInterface* table) : SymbolTableLoggerInterface(table) {}
   ~LoggerImpl() = default;
 
   void logInstanceRename(
@@ -203,31 +202,6 @@ InstanceNameType CoreIRSymbolTable::getInlinedInstanceName(
 std::string CoreIRSymbolTable::getInstanceType(
     std::string in_module_name, std::string in_instance_name) const {
   return instanceTypes.at({in_module_name, in_instance_name});
-}
-
-void CoreIRSymbolTable::logInstanceRename(
-    std::string module_name,
-    std::string instance_name,
-    std::string new_instance_name) {
-  logger->logInstanceRename(module_name, instance_name, new_instance_name);
-}
-
-void CoreIRSymbolTable::logInlineInstance(
-    std::string module_name,
-    std::string instance_name,
-    std::string instance_type,
-    std::string child_instance_name,
-    std::string child_instance_type) {
-  logger->logInlineInstance(
-      module_name,
-      instance_name,
-      instance_type,
-      child_instance_name,
-      child_instance_type);
-}
-
-bool CoreIRSymbolTable::finalizeLogs() {
-  return logger->finalize();
 }
 
 json_type CoreIRSymbolTable::json() const {
