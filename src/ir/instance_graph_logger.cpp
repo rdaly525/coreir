@@ -24,13 +24,8 @@ void InstanceGraphLogger::logInlineInstance(std::string parent, std::string i0, 
   iinfo.inline_info.emplace(i1, inew);
 }
 
-// TODO this one is suspect
 void InstanceGraphLogger::logRemoveInstance(std::string parent, std::string iname) {
   this->log.push_back("RI " + parent + " " + iname);
-  //ASSERT(this->storage.count(parent) > 0, "Missing Module");
-  //auto &mstorage = this->storage[parent];
-  //ASSERT(mstorage.count(iname) > 0, "Missing instance");
-  //mstorage.erase(iname);
 }
 
 InstancePath InstanceGraphLogger::getInstancePath(std::string mname, InstancePath ipath) {
@@ -53,22 +48,23 @@ InstancePath InstanceGraphLogger::getInstancePath(std::string mname, InstancePat
   }
   else { //Inlined
     auto i1 = ipath.front();
-    ipath.pop_front();
-    //if (iinfo.inline_info.count(i1) > 0) {
-    //  std::string inew = iinfo.inline_info[i1];
-    //  ipath.push_front(inew);
-    //  return this->getInstancePath(mname, ipath);
-    //}
-    //else { //Inline info is in the pointing module
-    //  auto sub_iinfo = this->storage[iinfo.module].at(i1);
-    //
-    //}
-    ASSERT(iinfo.inline_info.count(i1) > 0, i1 + " Does not exist in inline " + mname + " " + i0);
-    std::string inew = iinfo.inline_info[i1];
-    ipath.push_front(inew);
-    return this->getInstancePath(mname, ipath);
+    if (iinfo.inline_info.count(i1) > 0) { //Inline info exists (Top Down)
+      std::string inew = iinfo.inline_info[i1];
+      ipath.pop_front();
+      ipath.push_front(inew);
+      return this->getInstancePath(mname, ipath);
+    }
+    else { //Info does not exist (Bottom Up)
+      //Recursively get the translation from the instance's original module
+      auto sub_path = this->getInstancePath(iinfo.module, ipath);
+
+      //Now, try the translation again within this curent module
+      sub_path.push_front(i0);
+      return this->getInstancePath(mname, sub_path);
+    }
   }
 }
+
 
 void InstanceGraphLogger::print_log() {
   std::cout << "LOG" << std::endl;
