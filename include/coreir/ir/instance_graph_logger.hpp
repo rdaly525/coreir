@@ -10,22 +10,19 @@ namespace CoreIR {
 
 using InstancePath = SelectPath;
 
-//Mapping[str inst, Union[str mname, Mapping[str inst, str inline_inst]]]
+struct InstInfo {
+  std::string module;
+  bool is_inlined = false;
+  //       sub_inst      new_inst
+  std::map<std::string, std::string> inline_info;
+  InstInfo(std::string module) : module(module) {}
+};
 
-//                           Instance     Instance
-using InlineEntry = std::map<std::string, std::string>;
-
-//                             Instance                  Module
-using ModuleStorage = std::map<std::string, std::variant<std::string, InlineEntry>>;
-
-//This logger operates in two modes:
-//  Construction: Constructs original graphs
-//  Transforming: Modifies existing Modules
 class InstanceGraphLogger {
 
   bool is_transform = false;
-  //        Module
-  std::map<std::string, ModuleStorage> storage;
+  //        Module -> Inst -> InstInfo
+  std::map<std::string, std::map<std::string, InstInfo>> storage;
   std::vector<std::string> log;
 
  public:
