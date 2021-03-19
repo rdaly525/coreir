@@ -50,7 +50,6 @@ TEST_F(IGL, I2) {
 
 //inline i3
 TEST_F(IGL, I3) {
-  std::cout << "C1" << ctx << std::endl;
   assert(ctx->isDebug());
   auto m2 = ctx->getModule("global.M2");
   auto i3 = m2->getDef()->getInstances().at("i3");
