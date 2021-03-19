@@ -45,11 +45,11 @@ TEST_F(InlineInstance, Basic) {
   // Inline M1.i2.
   inlineInstance(inst_M1_i2);
 
-  // Check that M1 has only an instance of I3 named i2$i3.
-  EXPECT_EQ(top->getDef()->getInstances().size(), 2);
+  // Check that M1 has only an instance of M3 named i2$i3.
+  EXPECT_EQ(top->getDef()->getInstances().size(), 1);
   for (auto [name, inst] : top->getDef()->getInstances()) {
     if (name == "i2$i3") {
-      EXPECT_EQ(inst->getModuleRef()->getName(), "I3");
+      EXPECT_EQ(inst->getModuleRef()->getName(), "M3");
     } else {
       ASSERT_TRUE(false) << "Unexpected instance";
     }
