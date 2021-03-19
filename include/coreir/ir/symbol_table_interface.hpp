@@ -39,7 +39,8 @@ class SymbolTableLoggerInterface {
       std::string instance_name,
       std::string instance_type,
       std::string child_instance_name,
-      std::string child_instance_type) = 0;
+      std::string child_instance_type,
+      std::string new_instance_name) = 0;
   virtual bool finalize() = 0;
 
  protected:

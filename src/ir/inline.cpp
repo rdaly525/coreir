@@ -1,3 +1,4 @@
+#include <functional>
 #include "coreir/ir/casting/casting.h"
 #include "coreir/ir/common.h"
 #include "coreir/ir/context.h"
@@ -99,6 +100,9 @@ std::string makeUniqueInstanceName(ModuleDef* def, Wireable* from) {
 }
 
 namespace {
+
+using InlineInstanceRecord = std::vector<std::array<std::string, 3>>;
+
 void PTTraverse(ModuleDef* def, Wireable* from, Wireable* to) {
   for (auto other : from->getConnectedWireables()) { def->connect(to, other); }
   vector<Wireable*> toDelete;
@@ -133,14 +137,13 @@ void PTTraverse(ModuleDef* def, Wireable* from, Wireable* to) {
     }
   }
 }
-}  // namespace
 
 // addPassthrough will create a passthrough Module for Wireable w with name
 // <name> This buffer has interface {"in": Flip(w.Type), "out": w.Type}
 // There will be one connection connecting w to name.in, and all the connections
 // that originally connected to w connecting to name.out which has the same type
 // as w
-Instance* addPassthrough(Wireable* w, string instname) {
+Instance* addPassthroughImpl(Wireable* w, string instname) {
 
   // First verify if I can actually place a passthrough here
   // This means that there can be nothing higher in the select path tha is
@@ -198,8 +201,8 @@ void saveSymTable(json& symtable, string path, Wireable* w) {
   }
 }
 
-// This will modify the moduledef to inline the instance
-bool inlineInstance(Instance* inst) {
+bool inlineInstanceImpl(
+    Instance* inst, InlineInstanceRecord* record_out = nullptr) {
   Context* c = inst->getContext();
   // Special case for a passthrough
   // TODO should have a better check for passthrough than string compare
@@ -255,9 +258,13 @@ bool inlineInstance(Instance* inst) {
       instpair.second->getModuleRef(),
       modargs);
     inst->setMetaData(instpair.second->getMetaData());
-    // TODO(rdaly525,rsetaluri): Pass in the right things to this fn.!
-    c->getPassManager()->getSymbolTable()->getLogger()->logInlineInstance(
-        "", "", "", "", "");
+    // Record the inlining operation, if it was not a passthrough.
+    if (record_out != nullptr &&
+        instpair.second->getModuleRef()->getRefName() != "_.passthrough") {
+      std::array record = {
+        instpair.first, instpair.second->getModuleRef()->getName(), iname};
+      record_out->emplace_back(record);
+    }
   }
 
   // Now add all the easy connections (that do not touch the boundary)
@@ -328,6 +335,45 @@ bool inlineInstance(Instance* inst) {
   }
 
   return true;
+}
+
+}  // namespace
+
+Instance* addPassthrough(Wireable* w, string instname) {
+  return addPassthroughImpl(w, instname);
+}
+
+// This will modify the moduledef to inline the instance
+bool inlineInstance(Instance* inst) {
+  InlineInstanceRecord record;
+  // NOTE(rsetaluri): Because inlineInstanceImpl deletes the instance, we need
+  // to record some information about the instance we will need for symbol table
+  // logging.
+  const auto inst_info = std::make_tuple(
+      inst->getContext(),
+      inst->getContainer()->getModule()->getName(),
+      inst->getInstname(),
+      inst->getModuleRef()->getName());
+  auto log = [inst_info] (
+      auto sub_inst_name,
+      auto sub_inst_type,
+      auto new_name) {
+    const auto [context, module_name, inst_name, inst_type] = inst_info;
+    auto logger = context->getPassManager()->getSymbolTable()->getLogger();
+    logger->logInlineInstance(
+        module_name,
+        inst_name,
+        inst_type,
+        sub_inst_name,
+        sub_inst_type,
+        new_name);
+  };
+  const bool ret = inlineInstanceImpl(inst, &record);
+  // Log the inlined instances.
+  for (auto& [sub_inst_name, sub_inst_type, new_name] : record) {
+   log(sub_inst_name, sub_inst_type, new_name);
+  }
+  return ret;
 }
 
 }  // namespace CoreIR

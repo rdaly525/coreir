@@ -95,7 +95,8 @@ class LoggerImpl : public SymbolTableLoggerInterface {
       std::string instance_name,
       std::string instance_type,
       std::string child_instance_name,
-      std::string child_instance_type) override {
+      std::string child_instance_type,
+      std::string new_instance_name) override {
     const auto data = {
       module_name,
       instance_name,
