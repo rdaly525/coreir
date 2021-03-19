@@ -24,7 +24,13 @@ class SymbolTableLoggerInterface {
  public:
   SymbolTableLoggerInterface(SymbolTableInterface* table) : table(table) {}
   virtual ~SymbolTableLoggerInterface() = default;
-  virtual void logInstanceRename(
+  virtual void logNewInstance(
+      std::string module_name,
+      std::string instance_type,
+      std::string instance_name) = 0;
+  virtual void logRemoveInstance(
+      std::string module_name, std::string instance_name) = 0;
+  virtual void logRenameInstance(
       std::string module_name,
       std::string instance_name,
       std::string new_instance_name) = 0;

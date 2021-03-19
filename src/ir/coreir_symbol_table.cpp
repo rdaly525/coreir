@@ -71,7 +71,19 @@ class LoggerImpl : public SymbolTableLoggerInterface {
   LoggerImpl(SymbolTableInterface* table) : SymbolTableLoggerInterface(table) {}
   ~LoggerImpl() = default;
 
-  void logInstanceRename(
+  void logNewInstance(
+      std::string module_name,
+      std::string instance_type,
+      std::string instance_name) override {
+    const auto data = {module_name, instance_type, instance_name};
+    log.emplace_back(LogKind::NEW, data);
+  }
+  void logRemoveInstance(
+      std::string module_name, std::string instance_name) override {
+    const auto data = {module_name, instance_name};
+    log.emplace_back(LogKind::REMOVE, data);
+  }
+  void logRenameInstance(
       std::string module_name,
       std::string instance_name,
       std::string new_instance_name) override {
@@ -100,8 +112,10 @@ class LoggerImpl : public SymbolTableLoggerInterface {
 
  private:
   enum LogKind {
-    RENAME = 0,
-    INLINE = 1
+    NEW = 0,
+    REMOVE,
+    RENAME,
+    INLINE
   };
   using LogDataType = std::vector<std::string>;
   using EntryType = std::pair<LogKind, LogDataType>;
