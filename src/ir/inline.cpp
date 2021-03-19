@@ -6,6 +6,7 @@
 #include "coreir/ir/types.h"
 #include "coreir/ir/value.h"
 #include "coreir/ir/wireable.h"
+#include "coreir/ir/passmanager.h"
 
 using namespace std;
 
@@ -254,6 +255,9 @@ bool inlineInstance(Instance* inst) {
       instpair.second->getModuleRef(),
       modargs);
     inst->setMetaData(instpair.second->getMetaData());
+    // TODO(rdaly525,rsetaluri): Pass in the right things to this fn.!
+    c->getPassManager()->getSymbolTable()->logInlineInstance(
+        "", "", "", "", "");
   }
 
   // Now add all the easy connections (that do not touch the boundary)

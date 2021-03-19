@@ -1,4 +1,5 @@
 #include "coreir/ir/coreir_symbol_table.hpp"
+#include <utility>
 
 namespace CoreIR {
 
@@ -65,12 +66,59 @@ struct Jsonifier<std::array<std::string, N>, InstanceNameType> {
   }
 };
 
+class LoggerImpl : public CoreIRSymbolTable::LoggerInterface {
+ public:
+  LoggerImpl(SymbolTableInterface* table)
+      : CoreIRSymbolTable::LoggerInterface(table) {}
+  ~LoggerImpl() = default;
+
+  void logInstanceRename(
+      std::string module_name,
+      std::string instance_name,
+      std::string new_instance_name) override {
+    const auto data = {module_name, instance_name, new_instance_name};
+    log.emplace_back(LogKind::RENAME, data);
+  }
+  void logInlineInstance(
+      std::string module_name,
+      std::string instance_name,
+      std::string instance_type,
+      std::string child_instance_name,
+      std::string child_instance_type) override {
+    const auto data = {
+      module_name,
+      instance_name,
+      instance_type,
+      child_instance_name,
+      child_instance_type
+    };
+    log.emplace_back(LogKind::INLINE, data);
+  }
+  bool finalize() override {
+    // TODO(rsetaluri): Implement this logic!
+    return false;
+  }
+
+ private:
+  enum LogKind {
+    RENAME = 0,
+    INLINE = 1
+  };
+  using LogDataType = std::vector<std::string>;
+  using EntryType = std::pair<LogKind, LogDataType>;
+
+  std::vector<EntryType> log;
+};
+
 }  // namespace
 
 SymbolTableSentinel* const symbolTableInlinedInstanceSentinel() {
   static SymbolTableSentinel sentinel("__SYMBOL_TABLE_INLINED_INSTANCE__");
   return &sentinel;
 }
+
+CoreIRSymbolTable::CoreIRSymbolTable()
+    : logger(new LoggerImpl(this)) {}
 
 void CoreIRSymbolTable::setModuleName(
     std::string in_module_name, std::string out_module_name) {
@@ -155,6 +203,31 @@ InstanceNameType CoreIRSymbolTable::getInlinedInstanceName(
 std::string CoreIRSymbolTable::getInstanceType(
     std::string in_module_name, std::string in_instance_name) const {
   return instanceTypes.at({in_module_name, in_instance_name});
+}
+
+void CoreIRSymbolTable::logInstanceRename(
+    std::string module_name,
+    std::string instance_name,
+    std::string new_instance_name) {
+  logger->logInstanceRename(module_name, instance_name, new_instance_name);
+}
+
+void CoreIRSymbolTable::logInlineInstance(
+    std::string module_name,
+    std::string instance_name,
+    std::string instance_type,
+    std::string child_instance_name,
+    std::string child_instance_type) {
+  logger->logInlineInstance(
+      module_name,
+      instance_name,
+      instance_type,
+      child_instance_name,
+      child_instance_type);
+}
+
+bool CoreIRSymbolTable::finalizeLogs() {
+  return logger->finalize();
 }
 
 json_type CoreIRSymbolTable::json() const {
