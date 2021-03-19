@@ -88,9 +88,7 @@ std::map<std::string, Namespace*> Context::getNamespaces() {
 }
 
 void Context::print() {
-  cout << "Context: " << endl;
   for (auto ns : getNamespaces()) { ns.second->print(); }
-  cout << "EndContext" << endl;
 }
 
 void Context::error(Error& e) {

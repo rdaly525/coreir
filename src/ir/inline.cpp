@@ -253,9 +253,6 @@ bool inlineInstance(Instance* inst) {
       }
     }
   }
-  //What I want to do: Is just label the inlined instance (and what module it represents) in the parent module
-  //This would idealy just give me the pointer to all the current instances
-  //Fix: Add a list of all instances assocated with the current mod
 
   // Now add all the easy connections (that do not touch the boundary)
   for (auto cons : defInline->getConnections()) {
