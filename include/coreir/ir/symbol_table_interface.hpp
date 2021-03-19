@@ -67,6 +67,18 @@ class SymbolTableInterface {
       std::string in_module_name,
       std::string in_instance_name) const = 0;
 
+  virtual void logInstanceRename(
+      std::string module_name,
+      std::string instance_name,
+      std::string new_instance_name) = 0;
+  virtual void logInlineInstance(
+      std::string module_name,
+      std::string instance_name,
+      std::string instance_type,
+      std::string child_instance_name,
+      std::string child_instance_type) = 0;
+  virtual bool finalizeLogs() = 0;
+
   virtual ::nlohmann::json json() const = 0;
 };
 
