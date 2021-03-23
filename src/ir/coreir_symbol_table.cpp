@@ -136,7 +136,7 @@ class LoggerImpl : public SymbolTableLoggerInterface {
   class DebugIterator : public SymbolTableLoggerInterface::DebugIterator {
    public:
     explicit DebugIterator(const std::vector<EntryType>& log)
-        : current(log.begin()), end(log.end()) {}
+        : current(log.begin() - 1), end(log.end()) {}
     ~DebugIterator() = default;
 
     bool next() override { return (++current) != end; }
