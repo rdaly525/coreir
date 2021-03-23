@@ -22,6 +22,12 @@ class SymbolTableSentinel {
 
 class SymbolTableLoggerInterface {
  public:
+  class DebugIterator {
+   public:
+    virtual ~DebugIterator() = default;
+    virtual bool next() = 0;
+    virtual std::string debugString() const = 0;
+  };
   SymbolTableLoggerInterface(SymbolTableInterface* table) : table(table) {}
   virtual ~SymbolTableLoggerInterface() = default;
   virtual void logNewInstance(
@@ -42,6 +48,8 @@ class SymbolTableLoggerInterface {
       std::string child_instance_type,
       std::string new_instance_name) = 0;
   virtual bool finalize() = 0;
+
+  virtual std::unique_ptr<DebugIterator> debugIterator() const = 0;
 
  protected:
   SymbolTableInterface* table;

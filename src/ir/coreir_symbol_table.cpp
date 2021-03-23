@@ -18,11 +18,14 @@ template <typename Key, typename Value> struct Jsonifier {
   }
 };
 
-template <std::size_t N> std::string joinStrings(
-    std::array<std::string, N> list, std::string seperator = ",") {
-  static constexpr int bound = static_cast<int>(N);
-  auto joined = list[0];
-  for (int i = 1; i < bound; i++) joined += (seperator + list[i]);
+template <typename CollectionType> std::string joinStrings(
+    const CollectionType& collection, std::string seperator = ",") {
+  if (collection.size() == 0) return "";
+  auto joined = collection[0];
+  const auto bound = static_cast<int>(collection.size());
+  for (int i = 1; i < bound; i++) {
+    joined += (seperator + collection[i]);
+  }
   return joined;
 }
 
@@ -78,11 +81,13 @@ class LoggerImpl : public SymbolTableLoggerInterface {
     const auto data = {module_name, instance_type, instance_name};
     log.emplace_back(LogKind::NEW, data);
   }
+
   void logRemoveInstance(
       std::string module_name, std::string instance_name) override {
     const auto data = {module_name, instance_name};
     log.emplace_back(LogKind::REMOVE, data);
   }
+
   void logRenameInstance(
       std::string module_name,
       std::string instance_name,
@@ -90,6 +95,7 @@ class LoggerImpl : public SymbolTableLoggerInterface {
     const auto data = {module_name, instance_name, new_instance_name};
     log.emplace_back(LogKind::RENAME, data);
   }
+
   void logInlineInstance(
       std::string module_name,
       std::string instance_name,
@@ -106,9 +112,15 @@ class LoggerImpl : public SymbolTableLoggerInterface {
     };
     log.emplace_back(LogKind::INLINE, data);
   }
+
   bool finalize() override {
     // TODO(rsetaluri): Implement this logic!
     return false;
+  }
+
+  std::unique_ptr<SymbolTableLoggerInterface::DebugIterator>
+  debugIterator() const override {
+    return std::make_unique<DebugIterator>(log);
   }
 
  private:
@@ -120,6 +132,26 @@ class LoggerImpl : public SymbolTableLoggerInterface {
   };
   using LogDataType = std::vector<std::string>;
   using EntryType = std::pair<LogKind, LogDataType>;
+
+  class DebugIterator : public SymbolTableLoggerInterface::DebugIterator {
+   public:
+    explicit DebugIterator(const std::vector<EntryType>& log)
+        : current(log.begin()), end(log.end()) {}
+    ~DebugIterator() = default;
+
+    bool next() override { return (++current) != end; }
+
+    std::string debugString() const override {
+      const auto& entry = *current;
+      static const char* kind_strings[] = {"NEW", "REMOVE", "RENAME", "INLINE"};
+      return std::string(kind_strings[entry.first]) +
+          " " + joinStrings(entry.second, " ");
+    }
+
+   private:
+    std::vector<EntryType>::const_iterator current;
+    std::vector<EntryType>::const_iterator end;
+  };
 
   std::vector<EntryType> log;
 };
