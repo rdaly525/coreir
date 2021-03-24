@@ -79,13 +79,13 @@ class LoggerImpl : public SymbolTableLoggerInterface {
       std::string instance_type,
       std::string instance_name) override {
     const auto data = {module_name, instance_type, instance_name};
-    log.emplace_back(LogKind::NEW, data);
+    logGeneral(LogKind::NEW, data);
   }
 
   void logRemoveInstance(
       std::string module_name, std::string instance_name) override {
     const auto data = {module_name, instance_name};
-    log.emplace_back(LogKind::REMOVE, data);
+    logGeneral(LogKind::REMOVE, data);
   }
 
   void logRenameInstance(
@@ -93,7 +93,7 @@ class LoggerImpl : public SymbolTableLoggerInterface {
       std::string instance_name,
       std::string new_instance_name) override {
     const auto data = {module_name, instance_name, new_instance_name};
-    log.emplace_back(LogKind::RENAME, data);
+    logGeneral(LogKind::RENAME, data);
   }
 
   void logInlineInstance(
@@ -110,8 +110,11 @@ class LoggerImpl : public SymbolTableLoggerInterface {
       child_instance_name,
       child_instance_type
     };
-    log.emplace_back(LogKind::INLINE, data);
+    logGeneral(LogKind::INLINE, data);
   }
+
+  void pauseLogging() override { paused = true; }
+  void resumeLogging() override { paused = false; }
 
   bool finalize() override {
     // TODO(rsetaluri): Implement this logic!
@@ -153,7 +156,13 @@ class LoggerImpl : public SymbolTableLoggerInterface {
     std::vector<EntryType>::const_iterator end;
   };
 
+  virtual void logGeneral(LogKind kind, LogDataType data) {
+    if (paused) return;
+    log.emplace_back(kind, data);
+  }
+
   std::vector<EntryType> log;
+  bool paused = false;
 };
 
 }  // namespace

@@ -47,6 +47,8 @@ class SymbolTableLoggerInterface {
       std::string child_instance_name,
       std::string child_instance_type,
       std::string new_instance_name) = 0;
+  virtual void pauseLogging() = 0;
+  virtual void resumeLogging() = 0;
   virtual bool finalize() = 0;
 
   virtual std::unique_ptr<DebugIterator> debugIterator() const = 0;

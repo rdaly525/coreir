@@ -235,7 +235,13 @@ bool inlineInstanceImpl(
   // I will be inlining defInline into def
   // Making a copy because i want to modify it first without modifying all of
   // the other instnaces of modInline
-  ModuleDef* defInline = modInline->getDef()->copy();
+  auto defInline = [&]() {
+    auto logger = c->getPassManager()->getSymbolTable()->getLogger();
+    logger->pauseLogging();
+    ModuleDef* defInline = modInline->getDef()->copy();
+    logger->resumeLogging();
+    return defInline;
+  }();
 
   // Add a passthrough Module to quarentine 'self'
   addPassthrough(defInline->getInterface(), "_insidePT");
