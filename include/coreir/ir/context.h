@@ -173,20 +173,37 @@ void deleteContext(Context* c);
 // if no "top" in file, *top == nullptr
 bool loadFromFile(Context* c, std::string filename, Module** top = nullptr);
 
+//"Header" is a set of module declarations (should contain no definitions, although it does not check)
+// loaded_modules will contain a set of modules which this header declared.
+bool loadHeader(Context*c, std::string filename, std::vector<Module*>& loaded_modules);
+
+//"Impl" a set of modules and definitions.
+//Each module in this file should already exist as a declaration in the context
+bool linkImpl(Context*c, std::string filename);
+
+//Given a set of modules, this will save a file with only the listed modules as declarations
+bool saveHeader(Context*c, std::string filename, std::vector<std::string> modules);
+
+//Given a set of modules, this will save a header
+bool saveImpl(Context*c, std::string filename, std::vector<std::string> modules);
+
+bool serializeToFile(Context* c, std::string filename);
+
 // Save namespace to a file with optional "top" module
+[[deprecated]]
 bool saveToFile(
   Namespace* ns,
   std::string filename,
   Module* top = nullptr);  // This will go away
-bool saveToFilePretty(
-  Namespace* ns,
-  std::string filename,
-  Module* top = nullptr);
+
+
+[[deprecated]]
 bool saveToFile(
   Context* c,
   std::string filename,
   bool nocoreir = true,
   bool no_default_libs = false);
+
 
 // Save a module to a dot file (for viewing in graphviz)
 bool saveToDot(Module* m, std::string filename);

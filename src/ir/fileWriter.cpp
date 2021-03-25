@@ -21,19 +21,7 @@ bool endsWith(const string& str, const string& suffix) {
     (str.size() >= suffix.size()) &&
     (str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0));
 }
-/*
-string instStr(Wireable* wire) {
-Select* child;
-Wireable* parent = wire;
 
-while (isa<Select>(parent)) {
-  child = cast<Select>(parent);
-  parent = child->getParent();
-}
-
-return parent->toString() == "self" ? child->toString() : parent->toString();
-}
-*/
 string instStr(SelectPath wire) {
   if (wire[0] == "self") { return wire[0] + "." + wire[1]; }
   else {
@@ -147,6 +135,10 @@ bool skip_namespace(std::string name, bool nocoreir, bool no_default_libs) {
   return false;
 }
 
+bool saveHeader(Context*c, std::string filename, std::vector<std::string> modules) {
+  return false;
+}
+
 bool saveToFile(
   Context* c,
   string filename,
@@ -176,6 +168,25 @@ bool saveToFile(
   }
   static_cast<Passes::CoreIRJson*>(
     c->getPassManager()->getAnalysisPass("coreirjson"))
+    ->writeToStream(file);
+  return true;
+}
+
+//Needs a single top
+bool serializeToFile(Context* c, string filename) {
+  ASSERT(c->hasTop(), "Missing top");
+  ASSERT(endsWith(filename, ".json"), filename + "Needs to be a json file");
+  std::ofstream file(filename);
+  if (!file.is_open()) {
+    Error e;
+    e.message("Cannot open file " + filename);
+    e.fatal();
+    c->error(e);
+    return false;
+  }
+  c->runPasses({"serialize"});
+  static_cast<Passes::CoreIRSerialize*>(
+    c->getPassManager()->getAnalysisPass("serialize"))
     ->writeToStream(file);
   return true;
 }

@@ -20,3 +20,18 @@ void assertPassEq(CoreIR::Context* c, std::string ID, std::string golden_path) {
     std::istreambuf_iterator<char>());
   EXPECT_EQ(golden, result);
 }
+
+void assertFileEq(std::string res_path, std::string golden_path) {
+  std::ifstream res_stream(res_path);
+  ASSERT_TRUE(res_stream.good());
+  std::string res(
+    (std::istreambuf_iterator<char>(res_stream)),
+    std::istreambuf_iterator<char>());
+
+  std::ifstream golden_stream(golden_path);
+  ASSERT_TRUE(golden_stream.good());
+  std::string golden(
+    (std::istreambuf_iterator<char>(golden_stream)),
+    std::istreambuf_iterator<char>());
+  EXPECT_EQ(res, golden);
+}

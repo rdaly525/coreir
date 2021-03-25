@@ -29,6 +29,12 @@
     }                                                                          \
   } while (0)
 
+
+#define ASSERTTHROW(cond, msg)                                                 \
+  do {                                                                         \
+    if (!(cond)) { throw std::runtime_error(msg); }                            \
+  } while (0)
+
 // void coreir_unreachable_internal(const char* file=nullptr, unsigned line=0);
 
 #define coreir_unreachable() abort()
