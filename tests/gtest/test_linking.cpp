@@ -32,7 +32,6 @@ TEST(LinkingTest, HeaderLoad) {
 
 }
 
-//TODO Ross Start here. Fill in a basic impl file for A and B (have A depend on C)
 // Same setup as header test, but also have an implementation of that header as a json file
 TEST(LinkingTest, LinkImpl) {
 

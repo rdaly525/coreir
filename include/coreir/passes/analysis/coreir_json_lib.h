@@ -85,7 +85,7 @@ struct NamespaceJson {
 
   NamespaceJson(Namespace* ns) : ns(ns) {}
   void add_module(Module* m);
-  void add_typegen(TypeGen* tg);
+  TypeGenJson& getOrCreateTypeGen(TypeGen* tg);
   std::string serialize();
 };
 

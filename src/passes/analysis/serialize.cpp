@@ -19,12 +19,13 @@ bool Passes::CoreIRSerialize::runOnInstanceGraphNode(InstanceGraphNode& node) {
   auto ns = m->getNamespace();
 
   this->getOrCreateNamespace(ns).add_module(m);
-
+  cout << "Serializing:" << m->getRefName() << endl;
   // Typegens may be in another namespace
   if (m->isGenerated()) {
     auto tg = m->getGenerator()->getTypeGen();
     auto tg_ns = tg->getNamespace();
-    this->getOrCreateNamespace(tg_ns).add_typegen(tg);
+    auto& tgjson = this->getOrCreateNamespace(tg_ns).getOrCreateTypeGen(tg);
+    tgjson.add_type(m->getGenArgs(), m->getType());
   }
   return false;
 }

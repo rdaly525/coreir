@@ -563,7 +563,7 @@ bool loadHeader(Context*c, std::string filename, std::vector<Module*>& loaded_mo
 bool linkImpl(Context*c, std::string filename) {
   Module* top = nullptr;
   bool success = loadFromFile(c, filename, &top);
-  ASSERT(top==nullptr, "Header " + filename + " cannot have a top module");
+  ASSERT(top==nullptr, "Impl " + filename + " cannot have a top module");
   return success;
 }
 

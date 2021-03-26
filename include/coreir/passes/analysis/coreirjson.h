@@ -28,6 +28,7 @@ class CoreIRSerialize : public InstanceGraphPass {
   bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
   JsonLib::NamespaceJson& getOrCreateNamespace(Namespace* ns);
   void writeToStream(std::ostream& os) override;
+  void setAnalysisInfo() override { onlyTop = true; }
 };
 
 }  // namespace Passes

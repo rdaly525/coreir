@@ -195,7 +195,7 @@ string Connections2Json(ModuleDef* def, int taboffset) {
 }
 
 string Module2Json(Module* m) {
-  uint taboffset = m->isGenerated() ? 10 : 6;
+  uint taboffset = m->isGenerated() ? 12 : 6;
   Dict j(taboffset);
   j.add("type", TopType2Json(m->getType(), taboffset + 2));
   if (!m->getModParams().empty()) {
@@ -219,7 +219,7 @@ string Module2Json(Module* m) {
 }
 
 string GeneratedModule2Json(Module* m) {
-  Array gm;
+  Array gm(10);
   gm.add(Values2Json(m->getGenArgs()));
   gm.add(Module2Json(m));
   return gm.toMultiString();
@@ -280,10 +280,10 @@ void TypeGenJson::add_type(Values v, Type* t) {
 }
 
 string TypeGenJson::serialize() {
-  Array jtypegen;
+  Array jtypegen(6);
   jtypegen.add(Params2Json(this->tg->getParams()));
   jtypegen.add(quote("sparse"));
-  Array jsparselist(6);
+  Array jsparselist(8);
   for (auto &[v, t] : this->types) {
     Array jvtpair;
     jvtpair.add(v);
@@ -310,8 +310,12 @@ void NamespaceJson::add_module(Module* m) {
   }
 }
 
-void NamespaceJson::add_typegen(TypeGen* tg) {
-  this->typegens.emplace(tg->getName(), tg);
+TypeGenJson& NamespaceJson::getOrCreateTypeGen(TypeGen* tg) {
+  auto& name = tg->getName();
+  if (typegens.count(name) == 0) {
+    this->typegens.emplace(name, tg);
+  }
+  return this->typegens.at(name);
 }
 
 string NamespaceJson::serialize() {
@@ -340,7 +344,6 @@ string NamespaceJson::serialize() {
     Dict jtypegens(4);
     // Spit out all of the cached types.
     for (auto &[tgname, tgjson] : this->typegens) {
-      jtypegens.add(tgname, tgjson.serialize());
       jtypegens.add(tgname, tgjson.serialize());
     }
     jns.add("typegens", jtypegens.toMultiString());
