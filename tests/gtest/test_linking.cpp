@@ -51,33 +51,94 @@ TEST(LinkingTest, LinkImpl) {
   assertFileEq(build_file, golden_file);
 }
 
-
-// Given Module(s), save as a header file (with no definition) “Unlink”
+// Load a header, and save a header
 TEST(LinkingTest, HeaderGen1) {
-  std::string header_gen_file = "../../tests/gtest/build/linking_header_gen1.json";
-  std::string golden_file = "../../tests/gtest/gold/linking_header_gen1.json";
+  std::string build_file = base + "/build/linking_HeaderGen1.json";
+  std::string golden_file = base + "/golds/linking_HeaderGen1.json";
+
   auto c = newContext();
-  if (!loadFromFile(c, header_file)) {c->die();}
-  saveHeader(c, header_gen_file, {"global.A", "global.B", "global.C"});
-  assertFileEq(header_gen_file, golden_file);
+  vector<Module*> loaded;
+  if (!loadHeader(c, header_file, loaded)) {c->die();}
+
+  saveHeader(c, build_file, {"global.A", "global.B", "global.C"});
+  assertFileEq(build_file, golden_file);
 }
 
-
-// Given Module(s), save as a header file (with no definition) “Unlink”
+// Load a header and impl, then save impl
 TEST(LinkingTest, HeaderGen2) {
-  std::string header_gen_file = "../../tests/gtest/build/linking_header_gen1.json";
-  std::string golden_file = "../../tests/gtest/gold/linking_header_gen1.json";
+  std::string build_file = base + "/build/linking_HeaderGen2.json";
+  std::string golden_file = base + "/golds/linking_HeaderGen2.json";
+
   auto c = newContext();
-  if (!loadFromFile(c, header_file)) {c->die();}
-  saveHeader(c, header_gen_file, {"global.A", "global.B", "global.C"});
-  assertFileEq(header_gen_file, golden_file);
+  vector<Module*> loaded;
+  if (!loadHeader(c, header_file, loaded)) {c->die();}
+  if (!linkImpl(c, impl_file)) {c->die();}
+
+  saveHeader(c, build_file, {"global.A", "global.B", "global.C"});
+  assertFileEq(build_file, golden_file);
 }
 
-// Given Module(s), save an impl file with all definitions “Unlink”
-TEST(LinkingTest, ImplGen) {
-  auto c = newContext();
-  if (!loadFromFile(c, impl_file)) {c->die();}
+//Same as above test, but loads the app before creating the header
+TEST(LinkingTest, HeaderGen3) {
+  std::string build_file = base + "/build/linking_HeaderGen3.json";
+  std::string golden_file = base + "/golds/linking_HeaderGen3.json";
 
+  auto c = newContext();
+  vector<Module*> loaded;
+  if (!loadHeader(c, header_file, loaded)) {c->die();}
+  if (!linkImpl(c, impl_file)) {c->die();}
+
+  Module* top;
+  if (!loadFromFile(c, app_file, &top)) {c->die();}
+  c->setTop(top);
+
+  saveHeader(c, build_file, {"global.A", "global.B", "global.C"});
+  assertFileEq(build_file, golden_file);
+}
+
+// Load a header, save impl
+TEST(LinkingTest, ImplGen1) {
+  std::string build_file = base + "/build/linking_ImplGen1.json";
+  std::string golden_file = base + "/golds/linking_ImplGen1.json";
+
+  auto c = newContext();
+  vector<Module*> loaded;
+  if (!loadHeader(c, header_file, loaded)) {c->die();}
+
+  saveImpl(c, build_file, {"global.A", "global.B"});
+  assertFileEq(build_file, golden_file);
+}
+
+// Load a header and impl, then save impl
+TEST(LinkingTest, ImplGen2) {
+  std::string build_file = base + "/build/linking_ImplGen2.json";
+  std::string golden_file = base + "/golds/linking_ImplGen2.json";
+
+  auto c = newContext();
+  vector<Module*> loaded;
+  if (!loadHeader(c, header_file, loaded)) {c->die();}
+  if (!linkImpl(c, impl_file)) {c->die();}
+
+  saveImpl(c, build_file, {"global.A", "global.B"});
+  assertFileEq(build_file, golden_file);
+}
+
+//Same as above test, but loads the app before generating the impl
+TEST(LinkingTest, ImplGen3) {
+  std::string build_file = base + "/build/linking_ImplGen3.json";
+  std::string golden_file = base + "/golds/linking_ImplGen3.json";
+
+  auto c = newContext();
+  vector<Module*> loaded;
+  if (!loadHeader(c, header_file, loaded)) {c->die();}
+  if (!linkImpl(c, impl_file)) {c->die();}
+
+  Module* top;
+  if (!loadFromFile(c, app_file, &top)) {c->die();}
+  c->setTop(top);
+
+  saveImpl(c, build_file, {"global.A", "global.B"});
+  assertFileEq(build_file, golden_file);
 }
 
 
