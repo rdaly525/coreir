@@ -5,10 +5,11 @@
 
 using namespace CoreIR;
 
-std::string base = "../../tests/gtest/";
-std::string app_file = base + "srcs/linking_app.json";
-std::string header_file = base + "srcs/linking_header.json";
-std::string impl_file = base + "srcs/linking_impl.json";
+//std::string base = "../../tests/gtest/";
+std::string base = ".";
+std::string app_file = base + "/srcs/linking_app.json";
+std::string header_file = base + "/srcs/linking_header.json";
+std::string impl_file = base + "/srcs/linking_impl.json";
 
 TEST(LinkingTest, HeaderLoad) {
   std::string build_file = base + "/build/linking_HeaderLoad.json";
