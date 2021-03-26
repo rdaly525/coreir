@@ -26,9 +26,11 @@ class CoreIRSerialize : public InstanceGraphPass {
   CoreIRSerialize()
     : InstanceGraphPass("serialize", "Creates a json of a single circuit", true) {}
   bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
-  JsonLib::NamespaceJson& getOrCreateNamespace(Namespace* ns);
+  void initialize(int argc, char** argv) override;
   void writeToStream(std::ostream& os) override;
-  void setAnalysisInfo() override { onlyTop = true; }
+  void releaseMemory() override;
+
+  JsonLib::NamespaceJson& getOrCreateNamespace(Namespace* ns);
 };
 
 }  // namespace Passes

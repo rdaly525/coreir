@@ -2,10 +2,33 @@
 #include "coreir.h"
 #include "coreir/passes/analysis/coreir_json_lib.h"
 #include "coreir/passes/analysis/coreirjson.h"
+#include "coreir/tools/cxxopts.h"
 
 using namespace CoreIR;
 using namespace CoreIR::JsonLib;
 using namespace std;
+
+void Passes::CoreIRSerialize::initialize(int argc, char** argv) {
+  cxxopts::Options options("serialize", "serializes CoreIR");
+  options.add_options()("m,modules", "serializes the list of modules and their deps", cxxopts::value<std::string>())("t,top", "Serializes top");
+
+  auto opts = options.parse(argc, argv);
+  if (opts.count("t") > 0) {
+    this->onlyTop = true;
+  }
+  else if (opts.count("m")) {
+    auto mods_string = opts["m"].as<std::string>();
+    auto mods = splitString<vector<string>>(mods_string, ',');
+    for (auto m : mods) {
+      this->modules.push_back(m);
+    }
+  }
+}
+
+void Passes::CoreIRSerialize::releaseMemory() {
+  this->onlyTop = false;
+  this->modules.clear();
+}
 
 NamespaceJson& Passes::CoreIRSerialize::getOrCreateNamespace(Namespace* ns) {
   if (this->nss.count(ns->getName()) == 0) {
@@ -32,10 +55,12 @@ bool Passes::CoreIRSerialize::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
 void Passes::CoreIRSerialize::writeToStream(std::ostream& os) {
   auto c = this->getContext();
-  ASSERT(c->hasTop(), "Cannot Serialize a circuit with no Top");
+  ASSERT(!this->onlyTop || c->hasTop(), "Cannot Serialize a circuit with no Top");
   os << "{";
-  os << quote("top") << ":" << quote(c->getTop()->getRefName()) << ",";
-  os << endl;
+  if (this->onlyTop) {
+    os << quote("top") << ":" << quote(c->getTop()->getRefName()) << ",";
+    os << endl;
+  }
   Dict jn(0);
   for (auto &[nsname, nsjson] : this->nss) { jn.add(nsname, nsjson.serialize()); }
   os << quote("namespaces") << ":" << jn.toMultiString();

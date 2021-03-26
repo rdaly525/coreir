@@ -27,7 +27,7 @@ TEST(LinkingTest, HeaderLoad) {
   c->setTop(top);
 
   serializeToFile(c, build_file);
-
+  validCoreIR(build_file);
   assertFileEq(build_file, golden_file);
 
 }
@@ -48,6 +48,7 @@ TEST(LinkingTest, LinkImpl) {
   c->setTop(top);
 
   serializeToFile(c, build_file);
+  validCoreIR(build_file);
   assertFileEq(build_file, golden_file);
 }
 
@@ -61,6 +62,7 @@ TEST(LinkingTest, HeaderGen1) {
   if (!loadHeader(c, header_file, loaded)) {c->die();}
 
   saveHeader(c, build_file, {"global.A", "global.B", "global.C"});
+  validCoreIR(build_file);
   assertFileEq(build_file, golden_file);
 }
 
@@ -75,6 +77,7 @@ TEST(LinkingTest, HeaderGen2) {
   if (!linkImpl(c, impl_file)) {c->die();}
 
   saveHeader(c, build_file, {"global.A", "global.B", "global.C"});
+  validCoreIR(build_file);
   assertFileEq(build_file, golden_file);
 }
 
@@ -93,8 +96,12 @@ TEST(LinkingTest, HeaderGen3) {
   c->setTop(top);
 
   saveHeader(c, build_file, {"global.A", "global.B", "global.C"});
+  validCoreIR(build_file);
   assertFileEq(build_file, golden_file);
 }
+
+
+//Impl generator tests.
 
 // Load a header, save impl
 TEST(LinkingTest, ImplGen1) {
@@ -106,10 +113,10 @@ TEST(LinkingTest, ImplGen1) {
   if (!loadHeader(c, header_file, loaded)) {c->die();}
 
   saveImpl(c, build_file, {"global.A", "global.B"});
+  validCoreIR(build_file);
   assertFileEq(build_file, golden_file);
 }
 
-// Load a header and impl, then save impl
 TEST(LinkingTest, ImplGen2) {
   std::string build_file = base + "/build/linking_ImplGen2.json";
   std::string golden_file = base + "/golds/linking_ImplGen2.json";
@@ -120,6 +127,7 @@ TEST(LinkingTest, ImplGen2) {
   if (!linkImpl(c, impl_file)) {c->die();}
 
   saveImpl(c, build_file, {"global.A", "global.B"});
+  validCoreIR(build_file);
   assertFileEq(build_file, golden_file);
 }
 
@@ -138,6 +146,7 @@ TEST(LinkingTest, ImplGen3) {
   c->setTop(top);
 
   saveImpl(c, build_file, {"global.A", "global.B"});
+  validCoreIR(build_file);
   assertFileEq(build_file, golden_file);
 }
 

@@ -135,9 +135,6 @@ bool skip_namespace(std::string name, bool nocoreir, bool no_default_libs) {
   return false;
 }
 
-bool saveHeader(Context*c, std::string filename, std::vector<std::string> modules) {
-  return false;
-}
 
 bool saveToFile(
   Context* c,
@@ -184,11 +181,36 @@ bool serializeToFile(Context* c, string filename) {
     c->error(e);
     return false;
   }
-  c->runPasses({"serialize"});
+  c->runPasses({"serialize --top"});
   static_cast<Passes::CoreIRSerialize*>(
     c->getPassManager()->getAnalysisPass("serialize"))
     ->writeToStream(file);
   return true;
 }
+
+bool saveHeader(Context*c, std::string filename, std::vector<std::string> modules) {
+  return false;
+}
+
+
+bool saveImpl(Context*c, std::string filename, std::vector<std::string> modules) {
+  ASSERT(endsWith(filename, ".json"), filename + "Needs to be a json file");
+  std::ofstream file(filename);
+  if (!file.is_open()) {
+    Error e;
+    e.message("Cannot open file " + filename);
+    e.fatal();
+    c->error(e);
+    return false;
+  }
+  std::string serialize_cmd = "serialize --modules " + join(modules.begin(), modules.end(), std::string(","));
+  c->runPasses({serialize_cmd});
+  static_cast<Passes::CoreIRSerialize*>(
+    c->getPassManager()->getAnalysisPass("serialize"))
+    ->writeToStream(file);
+  return true;
+}
+
+
 
 }  // namespace CoreIR

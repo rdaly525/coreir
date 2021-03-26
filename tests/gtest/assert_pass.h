@@ -35,3 +35,10 @@ void assertFileEq(std::string res_path, std::string golden_path) {
     std::istreambuf_iterator<char>());
   EXPECT_EQ(res, golden);
 }
+
+//Verify this is a valid CoreIR file
+void validCoreIR(std::string file) {
+  std::string cmd = "coreir -i " + file;
+  auto res = system(cmd.c_str());
+  ASSERT_TRUE(res==0);
+}
