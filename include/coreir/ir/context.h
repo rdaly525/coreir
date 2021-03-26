@@ -182,10 +182,10 @@ bool loadHeader(Context*c, std::string filename, std::vector<Module*>& loaded_mo
 bool linkImpl(Context*c, std::string filename);
 
 //Given a set of modules, this will save a file with only the listed modules as declarations
-bool saveHeader(Context*c, std::string filename, std::vector<std::string> modules);
+bool serializeHeader(Context*c, std::string filename, std::vector<std::string> modules);
 
 //Given a set of modules, this will save a header
-bool saveImpl(Context*c, std::string filename, std::vector<std::string> modules);
+bool serializeImpl(Context*c, std::string filename, std::vector<std::string> modules);
 
 bool serializeToFile(Context* c, std::string filename);
 

@@ -10,7 +10,7 @@ using namespace std;
 
 void Passes::CoreIRSerialize::initialize(int argc, char** argv) {
   cxxopts::Options options("serialize", "serializes CoreIR");
-  options.add_options()("m,modules", "serializes the list of modules and their deps", cxxopts::value<std::string>())("t,top", "Serializes top");
+  options.add_options()("m,modules", "serializes the list of modules and their deps", cxxopts::value<std::string>())("t,top", "Serializes top")("h,header", "Serializes only the module declarations");
 
   auto opts = options.parse(argc, argv);
   if (opts.count("t") > 0) {
@@ -23,11 +23,15 @@ void Passes::CoreIRSerialize::initialize(int argc, char** argv) {
       this->modules.push_back(m);
     }
   }
+  if (opts.count("h")) {
+    this->headerOnly=true;
+  }
 }
 
 void Passes::CoreIRSerialize::releaseMemory() {
   this->onlyTop = false;
   this->modules.clear();
+  this->headerOnly=false;
 }
 
 NamespaceJson& Passes::CoreIRSerialize::getOrCreateNamespace(Namespace* ns) {
@@ -38,11 +42,20 @@ NamespaceJson& Passes::CoreIRSerialize::getOrCreateNamespace(Namespace* ns) {
 }
 
 bool Passes::CoreIRSerialize::runOnInstanceGraphNode(InstanceGraphNode& node) {
+
+  //Skip if it is header only and this module is not one of the specified modules
+  if (this->headerOnly) {
+    auto mref = node.getModule()->getRefName();
+    if (!std::count(this->modules.begin(), this->modules.end(), mref)) {
+      return false;
+    }
+  }
+
   auto m = node.getModule();
   auto ns = m->getNamespace();
 
-  this->getOrCreateNamespace(ns).add_module(m);
-  cout << "Serializing:" << m->getRefName() << endl;
+  this->getOrCreateNamespace(ns).add_module(m, this->headerOnly);
+
   // Typegens may be in another namespace
   if (m->isGenerated()) {
     auto tg = m->getGenerator()->getTypeGen();

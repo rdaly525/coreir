@@ -61,7 +61,7 @@ TEST(LinkingTest, HeaderGen1) {
   vector<Module*> loaded;
   if (!loadHeader(c, header_file, loaded)) {c->die();}
 
-  saveHeader(c, build_file, {"global.A", "global.B", "global.C"});
+  serializeHeader(c, build_file, {"global.A", "global.B", "global.C"});
   validCoreIR(build_file);
   assertFileEq(build_file, golden_file);
 }
@@ -76,7 +76,7 @@ TEST(LinkingTest, HeaderGen2) {
   if (!loadHeader(c, header_file, loaded)) {c->die();}
   if (!linkImpl(c, impl_file)) {c->die();}
 
-  saveHeader(c, build_file, {"global.A", "global.B", "global.C"});
+  serializeHeader(c, build_file, {"global.A", "global.B", "global.C"});
   validCoreIR(build_file);
   assertFileEq(build_file, golden_file);
 }
@@ -95,7 +95,7 @@ TEST(LinkingTest, HeaderGen3) {
   if (!loadFromFile(c, app_file, &top)) {c->die();}
   c->setTop(top);
 
-  saveHeader(c, build_file, {"global.A", "global.B", "global.C"});
+  serializeHeader(c, build_file, {"global.A", "global.B", "global.C"});
   validCoreIR(build_file);
   assertFileEq(build_file, golden_file);
 }
@@ -112,7 +112,7 @@ TEST(LinkingTest, ImplGen1) {
   vector<Module*> loaded;
   if (!loadHeader(c, header_file, loaded)) {c->die();}
 
-  saveImpl(c, build_file, {"global.A", "global.B"});
+  serializeImpl(c, build_file, {"global.A", "global.B"});
   validCoreIR(build_file);
   assertFileEq(build_file, golden_file);
 }
@@ -126,7 +126,7 @@ TEST(LinkingTest, ImplGen2) {
   if (!loadHeader(c, header_file, loaded)) {c->die();}
   if (!linkImpl(c, impl_file)) {c->die();}
 
-  saveImpl(c, build_file, {"global.A", "global.B"});
+  serializeImpl(c, build_file, {"global.A", "global.B"});
   validCoreIR(build_file);
   assertFileEq(build_file, golden_file);
 }
@@ -145,7 +145,7 @@ TEST(LinkingTest, ImplGen3) {
   if (!loadFromFile(c, app_file, &top)) {c->die();}
   c->setTop(top);
 
-  saveImpl(c, build_file, {"global.A", "global.B"});
+  serializeImpl(c, build_file, {"global.A", "global.B"});
   validCoreIR(build_file);
   assertFileEq(build_file, golden_file);
 }

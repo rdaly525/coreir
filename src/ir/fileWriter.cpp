@@ -169,7 +169,6 @@ bool saveToFile(
   return true;
 }
 
-//Needs a single top
 bool serializeToFile(Context* c, string filename) {
   ASSERT(c->hasTop(), "Missing top");
   ASSERT(endsWith(filename, ".json"), filename + "Needs to be a json file");
@@ -188,12 +187,26 @@ bool serializeToFile(Context* c, string filename) {
   return true;
 }
 
-bool saveHeader(Context*c, std::string filename, std::vector<std::string> modules) {
-  return false;
+bool serializeHeader(Context*c, std::string filename, std::vector<std::string> modules) {
+  ASSERT(endsWith(filename, ".json"), filename + "Needs to be a json file");
+  std::ofstream file(filename);
+  if (!file.is_open()) {
+    Error e;
+    e.message("Cannot open file " + filename);
+    e.fatal();
+    c->error(e);
+    return false;
+  }
+  std::string serialize_cmd = "serialize --header --modules " + join(modules.begin(), modules.end(), std::string(","));
+  c->runPasses({serialize_cmd});
+  static_cast<Passes::CoreIRSerialize*>(
+    c->getPassManager()->getAnalysisPass("serialize"))
+    ->writeToStream(file);
+  return true;
 }
 
 
-bool saveImpl(Context*c, std::string filename, std::vector<std::string> modules) {
+bool serializeImpl(Context*c, std::string filename, std::vector<std::string> modules) {
   ASSERT(endsWith(filename, ".json"), filename + "Needs to be a json file");
   std::ofstream file(filename);
   if (!file.is_open()) {

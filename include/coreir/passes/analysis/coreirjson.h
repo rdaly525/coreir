@@ -22,6 +22,7 @@ class CoreIRJson : public NamespacePass {
 
 class CoreIRSerialize : public InstanceGraphPass {
   std::map<std::string, JsonLib::NamespaceJson> nss;
+  bool headerOnly = false;
  public:
   CoreIRSerialize()
     : InstanceGraphPass("serialize", "Creates a json of a single circuit", true) {}

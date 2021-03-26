@@ -64,7 +64,7 @@ struct GeneratorJson {
   std::vector<std::string> modules;
 
   GeneratorJson(Generator* g) : g(g) {}
-  void add_module(Module* m);
+  void add_module(Module* m, bool onlyDecl);
   std::string serialize();
 };
 
@@ -84,7 +84,7 @@ struct NamespaceJson {
   std::map<std::string, std::string> modules;
 
   NamespaceJson(Namespace* ns) : ns(ns) {}
-  void add_module(Module* m);
+  void add_module(Module* m, bool onlyDecl);
   TypeGenJson& getOrCreateTypeGen(TypeGen* tg);
   std::string serialize();
 };

@@ -194,34 +194,36 @@ string Connections2Json(ModuleDef* def, int taboffset) {
   return a.toMultiString();
 }
 
-string Module2Json(Module* m) {
+string Module2Json(Module* m, bool onlyDecl=false) {
   uint taboffset = m->isGenerated() ? 12 : 6;
   Dict j(taboffset);
   j.add("type", TopType2Json(m->getType(), taboffset + 2));
   if (!m->getModParams().empty()) {
     j.add("modparams", Params2Json(m->getModParams()));
   }
-  if (!m->getDefaultModArgs().empty()) {
-    j.add("defaultmodargs", Values2Json(m->getDefaultModArgs()));
-  }
-  if (m->hasDef()) {
-    ModuleDef* def = m->getDef();
-    if (!def->getInstances().empty()) {
-      auto insts = def->getInstances();
-      j.add("instances", Instances2Json(insts, taboffset + 2));
+  if (!onlyDecl) {
+    if (!m->getDefaultModArgs().empty()) {
+      j.add("defaultmodargs", Values2Json(m->getDefaultModArgs()));
     }
-    if (!def->getConnections().empty()) {
-      j.add("connections", Connections2Json(def, taboffset + 2));
+    if (m->hasDef()) {
+      ModuleDef* def = m->getDef();
+      if (!def->getInstances().empty()) {
+        auto insts = def->getInstances();
+        j.add("instances", Instances2Json(insts, taboffset + 2));
+      }
+      if (!def->getConnections().empty()) {
+        j.add("connections", Connections2Json(def, taboffset + 2));
+      }
     }
+    if (m->hasMetaData()) { j.add("metadata", toString(m->getMetaData())); }
   }
-  if (m->hasMetaData()) { j.add("metadata", toString(m->getMetaData())); }
   return j.toMultiString();
 }
 
-string GeneratedModule2Json(Module* m) {
+string GeneratedModule2Json(Module* m, bool onlyDecl=false) {
   Array gm(10);
   gm.add(Values2Json(m->getGenArgs()));
-  gm.add(Module2Json(m));
+  gm.add(Module2Json(m, onlyDecl));
   return gm.toMultiString();
 }
 
@@ -254,9 +256,9 @@ string Generator2Json(Generator* g) {
 
 } // end namespace
 
-void GeneratorJson::add_module(Module* m) {
+void GeneratorJson::add_module(Module* m, bool onlyDecl=false) {
   ASSERT(m->isGenerated() && m->getGenerator() == this->g, "Module not generated from generator");
-  modules.push_back(GeneratedModule2Json(m));
+  modules.push_back(GeneratedModule2Json(m, onlyDecl));
 }
 
 string GeneratorJson::serialize() {
@@ -294,7 +296,7 @@ string TypeGenJson::serialize() {
   return jtypegen.toMultiString();
 }
 
-void NamespaceJson::add_module(Module* m) {
+void NamespaceJson::add_module(Module* m, bool onlyDecl=false) {
   ASSERT(m->getNamespace() == this->ns, "Module not part of namespace");
   if (m->isGenerated()) {
     auto g = m->getGenerator();
@@ -306,7 +308,7 @@ void NamespaceJson::add_module(Module* m) {
   }
   else {
     ASSERT(this->modules.count(m->getName())==0, "Already added module");
-    this->modules.emplace(m->getName(), Module2Json(m));
+    this->modules.emplace(m->getName(), Module2Json(m, onlyDecl));
   }
 }
 
@@ -349,10 +351,9 @@ string NamespaceJson::serialize() {
     jns.add("typegens", jtypegens.toMultiString());
   }
   return jns.toMultiString();
-
 }
 
-
+//Original
 std::string CoreIR::JsonLib::ns2Json(Namespace* ns) {
   auto modlist = ns->getModules(false);
   Dict jns(2);
