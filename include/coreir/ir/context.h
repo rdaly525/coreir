@@ -190,14 +190,12 @@ bool serializeImpl(Context*c, std::string filename, std::vector<std::string> mod
 bool serializeToFile(Context* c, std::string filename);
 
 // Save namespace to a file with optional "top" module
-[[deprecated]]
 bool saveToFile(
   Namespace* ns,
   std::string filename,
   Module* top = nullptr);  // This will go away
 
 
-[[deprecated]]
 bool saveToFile(
   Context* c,
   std::string filename,
