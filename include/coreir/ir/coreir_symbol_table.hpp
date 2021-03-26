@@ -8,6 +8,7 @@
 namespace CoreIR {
 
 SymbolTableSentinel* const symbolTableInlinedInstanceSentinel();
+SymbolTableSentinel* const symbolTableEmptySentinel();
 
 class CoreIRSymbolTable : public SymbolTableInterface {
  public:
@@ -19,11 +20,7 @@ class CoreIRSymbolTable : public SymbolTableInterface {
   void setInstanceName(
       std::string in_module_name,
       std::string in_instance_name,
-      std::string out_instance_name) override;
-  void setInstanceName(
-      std::string in_module_name,
-      std::string in_instance_name,
-      SymbolTableSentinel* const out_instance_name) override;
+      InstanceNameType out_instance_name) override;
   void setPortName(
       std::string in_module_name,
       std::string in_port_name,
@@ -32,12 +29,7 @@ class CoreIRSymbolTable : public SymbolTableInterface {
       std::string in_module_name,
       std::string in_parent_instance_name,
       std::string in_child_instance_name,
-      std::string out_instance_name) override;
-  void setInlinedInstanceName(
-      std::string in_module_name,
-      std::string in_parent_instance_name,
-      std::string in_child_instance_name,
-      SymbolTableSentinel* const out_instance_name) override;
+      InstanceNameType out_instance_name) override;
   void setInstanceType(
       std::string in_module_name,
       std::string in_instance_name,

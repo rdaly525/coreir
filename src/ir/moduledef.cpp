@@ -226,8 +226,7 @@ Instance* ModuleDef::addInstance(string instname, Module* m, Values modargs) {
   const bool should_log = (m->getRefName() != "_.passthrough");
   if (should_log) {
     auto logger = getContext()->getPassManager()->getSymbolTable()->getLogger();
-    logger->logNewInstance(
-        getModule()->getRefName(), m->getRefName(), instname);
+    logger->logNewInstance(getModule()->getName(), m->getName(), instname);
   }
   }
 
@@ -425,7 +424,7 @@ void ModuleDef::removeInstance(string iname) {
   const bool should_log = (module_ref->getRefName() != "_.passthrough");
   if (should_log) {
     auto logger = getContext()->getPassManager()->getSymbolTable()->getLogger();
-    logger->logRemoveInstance(getModule()->getRefName(), iname);
+    logger->logRemoveInstance(getModule()->getName(), iname);
   }
   }
 }
