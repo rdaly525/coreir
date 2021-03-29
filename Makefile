@@ -12,8 +12,6 @@ test:
 	cd tutorial/hellocounter; ./run
 
 installtest:
-	$(MAKE) -C tests/install
-	cd tests/install; ./run
 	coreir -i examples/counters.json -p "rungenerators; flatten; verifyconnectivity --onlyinputs"
 
 #.PHONY: uninstall

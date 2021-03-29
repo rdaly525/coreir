@@ -38,6 +38,9 @@ vector<string> getRef(string s) {
   return p;
 }
 
+
+
+
 // This will verify that json contains ONLY list of possible things
 void checkJson(
   json j,
@@ -54,6 +57,10 @@ void checkJson(
       optsRequired.count(opt.first) || optsOptional.count(opt.first),
       "Cannot put \"" + opt.first + "\" here in json file\n" + toString(j));
   }
+}
+
+bool hasDef(json& jmod) {
+  return jmod.count("connections") || jmod.count("instances");
 }
 
 //If there is a top module "top" will be loaded with it. loaded_modules will always contain an unordered list of the modules (included generated ones) from this file
@@ -186,11 +193,7 @@ bool load(Context* c, string filename, Module** top, std::vector<Module*>& loade
       json jns = nsq.second;
       // Load Modules
       if (jns.count("modules")) {
-        for (auto jmodmap : jns.at("modules").get<jsonmap>()) {
-          // Figure out type;
-          string jmodname = jmodmap.first;
-          json jmod = jmodmap.second;
-
+        for (auto &[jmodname, jmod] : jns.at("modules").get<jsonmap>()) {
           checkJson(
             jmod,
             {"type"},
@@ -204,9 +207,11 @@ bool load(Context* c, string filename, Module** top, std::vector<Module*>& loade
           if (jmod.count("modparams")) {
             modparams = json2Params(c, jmod.at("modparams"));
           }
-          bool loading_def = jmod.count("connections") > 0;
+          bool loading_def = hasDef(jmod);
           Module* m;
           if (ns->hasModule(jmodname)) {
+            //Trying to load a module that already exists in context.
+            // Verifies that the module name, type, and modparams are the same
             m = ns->getModule(jmodname);
             ASSERTTHROW(
               t == m->getType(),
@@ -215,7 +220,7 @@ bool load(Context* c, string filename, Module** top, std::vector<Module*>& loade
               modparams == m->getModParams(),
               jmodname + " has inconsitent modparams with pre-loaded module");
 
-            // Only link if existing module does not have a definition
+            // Only link if both modules dont have a definition
             ASSERTTHROW(
               !(loading_def && m->hasDef()),
               "cannot link " + jmodname + " because definition already exists");
@@ -225,22 +230,15 @@ bool load(Context* c, string filename, Module** top, std::vector<Module*>& loade
             if (jmod.count("defaultmodargs")) {
               m->addDefaultModArgs(json2Values(c, jmod.at("defaultmodargs")));
             }
-            if (jmod.count("metadata")) { m->setMetaData(jmod["metadata"]); }
           }
+          if (jmod.count("metadata")) { m->setMetaData(jmod["metadata"]); }
           loaded_modules.push_back(m);
           if (loading_def) { modqueue.push_back({m, jmod}); }
         }
       }
       if (jns.count("generators")) {
-        for (auto jgenmap : jns.at("generators").get<jsonmap>()) {
-          string genname = jgenmap.first;
-          if (ns->hasGenerator(genname)) {
-            // TODO confirm that it has the same everything like genparams and
-            // modparams
-            continue;
-          }
+        for (auto &[genname, jgen] : jns.at("generators").get<jsonmap>()) {
 
-          json jgen = jgenmap.second;
           checkJson(
             jgen,
             {"typegen", "genparams"},
@@ -248,15 +246,25 @@ bool load(Context* c, string filename, Module** top, std::vector<Module*>& loade
           Params genparams = json2Params(c, jgen.at("genparams"));
 
           string typeGenName = jgen.at("typegen").get<string>();
+
+          //Typegens have already been checked for consistency
           ASSERTTHROW(
             c->hasTypeGen(typeGenName),
             "Missing typegen symbol " + typeGenName + " for generator " +
-              jgenmap.first);
+              genname);
           TypeGen* tg = c->getTypeGen(typeGenName);
+
+          Generator* g;
+          if (ns->hasGenerator(genname)) {
+            g = ns->getGenerator(genname);
+            ASSERTTHROW(
+              g->getGenParams() == genparams,
+              genname + " has inconsistent genparams");;
+          }
+          else {
+            g = ns->newGeneratorDecl(genname, tg, genparams);
+          }
           vector<std::pair<Values, json>> genmodvalues;
-          // Verify that this is consistent with all the types
-          // TODO deal with module parameter generation
-          Generator* g = ns->newGeneratorDecl(genname, tg, genparams);
           if (jgen.count("defaultgenargs")) {
             g->addDefaultGenArgs(json2Values(c, jgen.at("defaultgenargs")));
           }
@@ -277,23 +285,26 @@ bool load(Context* c, string filename, Module** top, std::vector<Module*>& loade
                  "instances",
                  "connections",
                  "metadata"});
+              bool loading_def = hasDef(jmod);
               Type* type = json2Type(c, jmod.at("type"));
               // This will verify the correct type if typegen can generate the
               // type
               Module* m = g->getModule(genargs, type);
+
+              // Only link if both modules dont have a definition
+              ASSERTTHROW(
+                !(loading_def && m->hasDef()),
+                "cannot link " + m->getLongName() + " because definition already exists");
               loaded_modules.push_back(m);
-              modqueue.push_back(
-                {m, jmod});  // Populate the generated module cache
+              if (loading_def) {modqueue.push_back({m, jmod}); }
             }
           }
         }
       }
     }
     // Now do all the ModuleDefinitions
-    for (auto mq : modqueue) {
-      Module* m = mq.first;
-      json jmod = mq.second;
-      if (!jmod.count("instances") && !jmod.count("connections")) { continue; }
+    for (auto &[m, jmod] : modqueue) {
+      ASSERT(hasDef(jmod), "Missing Def " + m->getRefName());
       ModuleDef* mdef = m->newModuleDef();
       if (jmod.count("instances")) {
         for (auto jinstmap : jmod.at("instances").get<jsonmap>()) {
