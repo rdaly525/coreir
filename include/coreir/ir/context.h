@@ -184,9 +184,10 @@ bool linkDefinitions(Context*c, std::string filename);
 //Given a set of modules, this will save a file with only the listed modules as declarations
 bool serializeHeader(Context*c, std::string filename, std::vector<std::string> modules);
 
-//Given a set of modules, this will save a header
+//Given a set of modules, this will save all the definitions and their dependencies
 bool serializeDefinitions(Context*c, std::string filename, std::vector<std::string> modules);
 
+//This will save a file with top and all its dependencies.
 bool serializeToFile(Context* c, std::string filename);
 
 // Save namespace to a file with optional "top" module
