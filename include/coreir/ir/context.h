@@ -179,13 +179,13 @@ bool loadHeader(Context*c, std::string filename, std::vector<Module*>& loaded_mo
 
 //"Impl" a set of modules and definitions.
 //Each module in this file should already exist as a declaration in the context
-bool linkImpl(Context*c, std::string filename);
+bool linkDefinitions(Context*c, std::string filename);
 
 //Given a set of modules, this will save a file with only the listed modules as declarations
 bool serializeHeader(Context*c, std::string filename, std::vector<std::string> modules);
 
 //Given a set of modules, this will save a header
-bool serializeImpl(Context*c, std::string filename, std::vector<std::string> modules);
+bool serializeDefinitions(Context*c, std::string filename, std::vector<std::string> modules);
 
 bool serializeToFile(Context* c, std::string filename);
 

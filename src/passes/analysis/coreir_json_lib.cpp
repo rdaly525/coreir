@@ -1,4 +1,3 @@
-
 #include <map>
 #include <set>
 #include "coreir/passes/analysis/coreir_json_lib.h"

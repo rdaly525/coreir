@@ -206,7 +206,7 @@ bool serializeHeader(Context*c, std::string filename, std::vector<std::string> m
 }
 
 
-bool serializeImpl(Context*c, std::string filename, std::vector<std::string> modules) {
+bool serializeDefinitions(Context*c, std::string filename, std::vector<std::string> modules) {
   ASSERT(endsWith(filename, ".json"), filename + "Needs to be a json file");
   std::ofstream file(filename);
   if (!file.is_open()) {

@@ -51,7 +51,7 @@ void InstanceGraph::construct(Context* c) {
 }
 
 namespace {
-void recurse(
+void getAllDependentModules(
   Module* m,
   std::set<Module*, InstanceGraph::ModuleCmp>& onlyTopNodes) {
   if (onlyTopNodes.count(m)) { return; }
@@ -59,7 +59,7 @@ void recurse(
   if (!m->hasDef()) { return; }
   for (auto ipair : m->getDef()->getInstances()) {
     Module* imod = ipair.second->getModuleRef();
-    recurse(imod, onlyTopNodes);
+    getAllDependentModules(imod, onlyTopNodes);
   }
 }
 }  // namespace
@@ -69,13 +69,12 @@ std::list<InstanceGraphNode*> InstanceGraph::getFilteredNodes(std::vector<Module
     return this->getSortedNodes();
   }
 
-  std::set<Module*, InstanceGraph::ModuleCmp> filteredNodes;
-  for (auto m : mods) {
-    recurse(m, filteredNodes);
+  std::set<Module*, InstanceGraph::ModuleCmp> filteredModules;
+  for (auto m : mods) { getAllDependentModules(m, filteredModules);
   }
   std::list<InstanceGraphNode*> ret;
   for (auto inode : this->getSortedNodes()) {
-    if (filteredNodes.count(inode->getModule()) >0) {
+    if (filteredModules.count(inode->getModule()) >0) {
       ret.push_back(inode);
     }
   }

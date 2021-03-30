@@ -42,7 +42,7 @@ TEST(LinkingTest, LinkImpl) {
   auto c = newContext();
   vector<Module*> loaded;
   if (!loadHeader(c, header_file, loaded)) {c->die();}
-  if (!linkImpl(c, impl_file)) {c->die();}
+  if (!linkDefinitions(c, impl_file)) {c->die();}
 
   Module* top;
   if (!loadFromFile(c, app_file, &top)) {c->die();}
@@ -75,7 +75,7 @@ TEST(LinkingTest, HeaderGen2) {
   auto c = newContext();
   vector<Module*> loaded;
   if (!loadHeader(c, header_file, loaded)) {c->die();}
-  if (!linkImpl(c, impl_file)) {c->die();}
+  if (!linkDefinitions(c, impl_file)) {c->die();}
 
   serializeHeader(c, build_file, {"global.A", "global.B", "global.C"});
   validCoreIR(build_file);
@@ -90,7 +90,7 @@ TEST(LinkingTest, HeaderGen3) {
   auto c = newContext();
   vector<Module*> loaded;
   if (!loadHeader(c, header_file, loaded)) {c->die();}
-  if (!linkImpl(c, impl_file)) {c->die();}
+  if (!linkDefinitions(c, impl_file)) {c->die();}
 
   Module* top;
   if (!loadFromFile(c, app_file, &top)) {c->die();}
@@ -113,7 +113,7 @@ TEST(LinkingTest, ImplGen1) {
   vector<Module*> loaded;
   if (!loadHeader(c, header_file, loaded)) {c->die();}
 
-  serializeImpl(c, build_file, {"global.A", "global.B"});
+  serializeDefinitions(c, build_file, {"global.A", "global.B"});
   validCoreIR(build_file);
   assertFileEq(build_file, golden_file);
 }
@@ -125,9 +125,9 @@ TEST(LinkingTest, ImplGen2) {
   auto c = newContext();
   vector<Module*> loaded;
   if (!loadHeader(c, header_file, loaded)) {c->die();}
-  if (!linkImpl(c, impl_file)) {c->die();}
+  if (!linkDefinitions(c, impl_file)) {c->die();}
 
-  serializeImpl(c, build_file, {"global.A", "global.B"});
+  serializeDefinitions(c, build_file, {"global.A", "global.B"});
   validCoreIR(build_file);
   assertFileEq(build_file, golden_file);
 }
@@ -140,13 +140,13 @@ TEST(LinkingTest, ImplGen3) {
   auto c = newContext();
   vector<Module*> loaded;
   if (!loadHeader(c, header_file, loaded)) {c->die();}
-  if (!linkImpl(c, impl_file)) {c->die();}
+  if (!linkDefinitions(c, impl_file)) {c->die();}
 
   Module* top;
   if (!loadFromFile(c, app_file, &top)) {c->die();}
   c->setTop(top);
 
-  serializeImpl(c, build_file, {"global.A", "global.B"});
+  serializeDefinitions(c, build_file, {"global.A", "global.B"});
   validCoreIR(build_file);
   assertFileEq(build_file, golden_file);
 }
