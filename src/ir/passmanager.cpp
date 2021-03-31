@@ -101,11 +101,10 @@ bool PassManager::runInstanceGraphPass(Pass* pass) {
     this->getAnalysisPass("createinstancegraph"));
   bool modified = false;
   InstanceGraphPass* igpass = cast<InstanceGraphPass>(pass);
-  bool onlyTop = igpass->isOnlyTop();
-  for (auto node : cig->getInstanceGraph()->getSortedNodes()) {
-    if (!onlyTop || cig->getInstanceGraph()->validOnlyTop(node)) {
-      modified |= igpass->runOnInstanceGraphNode(*node);
-    }
+  std::vector<Module*> mods;
+  igpass->getModules(mods);
+  for (auto node : cig->getInstanceGraph()->getFilteredNodes(mods)) {
+    modified |= igpass->runOnInstanceGraphNode(*node);
   }
   return modified;
 }

@@ -21,19 +21,7 @@ bool endsWith(const string& str, const string& suffix) {
     (str.size() >= suffix.size()) &&
     (str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0));
 }
-/*
-string instStr(Wireable* wire) {
-Select* child;
-Wireable* parent = wire;
 
-while (isa<Select>(parent)) {
-  child = cast<Select>(parent);
-  parent = child->getParent();
-}
-
-return parent->toString() == "self" ? child->toString() : parent->toString();
-}
-*/
 string instStr(SelectPath wire) {
   if (wire[0] == "self") { return wire[0] + "." + wire[1]; }
   else {
@@ -147,6 +135,7 @@ bool skip_namespace(std::string name, bool nocoreir, bool no_default_libs) {
   return false;
 }
 
+
 bool saveToFile(
   Context* c,
   string filename,
@@ -179,5 +168,62 @@ bool saveToFile(
     ->writeToStream(file);
   return true;
 }
+
+bool serializeToFile(Context* c, string filename) {
+  ASSERT(c->hasTop(), "Missing top");
+  ASSERT(endsWith(filename, ".json"), filename + "Needs to be a json file");
+  std::ofstream file(filename);
+  if (!file.is_open()) {
+    Error e;
+    e.message("Cannot open file " + filename);
+    e.fatal();
+    c->error(e);
+    return false;
+  }
+  c->runPasses({"serialize --top"});
+  static_cast<Passes::CoreIRSerialize*>(
+    c->getPassManager()->getAnalysisPass("serialize"))
+    ->writeToStream(file);
+  return true;
+}
+
+bool serializeHeader(Context*c, std::string filename, std::vector<std::string> modules) {
+  ASSERT(endsWith(filename, ".json"), filename + "Needs to be a json file");
+  std::ofstream file(filename);
+  if (!file.is_open()) {
+    Error e;
+    e.message("Cannot open file " + filename);
+    e.fatal();
+    c->error(e);
+    return false;
+  }
+  std::string serialize_cmd = "serialize --header --modules " + join(modules.begin(), modules.end(), std::string(","));
+  c->runPasses({serialize_cmd});
+  static_cast<Passes::CoreIRSerialize*>(
+    c->getPassManager()->getAnalysisPass("serialize"))
+    ->writeToStream(file);
+  return true;
+}
+
+
+bool serializeDefinitions(Context*c, std::string filename, std::vector<std::string> modules) {
+  ASSERT(endsWith(filename, ".json"), filename + "Needs to be a json file");
+  std::ofstream file(filename);
+  if (!file.is_open()) {
+    Error e;
+    e.message("Cannot open file " + filename);
+    e.fatal();
+    c->error(e);
+    return false;
+  }
+  std::string serialize_cmd = "serialize --modules " + join(modules.begin(), modules.end(), std::string(","));
+  c->runPasses({serialize_cmd});
+  static_cast<Passes::CoreIRSerialize*>(
+    c->getPassManager()->getAnalysisPass("serialize"))
+    ->writeToStream(file);
+  return true;
+}
+
+
 
 }  // namespace CoreIR

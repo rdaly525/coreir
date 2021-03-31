@@ -2,6 +2,7 @@
 #include "coreir/ir/generator.h"
 #include "coreir/ir/module.h"
 #include "coreir/ir/passmanager.h"
+#include "coreir/ir/context.h"
 
 using namespace std;
 using namespace CoreIR;
@@ -58,4 +59,16 @@ void InstanceVisitorPass::addVisitorFunction(
     genVisitorMap.count(g) == 0,
     "Already added Function for " + g->getRefName());
   genVisitorMap[g] = fun;
+}
+
+void InstanceGraphPass::getModules(std::vector<Module*>& mods) {
+  auto c = this->getContext();
+  if (this->onlyTop) {
+    mods.push_back(c->getTop());
+  }
+  else {
+    for (auto mref : this->modules) {
+      mods.push_back(c->getModule(mref));
+    }
+  }
 }
