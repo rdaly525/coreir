@@ -278,6 +278,14 @@ class LoggerImpl : public SymbolTableLoggerInterface {
      public:
       explicit TableWrapper(SymbolTableInterface* table) : table(table) {}
 
+      void setType(
+          std::string module_name,
+          std::string inst_name,
+          std::string type_name) {
+        LOG(DEBUG) << "T(" << module_name << ", " << inst_name << ") -> "
+                   << type_name;
+        table->setInstanceType(module_name, inst_name, type_name);
+      }
       void setName(
           std::string module_name,
           std::string inst_name,
@@ -336,6 +344,7 @@ class LoggerImpl : public SymbolTableLoggerInterface {
     handler = [&inline_handler, &wrapper](auto module, auto inst) {
       if (inst->from_inline) return;
       assert(inst->inlined or inst->inlines.size() == 0);
+      wrapper.setType(module->name, inst->name, inst->type->name);
       if (not inst->inlined) {
         wrapper.setName(module->name, inst->name, inst->name);
         return;
