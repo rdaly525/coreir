@@ -365,7 +365,6 @@ class LoggerImpl : public SymbolTableLoggerInterface {
               module->name, key_or_inst_name, src->name, new_key);
           inline_handler(module, dst, new_key);
         } else if (src->from_inline) {  // bottom-up case
-          auto curr_inst = inst;
           auto curr_src = src;
           auto curr_key = key_or_inst_name;
           while (curr_src->from_inline) {
@@ -373,7 +372,6 @@ class LoggerImpl : public SymbolTableLoggerInterface {
             auto child_name = std::get<1>(curr_src->inline_source)->name;
             wrapper.setInlineNameInlined(
                 module->name, curr_key, child_name, new_key);
-            curr_inst = std::get<1>(curr_src->inline_source);
             curr_src = std::get<2>(curr_src->inline_source);
             curr_key = new_key;
           }
