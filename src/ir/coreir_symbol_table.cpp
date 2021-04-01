@@ -72,13 +72,13 @@ class LoggerImpl : public SymbolTableLoggerInterface {
       std::string module_name,
       std::string instance_type,
       std::string instance_name) override {
-    const auto data = {module_name, instance_type, instance_name};
+    const std::vector data {module_name, instance_type, instance_name};
     logGeneral(LogKind::NEW, data);
   }
 
   void logRemoveInstance(
       std::string module_name, std::string instance_name) override {
-    const auto data = {module_name, instance_name};
+    const std::vector data {module_name, instance_name};
     logGeneral(LogKind::REMOVE, data);
   }
 
@@ -86,7 +86,7 @@ class LoggerImpl : public SymbolTableLoggerInterface {
       std::string module_name,
       std::string instance_name,
       std::string new_instance_name) override {
-    const auto data = {module_name, instance_name, new_instance_name};
+    const std::vector data {module_name, instance_name, new_instance_name};
     logGeneral(LogKind::RENAME, data);
   }
 
@@ -97,7 +97,7 @@ class LoggerImpl : public SymbolTableLoggerInterface {
       std::string child_instance_name,
       std::string child_instance_type,
       std::string new_instance_name) override {
-    const auto data = {
+    const std::vector data {
       module_name,
       instance_name,
       instance_type,
@@ -301,7 +301,7 @@ class LoggerImpl : public SymbolTableLoggerInterface {
         const auto sentinel = symbolTableInlinedInstanceSentinel();
         LOG(DEBUG) << "P(" << module_name << ", " << inst_name << ") -> "
                    << "(" << sentinel->getFlag() << ", " << "" << ")";
-        auto out = std::tuple {sentinel, ""};
+        auto out = std::tuple {sentinel, std::string("")};
         table->setInstanceName(module_name, inst_name, out);
       }
       void setInlineName(
@@ -386,9 +386,11 @@ class LoggerImpl : public SymbolTableLoggerInterface {
         }
       }
     };
-    for (const auto& [module_name, module] : modules) {
+    for (const auto& item : modules) {
+      const auto& module = item.second;
       LOG(DEBUG) << module->DebugString();
-      for (const auto& [instance_name, inst] : module->instances) {
+      for (const auto& inst_item : module->instances) {
+        const auto& inst = inst_item.second;
         LOG(DEBUG) << "    " << inst->DebugString();
         handler(module.get(), inst.get());
       }
