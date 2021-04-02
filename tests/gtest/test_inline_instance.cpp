@@ -14,6 +14,7 @@ class InlineInstance : public ::testing::Test {
 
   void SetUp() override {
     ctx = newContext();
+    ctx->setDebug(true);
     if (!loadFromFile(ctx, "srcs/simple_hierarchy.json", &top)) ctx->die();
     assert(top != nullptr);
     ctx->setTop(top->getRefName());

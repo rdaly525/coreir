@@ -355,6 +355,7 @@ bool inlineInstance(Instance* inst) {
   // NOTE(rsetaluri): Because inlineInstanceImpl deletes the instance, we need
   // to record some information about the instance we will need for symbol table
   // logging.
+  const bool debug = inst->getContext()->getDebug();
   const auto inst_info = std::make_tuple(
       inst->getContext(),
       inst->getContainer()->getModule()->getName(),
@@ -374,10 +375,13 @@ bool inlineInstance(Instance* inst) {
         sub_inst_type,
         new_name);
   };
-  const bool ret = inlineInstanceImpl(inst, &record);
+  auto record_ptr = debug ? &record : nullptr;
+  const bool ret = inlineInstanceImpl(inst, record_ptr);
   // Log the inlined instances.
-  for (auto& [sub_inst_name, sub_inst_type, new_name] : record) {
-   log(sub_inst_name, sub_inst_type, new_name);
+  if (debug) {
+    for (auto& [sub_inst_name, sub_inst_type, new_name] : record) {
+      log(sub_inst_name, sub_inst_type, new_name);
+    }
   }
   return ret;
 }

@@ -79,7 +79,7 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
     ASSERT(verifyUnique.count(newport) == 0, "NYI: Name clashes");
     newports.push_back({newport, type});
     verifyUnique.insert(newport);
-    if (this->isDebug()) {
+    if (getContext()->getDebug()) {
       this->getSymbolTable()->setPortName(mod->getName(), ::toString(sp), newport);
     }
   }

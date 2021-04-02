@@ -33,7 +33,7 @@ TEST(FlattenTypesTests, TestSymbolTable) {
   if (!loadFromFile(c, "srcs/flattentypes_preserve_nd_array.json",  &top)) { c->die();}
   assert(top != nullptr);
   c->setTop(top->getRefName());
-  c->getPassManager()->setDebug(true);
+  c->setDebug(true);
   SymbolTableInterface* sym = c->getPassManager()->getSymbolTable();
   cout << sym->json() << endl;
   c->runPasses({"flattentypes"});
