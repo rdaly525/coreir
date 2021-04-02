@@ -293,6 +293,20 @@ void CORESaveModule(COREModule* module, char* filename, bool* err) {
   return;
 }
 
+void CORESerializeHeader(COREContext* cc, char* filename, char** modules, uint num_modules, COREBool* err) {
+  Context* c = rcast<Context*>(cc);
+  string file(filename);
+  vector<string> vec_modules;
+  for (uint i=0; i< num_modules; ++i) {
+    vec_modules.emplace_back(modules[i]);
+  }
+  bool correct = serializeHeader(c, file, vec_modules);
+  *err = !correct;
+  return;
+}
+void CORESerializeDefinitions(char* filename, char** module_names, COREBool* err);
+
+
 CORENamespace* COREGetGlobal(COREContext* c) {
   return rcast<CORENamespace*>(rcast<Context*>(c)->getGlobal());
 }
