@@ -22,10 +22,6 @@ TEST(FlattenTypesTests, TestFlattenTypesPreserveNDArray) {
 }
 
 
-//void check_port(SymbolTableInterface* sym, std::string key, std::string val) {
-//  assert(sym->getPortName(key)==val);
-//}
-
 TEST(FlattenTypesTests, TestSymbolTable) {
   Context* c = newContext();
   Module* top;
@@ -38,9 +34,9 @@ TEST(FlattenTypesTests, TestSymbolTable) {
   cout << sym->json() << endl;
   c->runPasses({"flattentypes"});
   assert(c->getPassManager()->getSymbolTable() == sym);
-  //Verify the symbol table makes sense
-  //Check I0 (ND-array)
-  // ["I0",["Array",12,["Array",16,["Array",8,"BitIn"]]]],
+  // Verify the symbol table makes sense.
+  // Check I0 (ND-array):
+  //     ["I0",["Array",12,["Array",16,["Array",8,"BitIn"]]]]
   for (int i=0; i<12; ++i) {
     for (int j=0; j<16; ++j) {
       auto key = "I0." + std::to_string(i) + "." + std::to_string(j);
@@ -48,14 +44,13 @@ TEST(FlattenTypesTests, TestSymbolTable) {
       assert(sym->getPortName(top->getName(), key) == val);
     }
   }
-  //Check I1 (Record)
-  // ["I1",["Record",[["_0","BitIn"],["_1",["Array",3,"BitIn"]]]]],
+  // Check I1 (Record):
+  //     ["I1",["Record",[["_0","BitIn"],["_1",["Array",3,"BitIn"]]]]]
   assert(sym->getPortName(top->getName(), "I1._0")== "I1__0");
   assert(sym->getPortName(top->getName(), "I1._1")== "I1__1");
 
   deleteContext(c);
 }
-
 
 }  // namespace
 
