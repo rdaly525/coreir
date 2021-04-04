@@ -44,8 +44,6 @@ class PassManager {
     assert(passMap.count(ID));
     return passMap[ID];
   }
-  void setDebug(bool debug) {this->debug = debug; }
-  bool isDebug() {return this->debug; }
 
   SymbolTableInterface* getSymbolTable() { return symbolTable.get(); }
 

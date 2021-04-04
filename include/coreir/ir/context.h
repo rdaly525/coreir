@@ -50,6 +50,8 @@ class Context {
 
   std::vector<void*> scratchPad;
 
+  bool debug = false;
+
  public:
   Context();
   ~Context();
@@ -77,6 +79,9 @@ class Context {
   bool hasGenerator(std::string ref);
   bool hasModule(std::string ref);
   bool hasGlobalValue(std::string ref);
+
+  void setDebug(bool debug) { this->debug = debug; }
+  bool getDebug() const { return debug; }
 
   // This function provides scratch memory managed by this context. The memory
   // will be free'd upon deletion of this context.

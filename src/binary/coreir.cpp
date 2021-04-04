@@ -100,8 +100,9 @@ int main(int argc, char* argv[]) {
     cout << endl;
     return 0;
   }
-  // Will enable symbol table tracking ("debug mode")
-  c->getPassManager()->setDebug(opts.count("g") > 0);
+
+  // Will enable symbol table tracking ("debug mode").
+  c->setDebug(opts.count("g") > 0);
 
   if (opts.count("version")) {
     cout << COREIR_VERSION << " " << GIT_SHA1 << endl;
@@ -293,10 +294,11 @@ int main(int argc, char* argv[]) {
   LOG(DEBUG) << "Modified?: " << (modified ? "Yes" : "No");
 
   // Dump symbol table if in debug mode.
-  if (c->getPassManager()->isDebug()) {
+  if (c->getDebug()) {
     const auto filename = opts["g"].as<string>();
     auto const symbolTable = c->getPassManager()->getSymbolTable();
     if (symbolTable != nullptr) {
+      symbolTable->getLogger()->finalize();
       std::ofstream fout(filename);
       fout << symbolTable->json();
     }

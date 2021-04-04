@@ -47,7 +47,6 @@ class Pass {
   void addDependency(std::string name) { dependencies.push_back(name); }
   Context* getContext();
   SymbolTableInterface* getSymbolTable();
-  bool isDebug();
   std::string getName() { return name; }
   virtual void print() {}
   virtual bool finalize() { return false; }

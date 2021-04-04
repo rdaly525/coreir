@@ -7,6 +7,7 @@
 #include "coreir/ir/typegen.h"
 #include "coreir/ir/types.h"
 #include "coreir/ir/value.h"
+#include "coreir/ir/passmanager.h"
 
 using namespace std;
 
@@ -214,35 +215,29 @@ Instance* ModuleDef::getInstancesIterNext(Instance* instance) {
   return this->instancesIterNextMap[instance];
 }
 
-//   Instance(ModuleDef* container, std::string instname, Module* moduleRef,
-//   Values modargs);
+Instance* ModuleDef::addInstance(string instname, Module* m, Values modargs) {
+  ASSERT(instances.count(instname) == 0, instname + " already an instance");
+  Instance* inst = new Instance(this, instname, m, modargs);
+  instances[instname] = inst;
+  appendInstanceToIter(inst);
+
+  // Log new instance for symbol table.
+  const bool should_log = (getContext()->getDebug()
+                           and m->getRefName() != "_.passthrough");
+  if (should_log) {
+    auto logger = getContext()->getPassManager()->getSymbolTable()->getLogger();
+    logger->logNewInstance(getModule()->getName(), m->getName(), instname);
+  }
+
+  return inst;
+}
+
 Instance* ModuleDef::addInstance(
   string instname,
   Generator* gen,
   Values genargs,
   Values modargs) {
-  ASSERT(instances.count(instname) == 0, instname + " already an instance");
-
-  Instance* inst = new Instance(
-    this,
-    instname,
-    gen->getModule(genargs),
-    modargs);
-  instances[instname] = inst;
-
-  appendInstanceToIter(inst);
-
-  return inst;
-}
-
-Instance* ModuleDef::addInstance(string instname, Module* m, Values modargs) {
-  ASSERT(instances.count(instname) == 0, instname + " already an instance");
-  Instance* inst = new Instance(this, instname, m, modargs);
-  instances[instname] = inst;
-
-  appendInstanceToIter(inst);
-
-  return inst;
+  return this->addInstance(instname, gen->getModule(genargs), modargs);
 }
 
 Instance* ModuleDef::addInstance(
@@ -418,7 +413,18 @@ void ModuleDef::removeInstance(string iname) {
 
   removeInstanceFromIter(inst);
 
+  // Save this for symbol table logging (below).
+  auto module_ref = inst->getModuleRef();
+
   delete inst;
+
+  // Log removed instance for symbol table.
+  const bool should_log = (getContext()->getDebug()
+                           and module_ref->getRefName() != "_.passthrough");
+  if (should_log) {
+    auto logger = getContext()->getPassManager()->getSymbolTable()->getLogger();
+    logger->logRemoveInstance(getModule()->getName(), iname);
+  }
 }
 
 }  // namespace CoreIR

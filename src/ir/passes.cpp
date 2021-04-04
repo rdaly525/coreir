@@ -14,10 +14,6 @@ Context* Pass::getContext() {
   assert(pm);
   return pm->c;
 }
-bool Pass::isDebug() {
-  assert(pm);
-  return pm->isDebug();
-}
 
 SymbolTableInterface* Pass::getSymbolTable() {
   assert(pm);
