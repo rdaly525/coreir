@@ -170,8 +170,21 @@ bool saveToFile(
 }
 
 bool serializeToFile(Context* c, string filename) {
-  ASSERT(c->hasTop(), "Missing top");
-  ASSERT(endsWith(filename, ".json"), filename + "Needs to be a json file");
+  if (!c->hasTop()) {
+    Error e;
+    e.message("Missing Top " + filename);
+    e.fatal();
+    c->error(e);
+    return false;
+  }
+  if (!endsWith(filename, ".json")) {
+    Error e;
+    e.message(filename + "Needs to be a json file");
+    e.fatal();
+    c->error(e);
+    return false;
+  }
+
   std::ofstream file(filename);
   if (!file.is_open()) {
     Error e;
