@@ -284,6 +284,15 @@ void CORESaveContext(
   return;
 }
 
+void CORESerializeToFile(COREContext* cc, char* filename, COREBool* err) {
+  string file(filename);
+  Context* c = rcast<Context*>(cc);
+  bool correct = serializeToFile(c, file);
+  *err = !correct;
+  return;
+}
+
+
 // bool saveToFile(Namespace* ns, string filename,Module* top=nullptr);
 void CORESaveModule(COREModule* module, char* filename, bool* err) {
   string file(filename);
@@ -339,6 +348,14 @@ void CORELoadHeader(COREContext* cc, char* filename, char*** modules, uint* num_
     *num_modules = 0;
   }
 }
+
+void CORELinkDefinitions(COREContext* cc, char* filename, COREBool* err) {
+  Context* c = rcast<Context*>(cc);
+  std::string file(filename);
+  bool correct = linkDefinitions(c, file);
+  *err = !correct;
+}
+
 
 CORENamespace* COREGetGlobal(COREContext* c) {
   return rcast<CORENamespace*>(rcast<Context*>(c)->getGlobal());

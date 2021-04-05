@@ -63,6 +63,12 @@ extern void CORESaveContext(
   COREBool* no_default_libs,
   COREBool* err);
 
+
+extern void CORESerializeToFile(COREContext* cc, char* filename, COREBool* err);
+
+extern void CORELoadHeader(COREContext* cc, char* filename, char*** modules, uint* num_modules, COREBool* err);
+extern void CORELinkDefinitions(COREContext* cc, char* filename, COREBool* err);
+
 extern void CORESerializeHeader(COREContext* context, char* filename, char** modules, uint num_modules, COREBool* err);
 extern void CORESerializeDefinitions(COREContext* cc, char* filename, char** modules, uint num_modules, COREBool* err);
 
