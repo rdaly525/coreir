@@ -63,8 +63,8 @@ extern void CORESaveContext(
   COREBool* no_default_libs,
   COREBool* err);
 
-extern void CORESerializeHeader(COREContext* context, char* filename, void* modules, uint num_modules, COREBool* err);
-extern void CORESerializeDefinitions(COREContext* context, char* filename, char** module_names, COREBool* err);
+extern void CORESerializeHeader(COREContext* context, char* filename, char** modules, uint num_modules, COREBool* err);
+extern void CORESerializeDefinitions(COREContext* cc, char* filename, char** modules, uint num_modules, COREBool* err);
 
 extern CORENamespace* COREGetGlobal(COREContext* c);
 extern CORENamespace* COREGetNamespace(COREContext* c, char* name);

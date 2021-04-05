@@ -304,8 +304,41 @@ void CORESerializeHeader(COREContext* cc, char* filename, char** modules, uint n
   *err = !correct;
   return;
 }
-void CORESerializeDefinitions(char* filename, char** module_names, COREBool* err);
 
+void CORESerializeDefinitions(COREContext* cc, char* filename, char** modules, uint num_modules, COREBool* err) {
+  Context* c = rcast<Context*>(cc);
+  string file(filename);
+  vector<string> vec_modules;
+  for (uint i = 0; i < num_modules; ++i) {
+    vec_modules.emplace_back(modules[i]);
+  }
+  bool correct = serializeDefinitions(c, file, vec_modules);
+  *err = !correct;
+  return;
+}
+
+void CORELoadHeader(COREContext* cc, char* filename, char*** modules, uint* num_modules, COREBool* err) {
+  Context* c = rcast<Context*>(cc);
+  std::string file(filename);
+  std::vector<Module*> loaded_modules;
+  bool correct = loadHeader(c, file, loaded_modules);
+  *err = !correct;
+  if (correct) {
+    *num_modules = loaded_modules.size();
+    *modules = c->newStringArray(loaded_modules.size());
+    int count = 0;
+    for (auto m : loaded_modules) {
+      std::string mref = m->getRefName();
+      std::size_t name_length = mref.size();
+      (*modules)[count] = c->newStringBuffer(name_length + 1);
+      memcpy((*modules)[count], mref.c_str(), name_length + 1);
+      count++;
+    }
+  }
+  else {
+    *num_modules = 0;
+  }
+}
 
 CORENamespace* COREGetGlobal(COREContext* c) {
   return rcast<CORENamespace*>(rcast<Context*>(c)->getGlobal());
