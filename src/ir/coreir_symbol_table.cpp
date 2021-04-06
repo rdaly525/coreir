@@ -112,7 +112,11 @@ class LoggerImpl : public SymbolTableLoggerInterface {
   void resumeLogging() override { paused = false; }
 
   bool finalize() override {
-    if (not finalizeImpl()) assert(false);
+    std::string error;
+    if (not finalizeImpl(&error)) {
+      LOG(DEBUG) << "finalize failed: " << error;
+      assert(false);
+    }
     return true;
   }
 
@@ -131,6 +135,12 @@ class LoggerImpl : public SymbolTableLoggerInterface {
   using LogDataType = std::vector<std::string>;
   using EntryType = std::pair<LogKind, LogDataType>;
 
+  static std::string entryToString(EntryType entry) {
+    static const char* kind_strings[] = {"NEW", "REMOVE", "RENAME", "INLINE"};
+    return std::string(kind_strings[entry.first]) + " "
+        + joinStrings(entry.second, " ");
+  }
+
   class DebugIterator : public SymbolTableLoggerInterface::DebugIterator {
    public:
     explicit DebugIterator(const std::vector<EntryType>& log)
@@ -138,13 +148,7 @@ class LoggerImpl : public SymbolTableLoggerInterface {
     ~DebugIterator() = default;
 
     bool next() override { return (++current) != end; }
-
-    std::string debugString() const override {
-      const auto& entry = *current;
-      static const char* kind_strings[] = {"NEW", "REMOVE", "RENAME", "INLINE"};
-      return std::string(kind_strings[entry.first]) +
-          " " + joinStrings(entry.second, " ");
-    }
+    std::string debugString() const override { return entryToString(*current); }
 
    private:
     std::vector<EntryType>::const_iterator current;
@@ -156,7 +160,7 @@ class LoggerImpl : public SymbolTableLoggerInterface {
     log.emplace_back(kind, data);
   }
 
-  bool finalizeImpl() {
+  bool finalizeImpl(std::string* err) {
     struct InstanceInfo;
     struct ModuleInfo {
       const std::string name;
@@ -216,6 +220,7 @@ class LoggerImpl : public SymbolTableLoggerInterface {
     };
     for (auto it = log.cbegin(); it != log.cend(); it++) {
       const auto& [kind, data] = *it;
+      *err = entryToString(*it);  // pre-emptively set the error string
       switch (kind) {
         case NEW: {
           const auto& module_name = data[0];

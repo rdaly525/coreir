@@ -353,27 +353,28 @@ bool inlineInstance(Instance* inst) {
   const bool debug = inst->getContext()->getDebug();
   const auto inst_info = std::make_tuple(
       inst->getContext(),
-      inst->getContainer()->getModule()->getName(),
+      inst->getContainer(),
       inst->getInstname(),
-      inst->getModuleRef()->getName());
+      inst->getModuleRef());
   auto log = [inst_info] (
-      auto sub_inst_name,
-      auto sub_inst_type,
-      auto new_name) {
-    const auto [context, module_name, inst_name, inst_type] = inst_info;
+      auto sub_inst_name, auto sub_inst_type, auto new_name) {
+    const auto [context, container, inst_name, inst_type] = inst_info;
     auto logger = context->getPassManager()->getSymbolTable()->getLogger();
     logger->logInlineInstance(
-        module_name,
+        container->getModule()->getName(),
         inst_name,
-        inst_type,
+        inst_type->getName(),
         sub_inst_name,
         sub_inst_type,
         new_name);
   };
   auto record_ptr = debug ? &record : nullptr;
   const bool ret = inlineInstanceImpl(inst, record_ptr);
+  const bool module_is_generated = std::get<1>(inst_info)->
+      getModule()->isGenerated();
+  const bool should_log = debug and not module_is_generated;
   // Log the inlined instances.
-  if (debug) {
+  if (should_log) {
     for (auto& [sub_inst_name, sub_inst_type, new_name] : record) {
       log(sub_inst_name, sub_inst_type, new_name);
     }

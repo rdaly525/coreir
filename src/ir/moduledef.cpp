@@ -223,7 +223,8 @@ Instance* ModuleDef::addInstance(string instname, Module* m, Values modargs) {
 
   // Log new instance for symbol table.
   const bool should_log = (getContext()->getDebug()
-                           and m->getRefName() != "_.passthrough");
+                           and m->getRefName() != "_.passthrough"
+                           and not module->isGenerated());
   if (should_log) {
     auto logger = getContext()->getPassManager()->getSymbolTable()->getLogger();
     logger->logNewInstance(getModule()->getName(), m->getName(), instname);
@@ -420,7 +421,8 @@ void ModuleDef::removeInstance(string iname) {
 
   // Log removed instance for symbol table.
   const bool should_log = (getContext()->getDebug()
-                           and module_ref->getRefName() != "_.passthrough");
+                           and module_ref->getRefName() != "_.passthrough"
+                           and not module->isGenerated());
   if (should_log) {
     auto logger = getContext()->getPassManager()->getSymbolTable()->getLogger();
     logger->logRemoveInstance(getModule()->getName(), iname);
