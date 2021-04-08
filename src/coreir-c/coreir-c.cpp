@@ -455,6 +455,17 @@ const char* COREModuleGetMetaData(COREModule* core_mod) {
   return cstr;
 }
 
+const char* COREInstanceGetMetaData(COREWireable* core_inst) {
+  auto w = rcast<Wireable*>(core_inst);
+  ASSERT(isa<Instance>(w), "Wireable needs to be an instnace");
+  Instance* inst = cast<Instance>(w);
+  string istr = inst->getMetaData().dump();
+  std::size_t len = istr.size() + 1;
+  char* cstr = (char*)malloc(len);
+  strcpy(cstr, istr.c_str());
+  return cstr;
+}
+
 const char* COREModuleGetName(COREModule* module) {
   return rcast<Module*>(module)->getName().c_str();
 }
