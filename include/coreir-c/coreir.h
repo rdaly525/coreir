@@ -216,6 +216,7 @@ extern void COREModuleAddMetaDataStr(
 
 // This returns a malloc'd string that should be freed by the user
 extern const char* COREModuleGetMetaData(COREModule* module);
+extern const char* COREInstanceGetMetaData(COREWireable* module);
 
 // BEGIN : directedview
 extern const char** COREDirectedConnectionGetSrc(
