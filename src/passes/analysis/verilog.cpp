@@ -1586,7 +1586,7 @@ void Passes::Verilog::compileModule(Module* module) {
   std::string name = module->getLongName();
   // NOTE(rsetaluri): This is an example of updating an entry in the symbol
   // table.
-  this->getSymbolTable()->setModuleName(module->getName(), name);
+  this->getSymbolTable()->setModuleName(module->getLongName(), name);
   std::unique_ptr<vAST::AbstractModule>
     verilog_module = std::make_unique<vAST::Module>(
       name,
