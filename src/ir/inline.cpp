@@ -231,7 +231,7 @@ bool inlineInstanceImpl(
     if (record_out != nullptr &&
         instpair.second->getModuleRef()->getRefName() != "_.passthrough") {
       std::array record = {
-        instpair.first, instpair.second->getModuleRef()->getName(), iname};
+        instpair.first, instpair.second->getModuleRef()->getLongName(), iname};
       record_out->emplace_back(record);
     }
   }
@@ -361,20 +361,17 @@ bool inlineInstance(Instance* inst) {
     const auto [context, container, inst_name, inst_type] = inst_info;
     auto logger = context->getPassManager()->getSymbolTable()->getLogger();
     logger->logInlineInstance(
-        container->getModule()->getName(),
+        container->getModule()->getLongName(),
         inst_name,
-        inst_type->getName(),
+        inst_type->getLongName(),
         sub_inst_name,
         sub_inst_type,
         new_name);
   };
   auto record_ptr = debug ? &record : nullptr;
   const bool ret = inlineInstanceImpl(inst, record_ptr);
-  const bool module_is_generated = std::get<1>(inst_info)->
-      getModule()->isGenerated();
-  const bool should_log = debug and not module_is_generated;
   // Log the inlined instances.
-  if (should_log) {
+  if (debug) {
     for (auto& [sub_inst_name, sub_inst_type, new_name] : record) {
       log(sub_inst_name, sub_inst_type, new_name);
     }
