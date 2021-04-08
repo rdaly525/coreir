@@ -459,11 +459,11 @@ const char* COREInstanceGetMetaData(COREWireable* core_inst) {
   auto w = rcast<Wireable*>(core_inst);
   ASSERT(isa<Instance>(w), "Wireable needs to be an instnace");
   Instance* inst = cast<Instance>(w);
-  string istr = inst->getMetaData().dump();
-  std::size_t len = istr.size() + 1;
-  char* cstr = (char*)malloc(len);
-  strcpy(cstr, istr.c_str());
-  return cstr;
+  std::string metadata = inst->getMetaData().dump();
+  auto copy = static_cast<char*>(
+      w->getContext()->getScratchMemory(metadata.size() + 1));
+  strcpy(copy, metadata.c_str());
+  return copy;
 }
 
 const char* COREModuleGetName(COREModule* module) {
