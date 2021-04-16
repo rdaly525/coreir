@@ -422,7 +422,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
         {
           "sext",
           {
-            "{{(width_out-width_in){in[width_in-1]},},in}",
+            "{{(width_out-width_in){in[width_in-1]}},in}",
             []() {
               // Can't use initializer list of vector of unique ptrs, so we
               // explicitly construct it
