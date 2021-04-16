@@ -190,6 +190,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
        "sclamp",
        "absd",
        "div",
+       "mult_middle",
+       "mult_high",
      }},
     {"ternary", {"MAD"}},
   });
@@ -344,6 +346,54 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->connect("self.in2", "add.in0");
     def->connect("mult.out", "add.in1");
     def->connect("add.out", "self.out");
+  });
+
+
+  //*** Define multiplier variations ***//
+  Generator* mult_middle = c->getGenerator("commonlib.mult_middle");
+  mult_middle->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+      uint width = args.at("width")->get<int>();
+      Values sextArgs = {{"width_in", Const::make(c, width)},
+                          {"width_out", Const::make(c, 2*width)}};
+      def->addInstance("sexta", "coreir.sext", sextArgs);
+      def->addInstance("sextb", "coreir.sext", sextArgs);
+
+      def->addInstance("mult", "coreir.mul", {{"width", Const::make(c, 2*width)}});
+      
+      Values sliceArgs = {{"width", Const::make(c, width)},
+                          {"lo", Const::make(c, width/2)},
+                          {"hi", Const::make(c, 3*width/2-1)}};
+      def->addInstance("slice", "coreir.sel", sliceArgs);
+
+      def->connect("self.in0", "sexta.in");
+      def->connect("self.in1", "sextb.in");
+      def->connect("sexta.out", "mult.in0");
+      def->connect("sextb.out", "mult.in1");
+      def->connect("mult.out", "slice.in");
+      def->connect("slice.out", "self.out");
+  });
+
+  Generator* mult_high = c->getGenerator("commonlib.mult_high");
+  mult_high->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+      uint width = args.at("width")->get<int>();
+      Values sextArgs = {{"width_in", Const::make(c, width)},
+                          {"width_out", Const::make(c, 2*width)}};
+      def->addInstance("sexta", "coreir.sext", sextArgs);
+      def->addInstance("sextb", "coreir.sext", sextArgs);
+
+      def->addInstance("mult", "coreir.mul", {{"width", Const::make(c, 2*width)}});
+      
+      Values sliceArgs = {{"width", Const::make(c, width)},
+                          {"lo", Const::make(c, width)},
+                          {"hi", Const::make(c, 2*width-1)}};
+      def->addInstance("slice", "coreir.sel", sliceArgs);
+
+      def->connect("self.in0", "sexta.in");
+      def->connect("self.in1", "sextb.in");
+      def->connect("sexta.out", "mult.in0");
+      def->connect("sextb.out", "mult.in1");
+      def->connect("mult.out", "slice.in");
+      def->connect("slice.out", "self.out");
   });
 
   //*** Define demux2 ***//
