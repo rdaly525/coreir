@@ -360,10 +360,10 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
       def->addInstance("mult", "coreir.mul", {{"width", Const::make(c, 2*width)}});
       
-      Values sliceArgs = {{"width", Const::make(c, width)},
+      Values sliceArgs = {{"width", Const::make(c, 2*width)},
                           {"lo", Const::make(c, width/2)},
-                          {"hi", Const::make(c, 3*width/2-1)}};
-      def->addInstance("slice", "coreir.sel", sliceArgs);
+                          {"hi", Const::make(c, 3*width/2)}};
+      def->addInstance("slice", "coreir.slice", sliceArgs);
 
       def->connect("self.in0", "sexta.in");
       def->connect("self.in1", "sextb.in");
@@ -383,10 +383,10 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
       def->addInstance("mult", "coreir.mul", {{"width", Const::make(c, 2*width)}});
       
-      Values sliceArgs = {{"width", Const::make(c, width)},
+      Values sliceArgs = {{"width", Const::make(c, 2*width)},
                           {"lo", Const::make(c, width)},
-                          {"hi", Const::make(c, 2*width-1)}};
-      def->addInstance("slice", "coreir.sel", sliceArgs);
+                          {"hi", Const::make(c, 2*width)}};
+      def->addInstance("slice", "coreir.slice", sliceArgs);
 
       def->connect("self.in0", "sexta.in");
       def->connect("self.in1", "sextb.in");
