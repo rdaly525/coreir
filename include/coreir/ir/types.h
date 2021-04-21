@@ -112,6 +112,10 @@ class NamedType : public Type, public GlobalValue {
   TypeGen* getTypegen() const { return typegen; }
   Values getGenArgs() const { return genargs; }
   uint getSize() const override { return raw->getSize(); }
+
+  // NOTE(rsetaluri): This is needed to avoid ambiguity between the member
+  // getContext, inherited multiply through Type and GlobalValue.
+  using Type::getContext;
 };
 
 class ArrayType : public Type {

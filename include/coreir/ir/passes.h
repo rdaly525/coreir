@@ -2,6 +2,7 @@
 #define COREIR_PASSES_HPP_
 
 #include "fwd_declare.h"
+#include "symbol_table_interface.hpp"
 
 namespace CoreIR {
 
@@ -45,6 +46,7 @@ class Pass {
   virtual void setAnalysisInfo() {}
   void addDependency(std::string name) { dependencies.push_back(name); }
   Context* getContext();
+  SymbolTableInterface* getSymbolTable();
   std::string getName() { return name; }
   virtual void print() {}
   virtual bool finalize() { return false; }
@@ -174,7 +176,9 @@ class InstanceGraphNode;
 // is a generator instance, then it will run runOnInstanceNode Not allowed
 class InstanceGraphPass : public Pass {
  protected:
+  //Passes can either specify onlyTop or a list of moduleRefs.
   bool onlyTop = false;
+  std::vector<std::string> modules;
 
  public:
   explicit InstanceGraphPass(
@@ -193,6 +197,10 @@ class InstanceGraphPass : public Pass {
   virtual void releaseMemory() override {}
   virtual void setAnalysisInfo() override {}
   virtual void print() override {}
+
+  friend class PassManager;
+ private:
+  void getModules(std::vector<Module*>&);
 };
 
 }  // namespace CoreIR

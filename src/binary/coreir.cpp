@@ -49,9 +49,15 @@ int main(int argc, char* argv[]) {
     "n,namespaces",
     "namespaces to output: '<namespace1>,<namespace2>,<namespace3>,...'",
     cxxopts::value<std::string>()->default_value("global"))(
+    "verilog-prefix",
+    "Prefix for emitted verilog module names",
+    cxxopts::value<std::string>())(
+    "verilog-prefix-extern",
+    "Use verilog prefix for externally defined modules")(
     "t,top",
     "top: <namespace>.<modulename>",
-    cxxopts::value<std::string>())("a,all", "run on all namespaces")(
+    cxxopts::value<std::string>())("a,all", "run on all namespaces")
+    ("g,symbols", "create symbol table", cxxopts::value<std::string>())(
     "z,inline",
     "inlines verilog primitives")(
     "y,verilator_debug",
@@ -80,7 +86,6 @@ int main(int argc, char* argv[]) {
       ',');
     for (auto lib : libs) { c->getLibraryManager()->loadLib(lib); }
   }
-
   PassLibrary loadedPasses(c);
   if (opts.count("e")) {
     vector<string> passes = splitString<vector<string>>(
@@ -95,6 +100,9 @@ int main(int argc, char* argv[]) {
     cout << endl;
     return 0;
   }
+
+  // Will enable symbol table tracking ("debug mode").
+  c->setDebug(opts.count("g") > 0);
 
   if (opts.count("version")) {
     cout << COREIR_VERSION << " " << GIT_SHA1 << endl;
@@ -226,6 +234,12 @@ int main(int argc, char* argv[]) {
     if (opts.count("y")) { vstr += " -y"; }
     if (opts.count("w")) { vstr += " -w"; }
     if (opts.count("u")) { vstr += " -v"; }
+    if (opts.count("verilog-prefix")) {
+      vstr += " --prefix " + opts["verilog-prefix"].as<std::string>();
+    }
+    if (opts.count("verilog-prefix-extern")) {
+      vstr += " --prefix-extern";
+    }
     std::string flattentypes_str = "flattentypes";
     if (!opts.count("x")) { flattentypes_str += " --ndarray"; }
     modified |= c->runPasses(
@@ -278,6 +292,17 @@ int main(int argc, char* argv[]) {
     LOG(DEBUG) << "NYI";
   }
   LOG(DEBUG) << "Modified?: " << (modified ? "Yes" : "No");
+
+  // Dump symbol table if in debug mode.
+  if (c->getDebug()) {
+    const auto filename = opts["g"].as<string>();
+    auto const symbolTable = c->getPassManager()->getSymbolTable();
+    if (symbolTable != nullptr) {
+      symbolTable->getLogger()->finalize();
+      std::ofstream fout(filename);
+      fout << symbolTable->json();
+    }
+  }
 
   if (delete_sout) delete sout;
   deleteContext(c);

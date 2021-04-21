@@ -12,11 +12,6 @@ void InstanceGraph::releaseMemory() {
   nodeMap.clear();
   for (auto ign : sortedNodes) delete ign;
   sortedNodes.clear();
-  onlyTopNodes.clear();
-}
-
-bool InstanceGraph::validOnlyTop(InstanceGraphNode* node) {
-  return onlyTopNodes.count(node->getModule()) > 0;
 }
 
 void InstanceGraph::sortVisit(InstanceGraphNode* node) {
@@ -28,29 +23,9 @@ void InstanceGraph::sortVisit(InstanceGraphNode* node) {
   sortedNodes.push_front(node);
 }
 
-namespace {
-void recurse(
-  Module* m,
-  std::set<Module*, InstanceGraph::ModuleCmp>& onlyTopNodes) {
-  if (onlyTopNodes.count(m)) { return; }
-  onlyTopNodes.insert(m);
-  if (!m->hasDef()) { return; }
-  for (auto ipair : m->getDef()->getInstances()) {
-    Module* imod = ipair.second->getModuleRef();
-    recurse(imod, onlyTopNodes);
-  }
-}
-}  // namespace
-
 void InstanceGraph::construct(Context* c) {
 
   // Contains all external nodes referenced
-
-  if (c->hasTop()) {
-    // Only do this on dependent nodes
-    recurse(c->getTop(), onlyTopNodes);
-  }
-
   for (auto nsmap : c->getNamespaces()) {
     for (auto imap : nsmap.second->getModules()) {
       nodeMap[imap.second] = new InstanceGraphNode(imap.second, false);
@@ -74,6 +49,38 @@ void InstanceGraph::construct(Context* c) {
 
   for (auto imap : nodeMap) { sortVisit(imap.second); }
 }
+
+namespace {
+void getAllDependentModules(
+  Module* m,
+  std::set<Module*, InstanceGraph::ModuleCmp>& onlyTopNodes) {
+  if (onlyTopNodes.count(m)) { return; }
+  onlyTopNodes.insert(m);
+  if (!m->hasDef()) { return; }
+  for (auto ipair : m->getDef()->getInstances()) {
+    Module* imod = ipair.second->getModuleRef();
+    getAllDependentModules(imod, onlyTopNodes);
+  }
+}
+}  // namespace
+
+std::list<InstanceGraphNode*> InstanceGraph::getFilteredNodes(std::vector<Module*>& mods) {
+  if (mods.size()==0) {
+    return this->getSortedNodes();
+  }
+
+  std::set<Module*, InstanceGraph::ModuleCmp> filteredModules;
+  for (auto m : mods) { getAllDependentModules(m, filteredModules);
+  }
+  std::list<InstanceGraphNode*> ret;
+  for (auto inode : this->getSortedNodes()) {
+    if (filteredModules.count(inode->getModule()) >0) {
+      ret.push_back(inode);
+    }
+  }
+  return ret;
+}
+
 
 void InstanceGraphNode::appendField(string label, Type* t) {
   auto m = getModule();

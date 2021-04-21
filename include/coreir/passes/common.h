@@ -65,6 +65,7 @@ void initializePasses(PassManager& pm) {
   pm.addPass(new Passes::CreateInstanceMap());
   pm.addPass(new Passes::Firrtl());
   pm.addPass(new Passes::CoreIRJson());
+  pm.addPass(new Passes::CoreIRSerialize());
   pm.addPass(new Passes::Magma());
   pm.addPass(new Passes::Verilog());
   pm.addPass(new Passes::SmtLib2());

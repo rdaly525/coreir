@@ -48,6 +48,10 @@ class Context {
   std::vector<DirectedConnection**> directedConnectionPtrArrays;
   std::vector<DirectedInstance**> directedInstancePtrArrays;
 
+  std::vector<void*> scratchPad;
+
+  bool debug = false;
+
  public:
   Context();
   ~Context();
@@ -75,6 +79,18 @@ class Context {
   bool hasGenerator(std::string ref);
   bool hasModule(std::string ref);
   bool hasGlobalValue(std::string ref);
+
+  void setDebug(bool debug) { this->debug = debug; }
+  bool getDebug() const { return debug; }
+
+  // This function provides scratch memory managed by this context. The memory
+  // will be free'd upon deletion of this context.
+  // NOTE(rsetaluri): Using memory provided by this function is a *slight*
+  // improvment over a true memory leak. Likely, the lifetime of the context
+  // will be the lifetime of the program. However, it is preferred to use this
+  // function over a true memory leak, sine all such allocations can be
+  // localized to calls of this function (and therefore easier to find and fix).
+  void* getScratchMemory(size_t size);
 
   std::map<std::string, Namespace*> getNamespaces();
   void addPass(Pass* p);
@@ -162,20 +178,36 @@ void deleteContext(Context* c);
 // if no "top" in file, *top == nullptr
 bool loadFromFile(Context* c, std::string filename, Module** top = nullptr);
 
+//"Header" is a set of module declarations (should contain no definitions, although it does not check)
+// loaded_modules will contain a set of modules which this header declared.
+bool loadHeader(Context*c, std::string filename, std::vector<Module*>& loaded_modules);
+
+//"Impl" a set of modules and definitions.
+//Each module in this file should already exist as a declaration in the context
+bool linkDefinitions(Context*c, std::string filename);
+
+//Given a set of modules, this will save a file with only the listed modules as declarations
+bool serializeHeader(Context*c, std::string filename, std::vector<std::string> modules);
+
+//Given a set of modules, this will save all the definitions and their dependencies
+bool serializeDefinitions(Context*c, std::string filename, std::vector<std::string> modules);
+
+//This will save a file with top and all its dependencies.
+bool serializeToFile(Context* c, std::string filename);
+
 // Save namespace to a file with optional "top" module
 bool saveToFile(
   Namespace* ns,
   std::string filename,
   Module* top = nullptr);  // This will go away
-bool saveToFilePretty(
-  Namespace* ns,
-  std::string filename,
-  Module* top = nullptr);
+
+
 bool saveToFile(
   Context* c,
   std::string filename,
   bool nocoreir = true,
   bool no_default_libs = false);
+
 
 // Save a module to a dot file (for viewing in graphviz)
 bool saveToDot(Module* m, std::string filename);
