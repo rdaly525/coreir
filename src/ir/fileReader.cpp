@@ -15,12 +15,18 @@
 
 using namespace std;
 
+
 namespace CoreIR {
 
-// TODO wrap everything in an empty namespace
 using json = nlohmann::json;
 typedef map<string, json> jsonmap;
 typedef vector<json> jsonvector;
+
+namespace {
+
+inline void assert_throw(bool cond, std::string msg) {
+  if (!(cond)) { throw std::runtime_error(msg); }                            \
+}
 
 Type* json2Type(Context* c, json jt);
 Values json2Values(Context* c, json j, Module* m = nullptr);
@@ -31,16 +37,14 @@ Module* getModSymbol(Context* c, string nsname, string iname);
 Module* getModSymbol(Context* c, string ref);
 Generator* getGenSymbol(Context* c, string nsname, string iname);
 
-#define ASSERTTHROW(cond, msg)                                                 \
-  do {                                                                         \
-    if (!(cond)) { throw std::runtime_error(msg); }                            \
-  } while (0)
-
 vector<string> getRef(string s) {
   auto p = splitString<vector<string>>(s, '.');
-  ASSERTTHROW(p.size() == 2, s + " is not a valid Ref");
+  assert_throw(p.size() == 2, s + " is not a valid Ref");
   return p;
 }
+
+
+
 
 // This will verify that json contains ONLY list of possible things
 void checkJson(
@@ -49,18 +53,23 @@ void checkJson(
   set<string> optsOptional = set<string>()) {
   jsonmap jmap = j.get<jsonmap>();
   for (auto req : optsRequired) {
-    ASSERTTHROW(jmap.count(req), "Missing " + req + " from\n " + toString(j));
+    assert_throw(jmap.count(req), "Missing " + req + " from\n " + toString(j));
   }
 
   for (auto opt : jmap) {
 
-    ASSERTTHROW(
+    assert_throw(
       optsRequired.count(opt.first) || optsOptional.count(opt.first),
       "Cannot put \"" + opt.first + "\" here in json file\n" + toString(j));
   }
 }
 
-bool loadFromFile(Context* c, string filename, Module** top) {
+bool hasDef(json& jmod) {
+  return jmod.count("connections") || jmod.count("instances");
+}
+
+//If there is a top module "top" will be loaded with it. loaded_modules will always contain an unordered list of the modules (included generated ones) from this file
+bool load(Context* c, string filename, Module** top, std::vector<Module*>& loaded_modules) {
   std::fstream file;
   file.open(filename);
   if (!file.is_open()) {
@@ -143,7 +152,7 @@ bool loadFromFile(Context* c, string filename, Module** top) {
           Params tgparams = json2Params(c, jtg[0]);
           string tgkind = jtg[1].get<string>();
           if (tgkind == "implicit") {
-            ASSERTTHROW(
+            assert_throw(
               jtg.size() == 2,
               "Bad implicit typegen format" + toString(jtg));
             if (!tg) {
@@ -156,7 +165,7 @@ bool loadFromFile(Context* c, string filename, Module** top) {
             // First just get the list of Values->Types
             for (auto jvaltypes : jtg[2].get<jsonvector>()) {
               jsonvector jvaltype = jvaltypes.get<jsonvector>();
-              ASSERTTHROW(
+              assert_throw(
                 jvaltype.size() == 2,
                 "Bad sparse typegen format" + toString(jtg[2]));
               Values jvals = json2Values(c, jvaltype[0]);
@@ -165,7 +174,7 @@ bool loadFromFile(Context* c, string filename, Module** top) {
             }
             if (tg) {  // If already exists, just check for consistency
               for (auto vtpair : typeList) {
-                ASSERTTHROW(
+                assert_throw(
                   tg->getType(vtpair.first) == vtpair.second,
                   "Typegens are inconsistent... " + tg->toString());
               }
@@ -176,7 +185,7 @@ bool loadFromFile(Context* c, string filename, Module** top) {
             }
           }
           else {
-            ASSERTTHROW(0, "NYI typegenkind=" + tgkind);
+            assert_throw(0, "NYI typegenkind=" + tgkind);
           }
         }
       }
@@ -189,16 +198,7 @@ bool loadFromFile(Context* c, string filename, Module** top) {
       json jns = nsq.second;
       // Load Modules
       if (jns.count("modules")) {
-        for (auto jmodmap : jns.at("modules").get<jsonmap>()) {
-          // Figure out type;
-          string jmodname = jmodmap.first;
-          // TODO for now if it already exists, just skip
-          if (ns->hasModule(jmodname)) {
-            // TODO confirm that is has the same everything like genparams
-            continue;
-          }
-
-          json jmod = jmodmap.second;
+        for (auto &[jmodname, jmod] : jns.at("modules").get<jsonmap>()) {
           checkJson(
             jmod,
             {"type"},
@@ -212,24 +212,38 @@ bool loadFromFile(Context* c, string filename, Module** top) {
           if (jmod.count("modparams")) {
             modparams = json2Params(c, jmod.at("modparams"));
           }
-          Module* m = ns->newModuleDecl(jmodname, t, modparams);
-          if (jmod.count("defaultmodargs")) {
-            m->addDefaultModArgs(json2Values(c, jmod.at("defaultmodargs")));
+          bool loading_def = hasDef(jmod);
+          Module* m;
+          if (ns->hasModule(jmodname)) {
+            //Trying to load a module that already exists in context.
+            // Verifies that the module name, type, and modparams are the same
+            m = ns->getModule(jmodname);
+            assert_throw(
+              t == m->getType(),
+              jmodname + " has inconsitent type with pre-loaded module");
+            assert_throw(
+              modparams == m->getModParams(),
+              jmodname + " has inconsitent modparams with pre-loaded module");
+
+            // Only link if both modules dont have a definition
+            assert_throw(
+              !(loading_def && m->hasDef()),
+              "cannot link " + jmodname + " because definition already exists");
+          }
+          else {
+            m = ns->newModuleDecl(jmodname, t, modparams);
+            if (jmod.count("defaultmodargs")) {
+              m->addDefaultModArgs(json2Values(c, jmod.at("defaultmodargs")));
+            }
           }
           if (jmod.count("metadata")) { m->setMetaData(jmod["metadata"]); }
-          modqueue.push_back({m, jmod});
+          loaded_modules.push_back(m);
+          if (loading_def) { modqueue.push_back({m, jmod}); }
         }
       }
       if (jns.count("generators")) {
-        for (auto jgenmap : jns.at("generators").get<jsonmap>()) {
-          string genname = jgenmap.first;
-          if (ns->hasGenerator(genname)) {
-            // TODO confirm that it has the same everything like genparams and
-            // modparams
-            continue;
-          }
+        for (auto &[genname, jgen] : jns.at("generators").get<jsonmap>()) {
 
-          json jgen = jgenmap.second;
           checkJson(
             jgen,
             {"typegen", "genparams"},
@@ -237,15 +251,25 @@ bool loadFromFile(Context* c, string filename, Module** top) {
           Params genparams = json2Params(c, jgen.at("genparams"));
 
           string typeGenName = jgen.at("typegen").get<string>();
-          ASSERTTHROW(
+
+          //Typegens have already been checked for consistency
+          assert_throw(
             c->hasTypeGen(typeGenName),
             "Missing typegen symbol " + typeGenName + " for generator " +
-              jgenmap.first);
+              genname);
           TypeGen* tg = c->getTypeGen(typeGenName);
+
+          Generator* g;
+          if (ns->hasGenerator(genname)) {
+            g = ns->getGenerator(genname);
+            assert_throw(
+              g->getGenParams() == genparams,
+              genname + " has inconsistent genparams");;
+          }
+          else {
+            g = ns->newGeneratorDecl(genname, tg, genparams);
+          }
           vector<std::pair<Values, json>> genmodvalues;
-          // Verify that this is consistent with all the types
-          // TODO deal with module parameter generation
-          Generator* g = ns->newGeneratorDecl(genname, tg, genparams);
           if (jgen.count("defaultgenargs")) {
             g->addDefaultGenArgs(json2Values(c, jgen.at("defaultgenargs")));
           }
@@ -253,7 +277,7 @@ bool loadFromFile(Context* c, string filename, Module** top) {
           if (jgen.count("modules")) {
             for (auto jgenmod : jgen.at("modules").get<jsonvector>()) {
               jsonvector jvalmod = jgenmod.get<jsonvector>();
-              ASSERTTHROW(
+              assert_throw(
                 jvalmod.size() == 2,
                 "Bad generated module" + toString(jgenmod));
               Values genargs = json2Values(c, jvalmod[0]);
@@ -266,22 +290,26 @@ bool loadFromFile(Context* c, string filename, Module** top) {
                  "instances",
                  "connections",
                  "metadata"});
+              bool loading_def = hasDef(jmod);
               Type* type = json2Type(c, jmod.at("type"));
               // This will verify the correct type if typegen can generate the
               // type
               Module* m = g->getModule(genargs, type);
-              modqueue.push_back(
-                {m, jmod});  // Populate the generated module cache
+
+              // Only link if both modules dont have a definition
+              assert_throw(
+                !(loading_def && m->hasDef()),
+                "cannot link " + m->getLongName() + " because definition already exists");
+              loaded_modules.push_back(m);
+              if (loading_def) {modqueue.push_back({m, jmod}); }
             }
           }
         }
       }
     }
     // Now do all the ModuleDefinitions
-    for (auto mq : modqueue) {
-      Module* m = mq.first;
-      json jmod = mq.second;
-      if (!jmod.count("instances") && !jmod.count("connections")) { continue; }
+    for (auto &[m, jmod] : modqueue) {
+      ASSERT(hasDef(jmod), "Missing Def " + m->getRefName());
       ModuleDef* mdef = m->newModuleDef();
       if (jmod.count("instances")) {
         for (auto jinstmap : jmod.at("instances").get<jsonmap>()) {
@@ -322,7 +350,7 @@ bool loadFromFile(Context* c, string filename, Module** top) {
             inst = mdef->addInstance(instname, genRef, genargs, modargs);
           }
           else {
-            ASSERTTHROW(
+            assert_throw(
               0,
               "Bad Instance. Need (modref || (genref && genargs)) " + instname);
           }
@@ -333,7 +361,7 @@ bool loadFromFile(Context* c, string filename, Module** top) {
       // Connections
       if (jmod.count("connections")) {
         for (auto jcon : jmod.at("connections").get<vector<jsonvector>>()) {
-          ASSERTTHROW(
+          assert_throw(
             jcon.size() == 2 || jcon.size() == 3,
             "Connection invalid");
           Wireable* a = mdef->sel(jcon[0].get<string>());
@@ -450,7 +478,7 @@ Value* json2Value(Context* c, json j, Module* m) {
   case ValueType::VTK_Int:
     return Const::make(c, jval.get<int>());
   case ValueType::VTK_BitVector: {
-    ASSERTTHROW(
+    assert_throw(
       jval.is_string(),
       toString(jval) + " needs to be a bitvector string <N>'h<value>");
     auto bv = BitVector(jval.get<string>());
@@ -465,7 +493,7 @@ Value* json2Value(Context* c, json j, Module* m) {
     Module* mod;
     if (jval.type() == json::value_t::array) {  // This is a generated module
       vector<json> jgenmod = jval.get<vector<json>>();
-      ASSERTTHROW(jgenmod.size() == 2, "Badly constructed module");
+      assert_throw(jgenmod.size() == 2, "Badly constructed module");
       mod = c->getGenerator(jgenmod[0].get<string>())
               ->getModule(json2Values(c, jgenmod[1], m));
     }
@@ -524,7 +552,7 @@ Type* json2Type(Context* c, json jt) {
       return c->Record(rparams);
     }
     else if (kind == "Named") {
-      ASSERTTHROW(args.size() == 2, "Invalid Named Type field" + toString(jt));
+      assert_throw(args.size() == 2, "Invalid Named Type field" + toString(jt));
       vector<string> info = getRef(args[1].get<string>());
       std::string nsname = info[0];
       std::string name = info[1];
@@ -539,7 +567,25 @@ Type* json2Type(Context* c, json jt) {
     throw std::runtime_error("Error parsing Type");
   coreir_unreachable();
 }
+}
 
-#undef ASSERTTHROW
+bool loadHeader(Context*c, std::string filename, std::vector<Module*>& loaded_modules) {
+  Module* top = nullptr;
+  bool success = load(c, filename, &top, loaded_modules);
+  ASSERT(top==nullptr, "Header " + filename + " cannot have a top module");
+  return success;
+}
+
+bool linkDefinitions(Context*c, std::string filename) {
+  Module* top = nullptr;
+  bool success = loadFromFile(c, filename, &top);
+  ASSERT(top==nullptr, "Impl " + filename + " cannot have a top module");
+  return success;
+}
+
+bool loadFromFile(Context* c, string filename, Module** top) {
+  std::vector<Module*> loaded_modules;
+  return load(c, filename, top, loaded_modules);
+}
 
 }  // namespace CoreIR

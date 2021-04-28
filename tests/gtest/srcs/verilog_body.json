@@ -1,0 +1,15 @@
+{"top":"bar.Foo",
+"namespaces":{
+  "bar":{
+    "modules":{
+      "Foo":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"]
+        ]],
+        "metadata":{"verilog":{"verilog_body":"\nalways @(*) begin\n    O = I;\n    $display(\"%d\\n\", I);\nend\n"}}
+      }
+    }
+  }
+}
+}

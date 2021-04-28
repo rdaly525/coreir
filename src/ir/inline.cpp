@@ -1,3 +1,4 @@
+#include <functional>
 #include "coreir/ir/casting/casting.h"
 #include "coreir/ir/common.h"
 #include "coreir/ir/context.h"
@@ -6,6 +7,7 @@
 #include "coreir/ir/types.h"
 #include "coreir/ir/value.h"
 #include "coreir/ir/wireable.h"
+#include "coreir/ir/passmanager.h"
 
 using namespace std;
 
@@ -98,6 +100,9 @@ std::string makeUniqueInstanceName(ModuleDef* def, Wireable* from) {
 }
 
 namespace {
+
+using InlineInstanceRecord = std::vector<std::array<std::string, 3>>;
+
 void PTTraverse(ModuleDef* def, Wireable* from, Wireable* to) {
   for (auto other : from->getConnectedWireables()) { def->connect(to, other); }
   vector<Wireable*> toDelete;
@@ -132,43 +137,7 @@ void PTTraverse(ModuleDef* def, Wireable* from, Wireable* to) {
     }
   }
 }
-}  // namespace
 
-// addPassthrough will create a passthrough Module for Wireable w with name
-// <name> This buffer has interface {"in": Flip(w.Type), "out": w.Type}
-// There will be one connection connecting w to name.in, and all the connections
-// that originally connected to w connecting to name.out which has the same type
-// as w
-Instance* addPassthrough(Wireable* w, string instname) {
-
-  // First verify if I can actually place a passthrough here
-  // This means that there can be nothing higher in the select path tha is
-  // connected
-  Context* c = w->getContext();
-  Wireable* wcheck = w;
-  while (Select* wchecksel = dyn_cast<Select>(wcheck)) {
-    wcheck = wchecksel->getParent();
-    ASSERT(
-      wcheck->getConnectedWireables().size() == 0,
-      "Cannot add a passthrough to a wireable with connected selparents");
-  }
-  ModuleDef* def = w->getContainer();
-  Type* wtype = w->getType();
-
-  // Add actual passthrough instance
-  Instance* pt = def->addInstance(
-    instname,
-    c->getGenerator("_.passthrough"),
-    {{"type", Const::make(c, wtype)}});
-
-  set<Wireable*> completed;
-  PTTraverse(def, w, pt->sel("out"));
-
-  // Connect the passthrough back to w
-  def->connect(w, pt->sel("in"));
-
-  return pt;
-}
 
 // This will inline an instance of a passthrough
 void inlinePassthrough(Instance* i) {
@@ -197,8 +166,8 @@ void saveSymTable(json& symtable, string path, Wireable* w) {
   }
 }
 
-// This will modify the moduledef to inline the instance
-bool inlineInstance(Instance* inst) {
+bool inlineInstanceImpl(
+    Instance* inst, InlineInstanceRecord* record_out = nullptr) {
   Context* c = inst->getContext();
   // Special case for a passthrough
   // TODO should have a better check for passthrough than string compare
@@ -231,7 +200,11 @@ bool inlineInstance(Instance* inst) {
   // I will be inlining defInline into def
   // Making a copy because i want to modify it first without modifying all of
   // the other instnaces of modInline
-  ModuleDef* defInline = modInline->getDef()->copy();
+  ModuleDef* defInline = nullptr;
+  auto logger = c->getPassManager()->getSymbolTable()->getLogger();
+  logger->pauseLogging();
+  defInline = modInline->getDef()->copy();
+  logger->resumeLogging();
 
   // Add a passthrough Module to quarentine 'self'
   addPassthrough(defInline->getInterface(), "_insidePT");
@@ -254,6 +227,13 @@ bool inlineInstance(Instance* inst) {
       instpair.second->getModuleRef(),
       modargs);
     inst->setMetaData(instpair.second->getMetaData());
+    // Record the inlining operation, if it was not a passthrough.
+    if (record_out != nullptr &&
+        instpair.second->getModuleRef()->getRefName() != "_.passthrough") {
+      std::array record = {
+        instpair.first, instpair.second->getModuleRef()->getLongName(), iname};
+      record_out->emplace_back(record);
+    }
   }
 
   // Now add all the easy connections (that do not touch the boundary)
@@ -324,6 +304,79 @@ bool inlineInstance(Instance* inst) {
   }
 
   return true;
+}
+
+}  // namespace
+
+// addPassthrough will create a passthrough Module for Wireable w with name
+// <name> This buffer has interface {"in": Flip(w.Type), "out": w.Type}
+// There will be one connection connecting w to name.in, and all the connections
+// that originally connected to w connecting to name.out which has the same type
+// as w
+Instance* addPassthrough(Wireable* w, string instname) {
+
+  // First verify if I can actually place a passthrough here
+  // This means that there can be nothing higher in the select path tha is
+  // connected
+  Context* c = w->getContext();
+  Wireable* wcheck = w;
+  while (Select* wchecksel = dyn_cast<Select>(wcheck)) {
+    wcheck = wchecksel->getParent();
+    ASSERT(
+      wcheck->getConnectedWireables().size() == 0,
+      "Cannot add a passthrough to a wireable with connected selparents");
+  }
+  ModuleDef* def = w->getContainer();
+  Type* wtype = w->getType();
+
+  // Add actual passthrough instance
+  Instance* pt = def->addInstance(
+    instname,
+    c->getGenerator("_.passthrough"),
+    {{"type", Const::make(c, wtype)}});
+
+  set<Wireable*> completed;
+  PTTraverse(def, w, pt->sel("out"));
+
+  // Connect the passthrough back to w
+  def->connect(w, pt->sel("in"));
+
+  return pt;
+}
+
+// This will modify the moduledef to inline the instance
+bool inlineInstance(Instance* inst) {
+  InlineInstanceRecord record;
+  // NOTE(rsetaluri): Because inlineInstanceImpl deletes the instance, we need
+  // to record some information about the instance we will need for symbol table
+  // logging.
+  const bool debug = inst->getContext()->getDebug();
+  const auto inst_info = std::make_tuple(
+      inst->getContext(),
+      inst->getContainer(),
+      inst->getInstname(),
+      inst->getModuleRef());
+  auto log = [inst_info] (
+      auto sub_inst_name, auto sub_inst_type, auto new_name) {
+    const auto [context, container, inst_name, inst_type] = inst_info;
+    auto logger = context->getPassManager()->getSymbolTable()->getLogger();
+    logger->logInlineInstance(
+        container->getModule()->getLongName(),
+        inst_name,
+        inst_type->getLongName(),
+        sub_inst_name,
+        sub_inst_type,
+        new_name);
+  };
+  auto record_ptr = debug ? &record : nullptr;
+  const bool ret = inlineInstanceImpl(inst, record_ptr);
+  // Log the inlined instances.
+  if (debug) {
+    for (auto& [sub_inst_name, sub_inst_type, new_name] : record) {
+      log(sub_inst_name, sub_inst_type, new_name);
+    }
+  }
+  return ret;
 }
 
 }  // namespace CoreIR

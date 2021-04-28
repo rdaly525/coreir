@@ -1,0 +1,30 @@
+{"top":"global.Top",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Top":{
+        "type":["Record",[
+          ["i0",["Array",8,"BitIn"]],
+          ["i1",["Array",8,"BitIn"]],
+          ["o",["Array",8,"Bit"]]
+        ]],
+        "instances": {
+          "iA": {
+            "modref": "global.A"
+          },
+          "iB": {
+            "modref": "global.B"
+          }
+        },
+        "connections": [
+          ["self.i0", "iA.i"],
+          ["iA.o", "iB.i0"],
+          ["self.i1", "iB.i1"],
+          ["iB.o", "self.o"]
+        ]
+      }
+    }
+  }
+}
+}
+

@@ -1,0 +1,42 @@
+{"top":"global.Top",
+"namespaces":{
+  "global":{
+    "modules":{
+      "A":{
+        "type":["Record",[
+          ["i",["Array",8,"BitIn"]],
+          ["o",["Array",8,"Bit"]]
+        ]]
+      },
+      "B":{
+        "type":["Record",[
+          ["i0",["Array",8,"BitIn"]],
+          ["i1",["Array",8,"BitIn"]],
+          ["o",["Array",8,"Bit"]]
+        ]]
+      },
+      "Top":{
+        "type":["Record",[
+          ["i0",["Array",8,"BitIn"]],
+          ["i1",["Array",8,"BitIn"]],
+          ["o",["Array",8,"Bit"]]
+        ]],
+        "instances":{
+          "iA":{
+            "modref":"global.A"
+          },
+          "iB":{
+            "modref":"global.B"
+          }
+        },
+        "connections":[
+          ["self.i0","iA.i"],
+          ["iB.i0","iA.o"],
+          ["self.i1","iB.i1"],
+          ["self.o","iB.o"]
+        ]
+      }
+    }
+  }
+}
+}

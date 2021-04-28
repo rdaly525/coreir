@@ -7,6 +7,7 @@
 #include "coreir/tools/cxxopts.h"
 #include "verilogAST/assign_inliner.hpp"
 #include "verilogAST/transformer.hpp"
+#include "coreir/ir/symbol_table_interface.hpp"
 
 namespace vAST = verilogAST;
 
@@ -83,12 +84,21 @@ void Passes::Verilog::initialize(int argc, char** argv) {
     "w,disable-width-cast",
     "Omit width cast in generated verilog when using inline")(
     "v,verilator-compat",
-    "Emit primitives with verilator compatibility");
+    "Emit primitives with verilator compatibility")(
+    "p,prefix",
+    "Prefix for emitted module names",
+    cxxopts::value<std::string>())(
+    "prefix-extern",
+    "Use prefix (-p) for externally defined modules");
   auto opts = options.parse(argc, argv);
   if (opts.count("i")) { this->_inline = true; }
   if (opts.count("y")) { this->verilator_debug = true; }
   if (opts.count("w")) { this->disable_width_cast = true; }
   if (opts.count("v")) { this->verilator_compat = true; }
+  if (opts.count("p")) {
+    this->module_name_prefix = opts["p"].as<std::string>();
+  }
+  if (opts.count("prefix-extern")) { this->prefix_extern = true; }
 }
 
 // Helper function that prepends a prefix contained in json metadata if it
@@ -1366,6 +1376,43 @@ Passes::Verilog::compileModuleBody(
         std::move(instance_parameters),
         instance_name,
         std::move(verilog_connections));
+      auto metadata = instance.second->getMetaData();
+      if (metadata.count("compile_guard") > 0) {
+        std::vector<std::unique_ptr<vAST::StructuralStatement>> true_body;
+        true_body.push_back(std::move(statement));
+        std::string type = metadata["compile_guard"]["type"];
+
+        std::vector<std::unique_ptr<vAST::StructuralStatement>> else_body;
+        RecordType* record_type = cast<RecordType>(instance_module->getType());
+        for (auto field : record_type->getFields()) {
+          Type* field_type = record_type->getRecord().at(field);
+          std::string wire_name = instance.first + "_" + field;
+          if (!field_type->isInput()) {
+            else_body.push_back(std::make_unique<vAST::ContinuousAssign>(
+              std::make_unique<vAST::Identifier>(
+                getUniquifiedName(non_input_port_map, wire_name)),
+              vAST::make_num("0")));
+          }
+        }
+
+        if (type == "defined") {
+          statement = std::make_unique<vAST::IfDef>(
+            metadata["compile_guard"]["condition_str"].get<std::string>(),
+            std::move(true_body),
+            std::move(else_body));
+        }
+        else if (type == "undefined") {
+          statement = std::make_unique<vAST::IfNDef>(
+            metadata["compile_guard"]["condition_str"].get<std::string>(),
+            std::move(true_body),
+            std::move(else_body));
+        }
+        else {
+          throw std::runtime_error("Unexpected compile_guard type: " + type);
+        }
+      }
+      // TODO(rsetaluri): We should really log an instance "rename" here for
+      // maintaining the symbol table.
     }
     body.push_back(std::move(statement));
   }
@@ -1430,6 +1477,26 @@ void Passes::Verilog::compileModule(Module* module) {
       // string
       modules.push_back(
         std::make_pair(module->getName(), compile_string_module(verilog_json)));
+    }
+    else if (verilog_json.count("verilog_body") > 0) {
+      std::vector<std::unique_ptr<vAST::AbstractPort>> ports = compilePorts(
+        cast<RecordType>(module->getType()));
+
+      std::vector<std::variant<
+        std::unique_ptr<vAST::StructuralStatement>,
+        std::unique_ptr<vAST::Declaration>>>
+        body;
+
+      body.push_back(std::make_unique<vAST::InlineVerilog>(
+        verilog_json["verilog_body"].get<std::string>()));
+
+      std::string name = module->getLongName();
+      modules.push_back(std::make_pair(
+        name,
+        std::make_unique<vAST::Module>(
+          name,
+          std::move(ports),
+          std::move(body))));
     }
     else {
       std::string name = make_name(module->getName(), verilog_json);
@@ -1517,6 +1584,9 @@ void Passes::Verilog::compileModule(Module* module) {
   vAST::Parameters parameters = compile_params(module);
 
   std::string name = module->getLongName();
+  // NOTE(rsetaluri): This is an example of updating an entry in the symbol
+  // table.
+  this->getSymbolTable()->setModuleName(module->getLongName(), name);
   std::unique_ptr<vAST::AbstractModule>
     verilog_module = std::make_unique<vAST::Module>(
       name,
@@ -1555,14 +1625,83 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
   return false;
 }
 
-void Passes::Verilog::writeToStream(std::ostream& os) {
-  for (auto& module : extern_modules) {
-    os << vAST::SingleLineComment(
-            "Module `" + module->getName() + "` defined externally")
-            .toString()
-       << std::endl;
+class InstancePrefixInserter : public vAST::Transformer {
+  std::set<std::string> renamed_modules;
+  std::string prefix;
+
+ public:
+  InstancePrefixInserter(
+    std::set<std::string> renamed_modules,
+    std::string prefix)
+      : renamed_modules(renamed_modules),
+        prefix(prefix){};
+
+  using vAST::Transformer::visit;
+  virtual std::unique_ptr<vAST::ModuleInstantiation> visit(
+    std::unique_ptr<vAST::ModuleInstantiation> node) {
+    if (renamed_modules.count(node->module_name)) {
+      node->module_name = prefix + node->module_name;
+    }
+    return node;
   }
-  for (auto& module : modules) { os << module.second->toString() << std::endl; }
+};
+
+void Passes::Verilog::addPrefix() {
+  if (this->prefixAdded || this->module_name_prefix == "") return;
+
+  // TODO(rsetaluri,rdaly525,leonardt): Instrument symbol table updates for this
+  // routine.
+
+  std::set<std::string> renamed_modules;
+  for (auto& module : this->modules) {
+    // Note we cannot add prefix to string modules since their
+    // module name is inside an opaque verilog string
+    if (auto ptr = dynamic_cast<vAST::Module*>(module.second.get())) {
+      ptr->name = this->module_name_prefix + ptr->name;
+      renamed_modules.insert(module.first);
+    }
+  }
+
+  if (this->prefix_extern) {
+    for (auto& module : extern_modules) {
+      if (module->getMetaData().count("verilog_name") > 0) {
+        // Overridden (e.g. for ice40 modules, we don't want the namespace
+        // prefix)
+        continue;
+      }
+      renamed_modules.insert(module->getLongName());
+    }
+  }
+
+  InstancePrefixInserter transformer(renamed_modules, module_name_prefix);
+  for (auto& module : modules) {
+    module.second = transformer.visit(std::move(module.second));
+  }
+
+  this->prefixAdded = true;
+}
+
+void Passes::Verilog::writeToStream(std::ostream& os) {
+  this->addPrefix();
+  for (auto& module : extern_modules) {
+    // We do prefix logic here rather than modify the coreir name in the
+    // addPrefix logic (since this verilog contained and there's no verilog to
+    // modify for this).
+    std::string name;
+    if (module->getMetaData().count("verilog_name") > 0) {
+      // Overridden (e.g. for ice40 modules, where a prefix shouldn't be used)
+      name = module->getMetaData()["verilog_name"].get<std::string>();
+    }
+    else {
+      name = module->getLongName();
+      if (this->prefix_extern) name = this->module_name_prefix + name;
+    }
+    const auto comment = "Module `" + name + "` defined externally";
+    os << vAST::SingleLineComment(comment).toString() << std::endl;
+  }
+  for (auto& module : modules) {
+    os << module.second->toString() << std::endl;
+  }
 }
 
 void Passes::Verilog::writeToFiles(
@@ -1573,6 +1712,7 @@ void Passes::Verilog::writeToFiles(
   ASSERT(
     outExt == "v" || outExt == "sv",
     "Expect outext to be v or sv, not " + outExt);
+  this->addPrefix();
   for (auto& module : modules) {
     const std::string filename = module.first + "." + outExt;
     products.push_back(filename);

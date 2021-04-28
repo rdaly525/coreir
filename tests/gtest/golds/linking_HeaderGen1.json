@@ -1,0 +1,27 @@
+{"namespaces":{
+  "global":{
+    "modules":{
+      "A":{
+        "type":["Record",[
+          ["i",["Array",8,"BitIn"]],
+          ["o",["Array",8,"Bit"]]
+        ]]
+      },
+      "B":{
+        "type":["Record",[
+          ["i0",["Array",8,"BitIn"]],
+          ["i1",["Array",8,"BitIn"]],
+          ["o",["Array",8,"Bit"]]
+        ]]
+      },
+      "C":{
+        "type":["Record",[
+          ["i0",["Array",8,"BitIn"]],
+          ["i1",["Array",8,"BitIn"]],
+          ["o",["Array",8,"Bit"]]
+        ]]
+      }
+    }
+  }
+}
+}

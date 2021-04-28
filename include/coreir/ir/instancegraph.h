@@ -15,7 +15,6 @@ class InstanceGraph {
 
  private:
   std::map<Module*, InstanceGraphNode*, ModuleCmp> nodeMap;
-  std::set<Module*, ModuleCmp> onlyTopNodes;
   std::list<InstanceGraphNode*> sortedNodes;
 
  public:
@@ -23,7 +22,7 @@ class InstanceGraph {
   ~InstanceGraph() { this->releaseMemory(); }
   void construct(Context* c);
   std::list<InstanceGraphNode*> getSortedNodes() { return sortedNodes; }
-  bool validOnlyTop(InstanceGraphNode* node);
+  std::list<InstanceGraphNode*> getFilteredNodes(std::vector<Module*>&);
   void releaseMemory();
   void sortVisit(InstanceGraphNode* node);
 };

@@ -4,6 +4,7 @@
 #include "coreir.h"
 #include "coreir/common/logging_lite.hpp"
 #include "coreir/tools/cxxopts.h"
+#include "coreir/ir/symbol_table_interface.hpp"
 
 using namespace std;
 using namespace CoreIR;
@@ -70,14 +71,18 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   // Create a list of new names for the ports
   vector<std::pair<string, Type*>> newports;
   unordered_set<string> verifyUnique;
-  for (auto portpair : ports) {
+  for (auto &[sp, type] : ports) {
     string newport = join(
-      portpair.first.begin(),
-      portpair.first.end(),
+      sp.begin(),
+      sp.end(),
       string("_"));
     ASSERT(verifyUnique.count(newport) == 0, "NYI: Name clashes");
-    newports.push_back({newport, portpair.second});
+    newports.push_back({newport, type});
     verifyUnique.insert(newport);
+    if (getContext()->getDebug()) {
+      this->getSymbolTable()->setPortName(
+          mod->getLongName(), ::toString(sp), newport);
+    }
   }
 
   // Append new ports to this module (should not affect any connections)

@@ -1,0 +1,57 @@
+{"top":"global._Top",
+"namespaces":{
+  "global":{
+    "modules":{
+      "ASSERT_ON_compile_guard_with_output":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"]
+        ]],
+        "connections":[
+          ["self.I","self.O"]
+        ]
+      },
+      "ASSERT_ON_compile_guard":{
+        "type":["Record",[
+          ["I","BitIn"]
+        ]],
+        "instances":{
+          "corebit_term_inst0":{
+            "modref":"corebit.term"
+          }
+        },
+        "connections":[
+          ["self.I","corebit_term_inst0.in"]
+        ]
+      },
+      "_Top":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "ASSERT_ON_compile_guard":{
+            "modref":"global.ASSERT_ON_compile_guard_with_output",
+            "metadata":{"compile_guard":{
+                "condition_str": "ASSERT_ON",
+                "type": "defined"
+            }}
+          },
+          "ASSERT_ON_compile_guard_undefined":{
+            "modref":"global.ASSERT_ON_compile_guard",
+            "metadata":{"compile_guard":{
+                "condition_str": "ASSERT_ON",
+                "type": "undefined"
+            }}
+          }
+        },
+        "connections":[
+          ["self.I.","ASSERT_ON_compile_guard.I"],
+          ["self.I.","ASSERT_ON_compile_guard_undefined.I"],
+          ["self.O","ASSERT_ON_compile_guard.O"]
+        ]
+      }
+    }
+  }
+}
+}

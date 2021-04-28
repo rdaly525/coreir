@@ -20,6 +20,7 @@ void* CORENewMap(
   uint len,
   COREMapKind kind);
 
+
 // Context COREreater/deleters
 extern COREContext* CORENewContext();
 extern void COREDeleteContext(COREContext*);
@@ -32,7 +33,6 @@ extern COREType* COREContextFlip(COREContext* context, COREType* type);
 extern COREValueType* COREContextBool(COREContext* context);
 extern COREValueType* COREContextInt(COREContext* context);
 extern COREValueType* COREContextBitVector(COREContext* context);
-extern COREValueType* COREContextString(COREContext* context);
 extern COREValueType* COREContextString(COREContext* context);
 
 extern bool COREContextRunPasses(
@@ -62,6 +62,16 @@ extern void CORESaveContext(
   COREBool* nocoreir,
   COREBool* no_default_libs,
   COREBool* err);
+
+
+extern void CORESerializeToFile(COREContext* cc, char* filename, COREBool* err);
+
+extern void CORELoadHeader(COREContext* cc, char* filename, char*** modules, uint* num_modules, COREBool* err);
+extern void CORELinkDefinitions(COREContext* cc, char* filename, COREBool* err);
+
+extern void CORESerializeHeader(COREContext* context, char* filename, char** modules, uint num_modules, COREBool* err);
+extern void CORESerializeDefinitions(COREContext* cc, char* filename, char** modules, uint num_modules, COREBool* err);
+
 extern CORENamespace* COREGetGlobal(COREContext* c);
 extern CORENamespace* COREGetNamespace(COREContext* c, char* name);
 extern CORENamespace* CORENewNamespace(COREContext* c, char* name);
@@ -206,6 +216,7 @@ extern void COREModuleAddMetaDataStr(
 
 // This returns a malloc'd string that should be freed by the user
 extern const char* COREModuleGetMetaData(COREModule* module);
+extern const char* COREInstanceGetMetaData(COREWireable* module);
 
 // BEGIN : directedview
 extern const char** COREDirectedConnectionGetSrc(

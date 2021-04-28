@@ -16,6 +16,7 @@ class CreateInstanceGraph : public ContextPass {
   }
   ~CreateInstanceGraph() { delete ig; }
   bool runOnContext(Context* c) override;
+  //void initialize(int argc, char** argv) override;
   void releaseMemory() override;
   InstanceGraph* getInstanceGraph() { return ig; }
 };

@@ -1,5 +1,5 @@
-// Module `coreir_reg__width16_src` defined externally
-// Module `coreir_reg__width16_snk` defined externally
+// Module `coreir_coreir_reg__width16_src` defined externally
+// Module `coreir_coreir_reg__width16_snk` defined externally
 module top (
     input [15:0] in,
     output [15:0] out,
