@@ -337,54 +337,29 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
   core_convert(c, core);
 
   // stdlib pack and unpack generators.
-  Params packParams = Params({{"type", CoreIRType::make(c)}});
-  auto unpackTypeGen = core->newTypeGen("unpackType", packParams, [](Context* c, Values args) {
-    Type* t = args.at("type")->get<Type*>();
-    ASSERT(t->isOutput(), "Type needs to be output type");
+  // unpack: Convert BV[N] -> (_0, _1, ... _<N-1>)
+  // pack: (_0, _1, ... _<N-1>) -> BV[N]
+  auto unpackTypeGen = core->newTypeGen("unpackType", widthparams, [](Context* c, Values args) {
+    uint width = args.at("width")->get<int>();
     auto ports = RecordParams();
-    if (auto rt = dyn_cast<RecordType>(t)) {
-      ports.push_back({"in", c->Flip(rt)});
-      for (auto &[field, sub_type]: rt->getRecord()) {
-        ports.push_back({field, sub_type});
-      }
-    }
-    else if (auto at = dyn_cast<ArrayType>(t)) {
-      ports.push_back({"in", c->Flip(at)});
-      auto sub_type = at->getElemType();
-      for (uint i=0; i < at->getSize(); ++i) {
-        ports.push_back({"_" + std::to_string(i), sub_type});
-      }
-    }
-    else {
-      ASSERT(false, "Cannot use on non (array or record) type");
+    ports.emplace_back("in", c->BitIn()->Arr(width));
+    for (uint i=0; i < width; ++i) {
+      ports.emplace_back("_" + std::to_string(i), c->Bit());
     }
     return c->Record(ports);
   });
-  core->newGeneratorDecl("unpack", unpackTypeGen, packParams);
+  core->newGeneratorDecl("unpack", unpackTypeGen, widthparams);
 
-  auto packTypeGen = core->newTypeGen("packType", packParams, [](Context* c, Values args) {
-    Type* t = args.at("type")->get<Type*>();
-    ASSERT(t->isOutput(), "Type needs to be output type");
+  auto packTypeGen = core->newTypeGen("packType", widthparams, [](Context* c, Values args) {
+    uint width = args.at("width")->get<int>();
     auto ports = RecordParams();
-    if (auto rt = dyn_cast<RecordType>(t)) {
-      for (auto &[field, sub_type]: rt->getRecord()) {
-        ports.push_back({field, sub_type->getFlipped()});
-      }
-      ports.push_back({"out", rt});
+    for (uint i=0; i < width; ++i) {
+      ports.emplace_back("_" + std::to_string(i), c->BitIn());
     }
-    else if (auto at = dyn_cast<ArrayType>(t)) {
-      auto sub_type = at->getElemType()->getFlipped();
-      for (uint i=0; i < at->getSize(); ++i) {
-        ports.push_back({"_" + std::to_string(i), sub_type});
-      }
-      ports.push_back({"out", at});
-    }
-    else {
-      ASSERT(false, "Cannot use on non (array or record) type");
-    }
+    ports.emplace_back("out", c->Bit()->Arr(width));
     return c->Record(ports);
   });
-  core->newGeneratorDecl("pack", packTypeGen, packParams);
+  core->newGeneratorDecl("pack", packTypeGen, widthparams);
 
   return core;
 }

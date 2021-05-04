@@ -4,27 +4,36 @@
 #include "coreir/ir/common.h"
 #include "coreir/ir/types.h"
 
+using namespace CoreIR;
 namespace {
+
 
 void handleInputPort(CoreIR::Wireable* wireable) {
   ASSERT(wireable->getType()->isInput(), "Expecting type to be input");
   auto context = wireable->getContext();
   if (wireable->getSelects().size() == 0) return;
   auto def = wireable->getContainer();
-  auto pack = def->addInstance(
+  auto t = wireable->getType();
+  if (isBit(t)) {
+    return;
+  }
+  if (isBitVector(t)) {
+    // wireable has connections off of a bitvector. Need an unpack node
+    auto pack = def->addInstance(
       "_pack" + context->getUnique(),
       "coreir.pack",
-      {{"type", CoreIR::Const::make(context,
-                                    wireable->getType()->getFlipped())}});
-  wireable->connect(pack->sel("out"));
-  bool is_array = CoreIR::isa<CoreIR::ArrayType>(wireable->getType());
-  for (auto &[field, sub_wireable]: wireable->getSelects() ) {
-    // Arrays have input ports _0, _1, _2, etc...
-    std::string f = field;
-    if (is_array) f = "_" + field;
-    auto unpack_sub_wireable = pack->sel(f);
-    sub_wireable->reconnect(unpack_sub_wireable);
-    handleInputPort(unpack_sub_wireable);
+      {{"type",
+        CoreIR::Const::make(context, wireable->getType()->getFlipped())}});
+    wireable->connect(pack->sel("out"));
+    for (auto& [field, sub_wireable] : wireable->getSelects()) {
+      handleInputPort(sub_wireable);
+    }
+  }
+  else {
+    ASSERT(isa<ArrayType>(t) || isa<RecordType>(t), "NYI");
+    for (auto &[field, sub_wireable]: wireable->getSelects() ) {
+      handleInputPort(sub_wireable);
+    }
   }
 }
 

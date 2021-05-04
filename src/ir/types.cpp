@@ -233,10 +233,18 @@ bool isClockOrNestedClockType(Type* type, Type* clockType) {
   return false;
 }
 
-bool isBitOrArrOfBits(Type* t) {
-  if (isBit(t)) return true;
+
+bool isBit(Type* t) {
+  return t->isBaseType() || isa<NamedType>(t);
+}
+
+bool isBitVector(Type* t) {
   if (auto at = dyn_cast<ArrayType>(t)) { return isBit(at->getElemType()); }
   return false;
+}
+
+bool isBitOrArrOfBits(Type* t) {
+  return isBit(t) || isBitVector(t);
 }
 
 bool isBitOrNDArrOfBits(Type* t) {

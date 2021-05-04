@@ -1,22 +1,25 @@
 #include "coreir.h"
 #include "coreir/passes/analysis/verify_canonical.h"
 #include "coreir/tools/cxxopts.h"
+#include "coreir/ir/types.h"
 
 namespace CoreIR {
 
 std::string Passes::VerifyCanonical::ID = "verify_canonical";
 
 // This pass checks the following:
-// -- All select paths are of exactly length 2 in connections
+// There are no selects on bitvectors
+// There are no bundle type connections
 bool Passes::VerifyCanonical::runOnModule(Module* m) {
   ModuleDef* def = m->getDef();
  
-  for (auto conn : def->getConnections()) {
-    // Check that all selects are of depth 1.
-    ASSERT(conn.first->getSelectPath().size() == 2,
-           toString(conn.first->getSelectPath()));
-    ASSERT(conn.second->getSelectPath().size() == 2,
-           toString(conn.second->getSelectPath()));
+  for (auto &[a, b] : def->getConnections()) {
+    ASSERT(a->getType()->isInput() || a->getType()->isOutput(), "Connections cannot be mixed type");
+    for (auto w : {a, b}) {
+      auto sp = w->getSelectPath();
+      sp.pop_back();
+      ASSERT(!isBitVector(def->sel(sp)->getType()), "Cannot select from bitvector" + toString(w->getSelectPath()));
+    }
   }
   return false;
 }
