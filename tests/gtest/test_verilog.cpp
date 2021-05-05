@@ -13,7 +13,7 @@ TEST(VerilogTests, TestStringModule) {
   Context* c = newContext();
   Module* top;
 
-  if (!loadFromFile(c, "blackbox_verilog_in.json", &top)) { c->die(); }
+  if (!loadFromFile(c, "srcs/blackbox_verilog_in.json", &top)) { c->die(); }
   assert(top != nullptr);
   c->setTop(top->getRefName());
 
@@ -23,7 +23,7 @@ TEST(VerilogTests, TestStringModule) {
     "flattentypes --ndarray",
     "verilog --inline"};
   c->runPasses(passes, {});
-  assertPassEq(c, "verilog", "blackbox_verilog_golden.v");
+  assertPassEq(c, "verilog", "golds/blackbox_verilog_golden.v");
   deleteContext(c);
 }
 
@@ -31,7 +31,7 @@ TEST(VerilogTests, TestIntermediateConnection) {
   Context* c = newContext();
   Module* top;
 
-  if (!loadFromFile(c, "intermediate_connection.json", &top)) { c->die(); }
+  if (!loadFromFile(c, "srcs/intermediate_connection.json", &top)) { c->die(); }
   assert(top != nullptr);
   c->setTop(top->getRefName());
 
@@ -41,7 +41,7 @@ TEST(VerilogTests, TestIntermediateConnection) {
     "flattentypes --ndarray",
     "verilog --inline"};
   c->runPasses(passes, {});
-  assertPassEq(c, "verilog", "intermediate_connection_golden.v");
+  assertPassEq(c, "verilog", "golds/intermediate_connection_golden.v");
   deleteContext(c);
 }
 
@@ -49,7 +49,7 @@ TEST(VerilogTests, TestArraySelect) {
   Context* c = newContext();
   Module* top;
 
-  if (!loadFromFile(c, "array_select.json", &top)) { c->die(); }
+  if (!loadFromFile(c, "srcs/array_select.json", &top)) { c->die(); }
   assert(top != nullptr);
   c->setTop(top->getRefName());
 
@@ -59,7 +59,7 @@ TEST(VerilogTests, TestArraySelect) {
     "flattentypes --ndarray",
     "verilog --inline"};
   c->runPasses(passes, {});
-  assertPassEq(c, "verilog", "array_select_golden.v");
+  assertPassEq(c, "verilog", "golds/array_select_golden.v");
   deleteContext(c);
 }
 
@@ -68,7 +68,7 @@ TEST(VerilogTests, TestAddInline) {
   CoreIRLoadVerilog_coreir(c);
   Module* top;
 
-  if (!loadFromFile(c, "add.json", &top)) { c->die(); }
+  if (!loadFromFile(c, "srcs/add.json", &top)) { c->die(); }
   assert(top != nullptr);
   c->setTop(top->getRefName());
 
@@ -78,7 +78,7 @@ TEST(VerilogTests, TestAddInline) {
     "flattentypes --ndarray",
     "verilog --inline"};
   c->runPasses(passes, {});
-  assertPassEq(c, "verilog", "add_golden.v");
+  assertPassEq(c, "verilog", "golds/add_golden.v");
   deleteContext(c);
 }
 
@@ -88,7 +88,7 @@ TEST(VerilogTests, TestTwoInline) {
   CoreIRLoadVerilog_corebit(c);
   Module* top;
 
-  if (!loadFromFile(c, "two_ops.json", &top)) { c->die(); }
+  if (!loadFromFile(c, "srcs/two_ops.json", &top)) { c->die(); }
   assert(top != nullptr);
   c->setTop(top->getRefName());
 
@@ -98,7 +98,7 @@ TEST(VerilogTests, TestTwoInline) {
     "flattentypes --ndarray",
     "verilog --inline"};
   c->runPasses(passes, {});
-  assertPassEq(c, "verilog", "two_ops_golden.v");
+  assertPassEq(c, "verilog", "golds/two_ops_golden.v");
   deleteContext(c);
 }
 
@@ -108,7 +108,7 @@ TEST(VerilogTests, TestDisableWidthCast) {
   CoreIRLoadVerilog_corebit(c);
   Module* top;
 
-  if (!loadFromFile(c, "two_ops.json", &top)) { c->die(); }
+  if (!loadFromFile(c, "srcs/two_ops.json", &top)) { c->die(); }
   assert(top != nullptr);
   c->setTop(top->getRefName());
 
@@ -118,7 +118,7 @@ TEST(VerilogTests, TestDisableWidthCast) {
     "flattentypes --ndarray",
     "verilog --inline --disable-width-cast"};
   c->runPasses(passes, {});
-  assertPassEq(c, "verilog", "two_ops_golden_no_cast.v");
+  assertPassEq(c, "verilog", "golds/two_ops_golden_no_cast.v");
   deleteContext(c);
 }
 
@@ -127,7 +127,7 @@ TEST(VerilogTests, TestTwoBitInline) {
   CoreIRLoadVerilog_corebit(c);
   Module* top;
 
-  if (!loadFromFile(c, "two_ops_bit.json", &top)) { c->die(); }
+  if (!loadFromFile(c, "srcs/two_ops_bit.json", &top)) { c->die(); }
   assert(top != nullptr);
   c->setTop(top->getRefName());
 
@@ -137,7 +137,7 @@ TEST(VerilogTests, TestTwoBitInline) {
     "flattentypes --ndarray",
     "verilog --inline"};
   c->runPasses(passes, {});
-  assertPassEq(c, "verilog", "two_ops_bit_golden.v");
+  assertPassEq(c, "verilog", "golds/two_ops_bit_golden.v");
   deleteContext(c);
 }
 
@@ -147,7 +147,7 @@ TEST(VerilogTests, TestPortOrder) {
   CoreIRLoadVerilog_corebit(c);
   Module* top;
 
-  if (!loadFromFile(c, "port_order.json", &top)) { c->die(); }
+  if (!loadFromFile(c, "srcs/port_order.json", &top)) { c->die(); }
   assert(top != nullptr);
   c->setTop(top->getRefName());
 
@@ -157,7 +157,7 @@ TEST(VerilogTests, TestPortOrder) {
     "flattentypes --ndarray",
     "verilog --inline"};
   c->runPasses(passes, {});
-  assertPassEq(c, "verilog", "port_order_golden.v");
+  assertPassEq(c, "verilog", "golds/port_order_golden.v");
   deleteContext(c);
 }
 
@@ -168,7 +168,7 @@ TEST(VerilogTests, TestMuxInline) {
   CoreIRLoadLibrary_commonlib(c);
   Module* top;
 
-  if (!loadFromFile(c, "mux.json", &top)) { c->die(); }
+  if (!loadFromFile(c, "srcs/mux.json", &top)) { c->die(); }
   assert(top != nullptr);
   c->setTop(top->getRefName());
 
@@ -178,7 +178,7 @@ TEST(VerilogTests, TestMuxInline) {
     "flattentypes --ndarray",
     "verilog --inline"};
   c->runPasses(passes, {});
-  assertPassEq(c, "verilog", "mux_golden.v");
+  assertPassEq(c, "verilog", "golds/mux_golden.v");
   deleteContext(c);
 }
 
@@ -188,7 +188,7 @@ TEST(VerilogTests, TestInlineVerilogMetadata) {
   CoreIRLoadVerilog_corebit(c);
   Module* top;
 
-  if (!loadFromFile(c, "inline_verilog.json", &top)) { c->die(); }
+  if (!loadFromFile(c, "srcs/inline_verilog.json", &top)) { c->die(); }
   assert(top != nullptr);
   c->setTop(top->getRefName());
 
@@ -198,7 +198,7 @@ TEST(VerilogTests, TestInlineVerilogMetadata) {
     "flattentypes --ndarray",
     "verilog --inline"};
   c->runPasses(passes, {});
-  assertPassEq(c, "verilog", "inline_verilog_golden.v");
+  assertPassEq(c, "verilog", "golds/inline_verilog_golden.v");
   deleteContext(c);
 }
 
@@ -206,7 +206,7 @@ TEST(VerilogTests, TestDebugInfo) {
   Context* c = newContext();
   Module* top;
 
-  if (!loadFromFile(c, "debug_info.json", &top)) { c->die(); }
+  if (!loadFromFile(c, "srcs/debug_info.json", &top)) { c->die(); }
   assert(top != nullptr);
   c->setTop(top->getRefName());
 
@@ -216,7 +216,7 @@ TEST(VerilogTests, TestDebugInfo) {
     "flattentypes --ndarray",
     "verilog"};
   c->runPasses(passes, {});
-  assertPassEq(c, "verilog", "debug_info_golden.v");
+  assertPassEq(c, "verilog", "golds/debug_info_golden.v");
   deleteContext(c);
 }
 
@@ -227,7 +227,7 @@ TEST(VerilogTests, TestVerilatorDebugInline) {
   CoreIRLoadLibrary_commonlib(c);
   Module* top;
 
-  if (!loadFromFile(c, "verilator_debug_inline.json", &top)) { c->die(); }
+  if (!loadFromFile(c, "srcs/verilator_debug_inline.json", &top)) { c->die(); }
   assert(top != nullptr);
   c->setTop(top->getRefName());
 
@@ -237,7 +237,7 @@ TEST(VerilogTests, TestVerilatorDebugInline) {
     "flattentypes --ndarray",
     "verilog --inline --verilator_debug"};
   c->runPasses(passes, {});
-  assertPassEq(c, "verilog", "verilator_debug_inline_golden.v");
+  assertPassEq(c, "verilog", "golds/verilator_debug_inline_golden.v");
   deleteContext(c);
 }
 
@@ -248,7 +248,7 @@ TEST(VerilogTests, TestRegisterMode) {
   CoreIRLoadLibrary_commonlib(c);
   Module* top;
 
-  if (!loadFromFile(c, "register_mode.json", &top)) { c->die(); }
+  if (!loadFromFile(c, "srcs/register_mode.json", &top)) { c->die(); }
   assert(top != nullptr);
   c->setTop(top->getRefName());
 
@@ -258,7 +258,7 @@ TEST(VerilogTests, TestRegisterMode) {
     "flattentypes --ndarray",
     "verilog --inline"};
   c->runPasses(passes, {});
-  assertPassEq(c, "verilog", "register_mode_golden.v");
+  assertPassEq(c, "verilog", "golds/register_mode_golden.v");
   deleteContext(c);
 }
 
@@ -269,7 +269,7 @@ TEST(VerilogTests, TestInlineVerilogTop) {
   CoreIRLoadLibrary_commonlib(c);
   Module* top;
 
-  if (!loadFromFile(c, "inline_verilog_top.json", &top)) { c->die(); }
+  if (!loadFromFile(c, "srcs/inline_verilog_top.json", &top)) { c->die(); }
   assert(top != nullptr);
   c->setTop(top->getRefName());
 
@@ -279,7 +279,7 @@ TEST(VerilogTests, TestInlineVerilogTop) {
     "flattentypes",
     "verilog --inline"};
   c->runPasses(passes, {});
-  assertPassEq(c, "verilog", "inline_verilog_top_golden.v");
+  assertPassEq(c, "verilog", "golds/inline_verilog_top_golden.v");
   deleteContext(c);
 }
 
@@ -289,7 +289,7 @@ TEST(VerilogTests, TestUndriven) {
   CoreIRLoadVerilog_corebit(c);
   Module* top;
 
-  if (!loadFromFile(c, "undriven.json", &top)) { c->die(); }
+  if (!loadFromFile(c, "srcs/undriven.json", &top)) { c->die(); }
   assert(top != nullptr);
   c->setTop(top->getRefName());
 
@@ -299,7 +299,7 @@ TEST(VerilogTests, TestUndriven) {
     "flattentypes",
     "verilog --inline"};
   c->runPasses(passes, {});
-  assertPassEq(c, "verilog", "undriven_golden.v");
+  assertPassEq(c, "verilog", "golds/undriven_golden.v");
   deleteContext(c);
 }
 
@@ -310,7 +310,7 @@ TEST(VerilogTests, TestWrappedVerilogTop) {
   CoreIRLoadLibrary_commonlib(c);
   Module* top;
 
-  if (!loadFromFile(c, "wrapped_verilog_top.json", &top)) { c->die(); }
+  if (!loadFromFile(c, "srcs/wrapped_verilog_top.json", &top)) { c->die(); }
   assert(top != nullptr);
   c->setTop(top->getRefName());
 
@@ -320,7 +320,7 @@ TEST(VerilogTests, TestWrappedVerilogTop) {
     "flattentypes",
     "verilog --inline"};
   c->runPasses(passes, {});
-  assertPassEq(c, "verilog", "wrapped_verilog_top_golden.v");
+  assertPassEq(c, "verilog", "golds/wrapped_verilog_top_golden.v");
   deleteContext(c);
 }
 
