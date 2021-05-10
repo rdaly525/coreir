@@ -2,7 +2,6 @@
 #include "coreir/ir/common.h"
 #include "coreir/ir/context.h"
 #include "coreir/ir/dynamic_bit_vector.h"
-#include "coreir/ir/json.h"
 #include "coreir/ir/module.h"
 #include "coreir/ir/types.h"
 #include "coreir/ir/valuecache.h"

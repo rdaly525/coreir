@@ -29,15 +29,29 @@ IF("${isSystemDir}" STREQUAL "-1")
    SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 ENDIF("${isSystemDir}" STREQUAL "-1")
 
+
 if (STATIC)
     add_library(coreir STATIC ${SRC_FILES})
 else()
     add_library(coreir SHARED ${SRC_FILES})
 endif()
 
+
+include(FetchContent)
+FetchContent_Declare(json
+        GIT_REPOSITORY https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
+        GIT_TAG v3.7.3)
+
+FetchContent_GetProperties(json)
+if(NOT json_POPULATED)
+    FetchContent_Populate(json)
+    add_subdirectory(${json_SOURCE_DIR} ${json_BINARY_DIR} EXCLUDE_FROM_ALL)
+endif()
+
 target_include_directories(coreir PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 target_link_libraries(coreir dl)
 target_link_libraries(coreir verilogAST)
+target_link_libraries(coreir nlohmann_json::nlohmann_json)
 
 if (COREIR_PROFILE)
     # requires gperftools, e.g. brew install gperftools

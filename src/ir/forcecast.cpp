@@ -1,5 +1,4 @@
 #include "coreir/ir/common.h"
-#include "coreir/ir/json.h"
 #include "coreir/ir/value.h"
 #include "coreir/ir/valuetype.h"
 

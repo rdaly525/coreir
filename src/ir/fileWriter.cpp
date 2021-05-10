@@ -3,7 +3,6 @@
 #include <set>
 #include <unordered_map>
 #include "coreir/ir/context.h"
-#include "coreir/ir/json.h"
 #include "coreir/ir/module.h"
 #include "coreir/ir/namespace.h"
 #include "coreir/ir/typegen.h"

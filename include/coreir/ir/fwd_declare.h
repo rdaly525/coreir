@@ -11,8 +11,8 @@
 #include <sstream>
 #include <stdint.h>
 #include <vector>
-
 #include <execinfo.h>
+#include "nlohmann/json.hpp"
 
 #define UNUSED(var)                                                            \
   do { (void)(var); } while (0)
@@ -49,8 +49,6 @@ typedef uint32_t uint;
 namespace bsim {
 class quad_value_bit_vector;
 }
-// TODO HACK
-#include "json.h"
 
 typedef bsim::quad_value_bit_vector BitVector;
 typedef bsim::quad_value_bit_vector BitVec;

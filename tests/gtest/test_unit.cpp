@@ -1,9 +1,7 @@
 #include "gtest/gtest.h"
-#include "assert_pass.h"
 #include "coreir.h"
 #include "coreir/definitions/coreVerilog.hpp"
 #include "coreir/definitions/corebitVerilog.hpp"
-#include "coreir/libs/commonlib.h"
 
 using namespace CoreIR;
 

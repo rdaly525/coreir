@@ -1,6 +1,5 @@
 #include <cassert>
 #include "coreir.h"
-#include "coreir/ir/json.h"
 
 using namespace std;
 using namespace CoreIR;

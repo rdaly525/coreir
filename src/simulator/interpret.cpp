@@ -1,6 +1,7 @@
 #include "coreir/common/logging_lite.hpp"
 #include "coreir/simulator/interpreter.h"
 #include "coreir/simulator/simulator.h"
+#include "coreir/ir/dynamic_bit_vector.h"
 
 #include <functional>
 
@@ -46,10 +47,10 @@ BitVector extendBfloat(const BitVector& r) {
   BitVector sgn(1, 0);
   sgn.set(0, r.get(15));
 
-  BitVector exp = slice(r, 7, 15);
+  BitVector exp = bsim::slice(r, 7, 15);
   assert(exp.bitLength() == 8);
 
-  BitVector mant = slice(r, 0, 7);
+  BitVector mant = bsim::slice(r, 0, 7);
   assert(mant.bitLength() == 7);
 
   BitVector res(32, 0);

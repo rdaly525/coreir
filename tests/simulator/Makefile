@@ -1,7 +1,7 @@
 .SUFFIXES:
 
 HOME = ../..
-INCS = -I$(HOME)/include -I.
+INCS = -I$(HOME)/include -I. -I$(HOME)/build/_deps/json-src/include/
 LPATH = -L$(HOME)/lib
 LIBS =  -Wl,-rpath,$(HOME)/lib -lverilogAST -lcoreir -lcoreirsim -lcoreir-commonlib -lcoreir-aetherlinglib -lcoreir-float
 SRCFILES = $(wildcard [^_]*.cpp)

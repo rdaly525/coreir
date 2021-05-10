@@ -1,8 +1,6 @@
-#ifndef COREIR_METADATA_HPP_
-#define COREIR_METADATA_HPP_
+#pragma once
 
 #include "fwd_declare.h"
-#include "json.h"
 
 using json = nlohmann::json;
 
@@ -19,4 +17,3 @@ class MetaData {
 
 }  // namespace CoreIR
 
-#endif  // METADATA_HPP_

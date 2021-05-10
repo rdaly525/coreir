@@ -2,7 +2,7 @@
 
 #include <string>
 #include <utility>
-#include "coreir/ir/json.h"
+#include "nlohmann/json.hpp"
 
 namespace CoreIR {
 
