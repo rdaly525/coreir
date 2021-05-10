@@ -15,15 +15,11 @@
 #include "coreir/ir/value.h"
 #include "coreir/ir/valuecache.h"
 #include "coreir/ir/valuetype.h"
+#include "coreir/libs/default_libs.h"
 
 using namespace std;
 
 namespace CoreIR {
-// TODO sketchy
-#include "headers/core.hpp"
-#include "headers/corebit.hpp"
-#include "headers/mantle.hpp"
-#include "headers/memories.hpp"
 
 Context::Context() : maxErrors(8) {
   libmanager = new CoreIRLibrary(this);
@@ -35,7 +31,8 @@ Context::Context() : maxErrors(8) {
   typecache = new TypeCache(this);
   valuecache = new ValueCache(this);
   // Automatically load coreir //defined in coreirprims.h
-  CoreIRLoadHeader_core(this);
+
+  CoreIRLoadHeader_coreir(this);
   CoreIRLoadHeader_corebit(this);
   CoreIRLoadHeader_memory(this);
   CoreIRLoadHeader_mantle(this);

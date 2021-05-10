@@ -18,6 +18,7 @@ class CoreIRLibrary : public DynamicLibrary {
   //  "<path>.ext"
   //  "libname"
   Namespace* loadLib(std::string lib);
+  void loadLibHeader(std::string lib);
 };
 
 }  // namespace CoreIR

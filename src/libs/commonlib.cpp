@@ -1,5 +1,4 @@
 #include "coreir/libs/commonlib.h"
-#include "coreir/libs/aetherlinglib.h"
 
 COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(commonlib);
 

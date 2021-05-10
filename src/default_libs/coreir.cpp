@@ -1,6 +1,20 @@
+#include "coreir/libs/default_libs.h"
 #include <algorithm>  // std::max
-// This file is just included in context.cpp
 
+#include "coreir/ir/context.h"
+#include "coreir/ir/namespace.h"
+#include "coreir/ir/value.h"
+#include "coreir/ir/types.h"
+#include "coreir/ir/module.h"
+#include "coreir/ir/generator.h"
+#include "coreir/ir/common.h"
+
+
+using namespace std;
+using namespace CoreIR;
+
+// This file is just included in context.cpp
+namespace {
 void core_convert(Context* c, Namespace* core) {
 
   Params sliceParams({{"width", c->Int()}, {"lo", c->Int()}, {"hi", c->Int()}});
@@ -182,8 +196,9 @@ void core_state(Context* c, Namespace* core) {
   mem->addDefaultGenArgs({{"has_init", Const::make(c, false)},
                           {"sync_read", Const::make(c, false)}});
 }
+} //anon namespace
 
-Namespace* CoreIRLoadHeader_core(Context* c) {
+COREIR_GEN_HEADER(coreir) {
 
   Namespace* core = c->newNamespace("coreir");
 
@@ -335,6 +350,4 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
   //   slice,concat,cast,strip
   /////////////////////////////////
   core_convert(c, core);
-
-  return core;
 }
