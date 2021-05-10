@@ -1,8 +1,17 @@
+#include "coreir/libs/default_libs.h"
+#include "coreir/ir/context.h"
+#include "coreir/ir/namespace.h"
+#include "coreir/ir/value.h"
+#include "coreir/ir/types.h"
+#include "coreir/ir/module.h"
+
+using namespace std;
+using namespace CoreIR;
+
 // This file is just included in context.cpp
 
 // This should be loaded *AFTER* core
-Namespace* CoreIRLoadHeader_corebit(Context* c) {
-
+COREIR_GEN_HEADER(corebit) {
   Namespace* bitop = c->newNamespace("corebit");
 
   // Do The
@@ -70,6 +79,4 @@ Namespace* CoreIRLoadHeader_corebit(Context* c) {
   Type* concatType = c->Record(
     {{"in0", c->BitIn()}, {"in1", c->BitIn()}, {"out", c->Bit()->Arr(2)}});
   bitop->newModuleDecl("concat", concatType);
-
-  return bitop;
 }

@@ -31,3 +31,6 @@
     CoreIR::Context* c) {                                                      \
     return CoreIRLoadLibrary_##NAME(c);                                        \
   }
+
+#define COREIR_GEN_HEADER(NAME) \
+  void CoreIRLoadHeader_##NAME(CoreIR::Context* c)
