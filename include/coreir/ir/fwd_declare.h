@@ -11,7 +11,7 @@
 #include <sstream>
 #include <stdint.h>
 #include <vector>
-
+#include "json.h"
 #include <execinfo.h>
 
 #define UNUSED(var)                                                            \
@@ -49,8 +49,7 @@ typedef uint32_t uint;
 namespace bsim {
 class quad_value_bit_vector;
 }
-// TODO HACK
-#include "json.h"
+
 
 typedef bsim::quad_value_bit_vector BitVector;
 typedef bsim::quad_value_bit_vector BitVec;
