@@ -8,6 +8,7 @@ matrix:
         sources:
         - ubuntu-toolchain-r-test
         packages:
+        - cmake
         - g++-7
         - verilator
     env:
@@ -18,6 +19,7 @@ matrix:
     addons:
       homebrew:
         packages:
+          - cmake
           - verilator
         update: true
 before_install:
