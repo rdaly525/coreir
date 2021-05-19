@@ -77,7 +77,7 @@ add_custom_command(
 )
 
 #Create coreir executable
-add_executable(coreir-bin ${CMAKE_CURRENT_SOURCE_DIR}/binary/coreir.cpp)
+add_executable(coreir-bin ${CMAKE_CURRENT_SOURCE_DIR}/binary/default_libs.cpp)
 target_link_libraries(coreir-bin PUBLIC coreir)
 target_include_directories(coreir-bin PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 set_target_properties(coreir-bin
