@@ -215,6 +215,7 @@ extern void COREModuleAddMetaDataStr(
   char* value);
 
 // This returns a malloc'd string that should be freed by the user
+extern const char* COREGeneratorGetMetaData(COREGenerator* module);
 extern const char* COREModuleGetMetaData(COREModule* module);
 extern const char* COREInstanceGetMetaData(COREWireable* module);
 
