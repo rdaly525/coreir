@@ -1349,7 +1349,7 @@ Passes::Verilog::compileModuleBody(
         json inline_verilog = metadata["inline_verilog"];
         std::string inline_str = inline_verilog["str"].get<std::string>();
         for (auto it :
-             json::iterator_wrapper(inline_verilog["connect_references"])) {
+             inline_verilog["connect_references"].items()) {
           SelectPath connect_select_path = splitString<SelectPath>(
             it.value().get<std::string>(),
             '.');
