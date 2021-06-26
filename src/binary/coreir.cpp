@@ -15,14 +15,23 @@
 #include "coreir/passes/analysis/verilog.h"
 #include "coreir/tools/cxxopts.h"
 #include "passlib.h"
+#include <regex>
+
 
 using namespace std;
 using namespace CoreIR;
 
+namespace {
 string getExt(string s) {
   auto split = splitString<vector<string>>(s, '.');
   ASSERT(split.size() >= 2, "File needs extention: " + s);
   return split[split.size() - 1];
+}
+
+inline bool isSingleWord(std::string s) {
+  return std::regex_match(s, std::regex("^\w+$"));
+}
+
 }
 
 int main(int argc, char* argv[]) {
@@ -56,8 +65,8 @@ int main(int argc, char* argv[]) {
     "Use verilog prefix for externally defined modules")(
     "t,top",
     "top: <namespace>.<modulename>",
-    cxxopts::value<std::string>())("a,all", "run on all namespaces")
-    ("g,symbols", "create symbol table", cxxopts::value<std::string>())(
+    cxxopts::value<std::string>())("a,all", "run on all namespaces")(
+    "g,symbols", "create symbol table", cxxopts::value<std::string>())(
     "z,inline",
     "inlines verilog primitives")(
     "y,verilator_debug",
@@ -73,13 +82,66 @@ int main(int argc, char* argv[]) {
     "splits output files by name (expects '-o <path>/*.<ext>')")(
     "product",
     "specify product list filename",
-    cxxopts::value<std::string>());
+    cxxopts::value<std::string>())(
+    "libpath",
+    "Base path used for headers, libraries, header definitions",
+    cxxopts::value<std::string>())(
+    "headers",
+    "list of headers to load. Expects 'header1;header2'",
+    cxxopts::value<std::string>())(
+    "link",
+    "list of header definitions to link. Expects '<header_name>=<def_name>;<header_name>=<def_name>'",
+    cxxopts::value<std::string>()); ;
 
   // Do the parsing of the arguments
   auto opts = options.parse(argc, argv);
 
   Context* c = newContext();
 
+  if (opts.count("libpath")) {
+    //TODO check if valid path
+    auto libpath = opts["libpath"].as<std::string>();
+    c->getLibraryManager()->addSearchPath(libpath);
+  }
+
+  if (opts.count("headers")) {
+    vector<string> headers = splitString<vector<string>>(
+      opts["headers"].as<string>(),
+      ';');
+    for (auto header : headers) {
+      //Verify header is a single word
+      ASSERT(isSingleWord(header), header + " is malformed");
+      c->getLibraryManager()->loadHeader(header);
+    }
+  }
+  if (opts.count("link")) {
+    vector<string> link_info = splitString<vector<string>>(
+      opts["link"].as<string>(),
+      ';');
+    std::regex r("^(.*)=(.*)$");
+    for (auto info : link_info) {
+      std::smatch matches;
+      bool well_formed = true;
+      std::string header;
+      std::string def;
+      if (std::regex_search(info, matches, r)) {
+        if (matches.size() != 2) { well_formed = false;
+        }
+        else {
+          header = matches[0];
+          def = matches[1];
+          if (!(isSingleWord(header) && isSingleWord(def))) {
+            well_formed = false;
+          }
+        }
+      }
+      else {
+        well_formed = false;
+      }
+      ASSERT(well_formed, info + " is malformed");
+      c->getLibraryManager()->link(header, def);
+    }
+  }
   if (opts.count("l")) {
     vector<string> libs = splitString<vector<string>>(
       opts["l"].as<string>(),

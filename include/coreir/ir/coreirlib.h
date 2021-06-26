@@ -18,7 +18,14 @@ class CoreIRLibrary : public DynamicLibrary {
   //  "<path>.ext"
   //  "libname"
   Namespace* loadLib(std::string lib);
-  void loadLibHeader(std::string lib);
+
+  // Can handle loading json-only header or a dynamic library header
+  void loadHeader(std::string header) {
+    return;
+  }
+  void link(std::string header, std::string def) {
+    return;
+  }
 };
 
 }  // namespace CoreIR

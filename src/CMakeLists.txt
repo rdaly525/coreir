@@ -1,7 +1,7 @@
 message(STATUS ${CMAKE_CURRENT_SOURCE_DIR})
 file(GLOB SRC_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/ir/[^_]*.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/default_libs/*.cpp
+        #${CMAKE_CURRENT_SOURCE_DIR}/default_libs/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/passes/analysis/[^_]*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/passes/analysis/verilog/[^_]*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/passes/transform/[^_]*.cpp
@@ -77,7 +77,7 @@ add_custom_command(
 )
 
 #Create coreir executable
-add_executable(coreir-bin ${CMAKE_CURRENT_SOURCE_DIR}/binary/default_libs.cpp)
+add_executable(coreir-bin ${CMAKE_CURRENT_SOURCE_DIR}/binary/coreir.cpp)
 target_link_libraries(coreir-bin PUBLIC coreir)
 target_include_directories(coreir-bin PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 set_target_properties(coreir-bin
@@ -99,6 +99,8 @@ install(
 
 #Create the coreir libraries
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/libs)
+
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/libraries)
 
 #create simulator library
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/simulator)
@@ -139,3 +141,6 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:coreir-simulator>" "${CMAKE_SOURCE_DIR}/bin/"
   COMMENT "Copying to bin/"
 )
+
+add_subdirectory(${CMAKE_SOURCE_DIR}/src)
+
