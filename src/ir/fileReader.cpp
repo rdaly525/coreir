@@ -482,7 +482,7 @@ Value* json2Value(Context* c, json j, Module* m) {
       jval.is_string(),
       toString(jval) + " needs to be a bitvector string <N>'h<value>");
     auto bv = BitVector(jval.get<string>());
-    assert(bv.bitLength() == cast<BitVectorType>(vtype)->getWidth());
+    ASSERT(bv.bitLength() == cast<BitVectorType>(vtype)->getWidth(), toString(bv.bitLength()) + " != " + toString(cast<BitVectorType>(vtype)->getWidth()) + " "+ toString(jval));
     return Const::make(c, bv);
   }
   case ValueType::VTK_String:

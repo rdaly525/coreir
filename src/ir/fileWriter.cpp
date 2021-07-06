@@ -60,7 +60,25 @@ bool ModuleToDot(Module* m, std::ostream& stream) {
   DirectedModule* dMod = m->newDirectedModule();
   if (!dMod->getInstances().empty()) {
     for (auto inst : dMod->getInstances()) {
-      stream << "\"" << (*inst)->getInstname() << "\"; ";
+      string moduleName = (*inst)->getModuleRef()->getName();
+      string displayName = moduleName;
+      if (moduleName == "PE") {
+        if ((*inst)->getModArgs().count("alu_op") > 0) {
+          displayName = (*inst)->getModArgs().at("alu_op")->get<string>();
+        } else if ((*inst)->getModArgs().count("lut_value") > 0) {
+          auto lutValue = (*inst)->getModArgs().at("lut_value")->get<BitVector>();
+          displayName = "LUT: " + lutValue.hex_string();
+        }
+      } else if (moduleName == "reg") {
+        displayName = "__/\\\\__";
+          
+      } else if (moduleName == "const") {
+        if ((*inst)->getModArgs().count("value") > 0) {
+          auto bv = (*inst)->getModArgs().at("value")->get<BitVector>();
+          displayName += ": " + bv.hex_string();
+        }
+      }
+      stream << "\"" << (*inst)->getInstname() << "\" [label=\"" << displayName << "\"]; ";
     }
     stream << endl;
 
