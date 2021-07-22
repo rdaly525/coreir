@@ -1,0 +1,49 @@
+{"top":"global.top",
+"namespaces":{
+  "global":{
+    "modules":{
+      "top":{
+        "type":["Record",[
+          
+        ]],
+        "instances":{
+          "inst":{
+            "genref":"global.addN",
+            "genargs":{"width":["Int",5]}
+          }
+        },
+        "connections":[
+          ["inst.out","inst.in"]
+        ]
+      }
+    },
+    "generators":{
+      "addN":{
+        "typegen":"global.wgen",
+        "genparams":{"width":"Int"},
+        "modules":[
+          [
+            {"width":["Int",5]},
+            {
+              "type":["Record",[
+                ["in",["Array",5,"BitIn"]],
+                ["out",["Array",5,"Bit"]]
+              ]],
+              "metadata":{"verilog_name":"Add5"}
+            }
+          ]
+        ]
+      }
+    },
+    "typegens":{
+      "wgen":[
+        {"width":"Int"},
+        "sparse",
+        [
+          [{"width":["Int",5]},["Record",[["in",["Array",5,"BitIn"]],["out",["Array",5,"Bit"]]]]]
+        ]
+      ]
+    }
+  }
+}
+}
