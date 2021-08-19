@@ -1,0 +1,43 @@
+{"top":"global.my_register",
+"namespaces":{
+  "global":{
+    "modules":{
+      "my_register": {
+        "type":["Record",[
+          ["I",["Array",16,"BitIn"]],
+          ["O",["Array",16,"Bit"]],
+          ["CLK",["Named","coreir.clkIn"]]
+        ]],
+        "instances": {
+          "my_reg":{
+            "genref":"coreir.reg",
+            "genargs":{"width":["Int",16]},
+            "modargs":{"clk_posedge":["Bool",true], "init":[["BitVector",16],"16'h0000"]}
+          }
+        },
+        "connections": [
+          ["self.I", "my_reg.in"],
+          ["self.O", "my_reg.out"],
+          ["self.CLK", "my_reg.clk"]
+        ],
+        "linked_definitions": {
+          "SYNTHESIS": {
+            "instances": {
+              "my_reg":{
+                "genref":"coreir.reg",
+                "genargs":{"width":["Int",16]},
+                "modargs":{"clk_posedge":["Bool",true], "init":[["BitVector",16],"16'h0000"]}
+              }
+            },
+            "connections": [
+              ["self.I", "my_reg.in"],
+              ["self.O", "my_reg.out"],
+              ["self.CLK", "my_reg.clk"]
+            ]
+          }
+        }
+      }
+    }
+  }
+}
+}
