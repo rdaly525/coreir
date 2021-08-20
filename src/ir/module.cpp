@@ -115,17 +115,6 @@ void Module::setDef(ModuleDef* def, bool validate) {
   delete this->directedModule;
 }
 
-void Module::linkDefinition(std::string key, ModuleDef* def, bool validate) {
-  if (validate) {
-    if (def->validate()) {
-      cout << "Error Validating def" << endl;
-      this->getContext()->die();
-    }
-  }
-  // TODO: Should we raise en error if a key is used twice?
-  this->linkedDefinitions[key] = def;
-}
-
 string Module::toString() const {
   return "Module: " + this->getRefName() +
     (isGenerated() ? ::CoreIR::toString(genargs) : "") +

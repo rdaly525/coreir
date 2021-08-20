@@ -28,6 +28,7 @@ class Verilog : public InstanceGraphPass {
   // serializing to a single or multiple files
   std::vector<std::pair<std::string, std::unique_ptr<vAST::AbstractModule>>>
     modules;
+  std::map<Module*, std::string> linked_module_map;
 
   // Externally defined modules (no moduleDef), for now we just emit comments
   // listing them when compiling to a single file

@@ -16,12 +16,30 @@ module coreir_reg #(
   assign out = outReg;
 endmodule
 
+module my_register_synthesis (
+    input [15:0] I,
+    output [15:0] O,
+    input CLK
+);
+STDCELLREG stdcell_reg (
+    .I(I),
+    .O(O),
+    .CLK(CLK)
+);
+endmodule
+
 module my_register (
     input [15:0] I,
     output [15:0] O,
     input CLK
 );
 `ifdef SYNTHESIS
+STDCELLREG stdcell_reg (
+    .I(I),
+    .O(O),
+    .CLK(CLK)
+);
+
 `else
 coreir_reg #(
     .clk_posedge(1'b1),

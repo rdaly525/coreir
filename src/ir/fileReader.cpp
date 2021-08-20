@@ -379,9 +379,9 @@ bool load(Context* c, string filename, Module** top, std::vector<Module*>& loade
       m->setDef(mdef);
       if (jmod.count("linked_definitions")) {
         for (auto entry : jmod.at("linked_definitions").get<jsonmap>()) {
-          ModuleDef* mdef = m->newModuleDef();
-          makeDef(entry.second, mdef, c);
-          m->linkDefinition(entry.first, mdef);
+          Module* linked_module = getModSymbol(c, entry.second);
+          // Requries that linked modules referenced come first in the json
+          m->linkModule(entry.first, linked_module);
         }
       }
     }  // End Module loop

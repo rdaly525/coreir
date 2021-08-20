@@ -11,7 +11,7 @@ namespace CoreIR {
 class Module : public GlobalValue, public Args, public VerilogPrimitive {
   RecordType* type;
   ModuleDef* def = nullptr;
-  std::map<std::string,ModuleDef*> linkedDefinitions;
+  std::map<std::string,Module*> linkedModules;
 
   const Params modparams;
   Values defaultModArgs;
@@ -45,7 +45,14 @@ class Module : public GlobalValue, public Args, public VerilogPrimitive {
   // This will validate def
   void setDef(ModuleDef* def, bool validate = true);
 
-  void linkDefinition(std::string key, ModuleDef* def, bool validate = true);
+  void linkModule(std::string key, Module* mod) {
+    // TODO: Should we raise en error if a key is used twice?
+    this->linkedModules[key] = mod;
+  };
+
+  std::map<std::string,Module*> getLinkedModules() const {
+    return linkedModules;
+  };
 
   bool hasVerilogDef();
 

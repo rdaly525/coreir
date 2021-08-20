@@ -11,6 +11,12 @@
 
 namespace vAST = verilogAST;
 
+template <typename... Ts>
+std::string variant_to_string(std::variant<Ts...> &value) {
+  return std::visit(
+      [](auto &&value) -> std::string { return value->toString(); }, value);
+}
+
 // Unpack variant type and convert to parent type Expression
 std::unique_ptr<vAST::Expression> convert_to_expression(
   std::variant<
@@ -1378,11 +1384,17 @@ Passes::Verilog::compileModuleBody(
         std::move(verilog_connections));
       auto metadata = instance.second->getMetaData();
       if (metadata.count("compile_guard") > 0) {
-        std::vector<std::unique_ptr<vAST::StructuralStatement>> true_body;
+        std::vector<std::variant<
+          std::unique_ptr<vAST::StructuralStatement>,
+          std::unique_ptr<vAST::Declaration>>>
+          true_body;
         true_body.push_back(std::move(statement));
         std::string type = metadata["compile_guard"]["type"];
 
-        std::vector<std::unique_ptr<vAST::StructuralStatement>> else_body;
+        std::vector<std::variant<
+          std::unique_ptr<vAST::StructuralStatement>,
+          std::unique_ptr<vAST::Declaration>>>
+          else_body;
         RecordType* record_type = cast<RecordType>(instance_module->getType());
         for (auto field : record_type->getFields()) {
           Type* field_type = record_type->getRecord().at(field);
@@ -1587,7 +1599,7 @@ void Passes::Verilog::compileModule(Module* module) {
   // NOTE(rsetaluri): This is an example of updating an entry in the symbol
   // table.
   this->getSymbolTable()->setModuleName(module->getLongName(), name);
-  std::unique_ptr<vAST::AbstractModule>
+  std::unique_ptr<vAST::Module>
     verilog_module = std::make_unique<vAST::Module>(
       name,
       std::move(ports),
@@ -1601,9 +1613,38 @@ void Passes::Verilog::compileModule(Module* module) {
     }
     vAST::AssignInliner assign_inliner(wires);
     verilog_module = assign_inliner.visit(std::move(verilog_module));
+    std::cout << "Foo" << std::endl;
+    std::cout << verilog_module->toString() << std::endl;
     AlwaysStarMerger always_star_merger;
     verilog_module = always_star_merger.visit(std::move(verilog_module));
   }
+  auto linkedModules = module->getLinkedModules();
+  if (linkedModules.size() > 0) {
+    for (auto entry : linkedModules) {
+      std::string linked_module_str = linked_module_map[entry.second];
+      std::vector<std::variant<
+        std::unique_ptr<vAST::StructuralStatement>,
+        std::unique_ptr<vAST::Declaration>>>
+        true_body;
+      true_body.push_back(
+        std::make_unique<vAST::InlineVerilog>(linked_module_str));
+      auto node = std::make_unique<vAST::IfDef>(
+        entry.first,
+        std::move(true_body),
+        std::move(verilog_module->body));
+      std::vector<std::variant<
+        std::unique_ptr<vAST::StructuralStatement>,
+        std::unique_ptr<vAST::Declaration>>>
+        new_body;
+      new_body.push_back(std::move(node));
+      verilog_module->body = std::move(new_body);
+    }
+  }
+  std::string module_str;
+  for (auto& statement : verilog_module->body) {
+    module_str += variant_to_string(statement) + "\n";
+  }
+  linked_module_map[module] = module_str;
   modules.push_back(std::make_pair(name, std::move(verilog_module)));
 }
 
@@ -1620,6 +1661,14 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
     // module instances (but not all the verilog wires are inlined, based on
     // metadata)
     return false;
+  }
+  auto linkedModules = module->getLinkedModules();
+  if (linkedModules.size() > 0) {
+    for (auto entry : linkedModules) {
+      if (linked_module_map.count(entry.second) == 0) {
+        compileModule(entry.second);
+      }
+    }
   }
   compileModule(module);
   return false;

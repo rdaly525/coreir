@@ -9,7 +9,7 @@ using namespace CoreIR;
 
 namespace {
 
-TEST(VerilogTests, TestStringModule) {
+TEST(VerilogTests, TestLinkDefs) {
   Context* c = newContext();
   CoreIRLoadVerilog_coreir(c);
   Module* top;
