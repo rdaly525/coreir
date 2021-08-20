@@ -33,6 +33,12 @@ Add `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<path_to_coreir_release>/lib` to yo
 
 Note: To specify a specific version of `g++` (typically required on older, shared Linux systems), set the `CXX` variable in the make command (e.g. `make install CXX=g++-4.9`)
 
+#### Dependencies
+##### Homebrew
+```
+brew install cmake
+```
+
 ### To build:
 
     git clone https://github.com/rdaly525/coreir.git
