@@ -2,6 +2,13 @@
 "namespaces":{
   "global":{
     "modules":{
+      "STDCELLREG": {
+        "type":["Record",[
+          ["I",["Array",16,"BitIn"]],
+          ["O",["Array",16,"Bit"]],
+          ["CLK",["Named","coreir.clkIn"]]
+        ]]
+      },
       "my_register": {
         "type":["Record",[
           ["I",["Array",16,"BitIn"]],
@@ -23,10 +30,8 @@
         "linked_definitions": {
           "SYNTHESIS": {
             "instances": {
-              "my_reg":{
-                "genref":"coreir.reg",
-                "genargs":{"width":["Int",16]},
-                "modargs":{"clk_posedge":["Bool",true], "init":[["BitVector",16],"16'h0000"]}
+              "stdcell_reg":{
+                "modref": "global.STDCELLREG"
               }
             },
             "connections": [
