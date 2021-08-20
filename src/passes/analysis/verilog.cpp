@@ -1613,8 +1613,6 @@ void Passes::Verilog::compileModule(Module* module) {
     }
     vAST::AssignInliner assign_inliner(wires);
     verilog_module = assign_inliner.visit(std::move(verilog_module));
-    std::cout << "Foo" << std::endl;
-    std::cout << verilog_module->toString() << std::endl;
     AlwaysStarMerger always_star_merger;
     verilog_module = always_star_merger.visit(std::move(verilog_module));
   }
