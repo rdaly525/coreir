@@ -68,68 +68,6 @@ bool hasDef(json& jmod) {
   return jmod.count("connections") || jmod.count("instances");
 }
 
-void makeDef(json jmod, ModuleDef* mdef, Context* c) {
-  if (jmod.count("instances")) {
-    for (auto jinstmap : jmod.at("instances").get<jsonmap>()) {
-      string instname = jinstmap.first;
-      json jinst = jinstmap.second;
-      checkJson(
-        jinst,
-        set<string>(),
-        {
-          "modref",
-          "genref",
-          "genargs",
-          "modargs",
-          "metadata",
-        });
-      // This function can throw an error
-      Instance* inst;
-      if (jinst.count("modref")) {
-        assert(jinst.count("genref") == 0);
-        assert(jinst.count("genargs") == 0);
-        Module* modRef = getModSymbol(c, jinst.at("modref").get<string>());
-        Values modargs;
-        if (jinst.count("modargs")) {
-          modargs = json2Values(c, jinst.at("modargs"), modRef);
-        }
-        inst = mdef->addInstance(instname, modRef, modargs);
-      }
-      else if (
-        jinst.count("genargs") &&
-        jinst.count("genref")) {  // This is a generator
-        auto gref = getRef(jinst.at("genref").get<string>());
-        Generator* genRef = getGenSymbol(c, gref[0], gref[1]);
-        Values genargs = json2Values(c, jinst.at("genargs"));
-        Values modargs;
-        if (jinst.count("modargs")) {
-          modargs = json2Values(c, jinst.at("modargs"));
-        }
-        inst = mdef->addInstance(instname, genRef, genargs, modargs);
-      }
-      else {
-        assert_throw(
-          0,
-          "Bad Instance. Need (modref || (genref && genargs)) " + instname);
-      }
-      if (jinst.count("metadata")) { inst->setMetaData(jinst["metadata"]); }
-    }  // End Instances
-  }
-
-  // Connections
-  if (jmod.count("connections")) {
-    for (auto jcon : jmod.at("connections").get<vector<jsonvector>>()) {
-      assert_throw(
-        jcon.size() == 2 || jcon.size() == 3,
-        "Connection invalid");
-      Wireable* a = mdef->sel(jcon[0].get<string>());
-      Wireable* b = mdef->sel(jcon[1].get<string>());
-      mdef->connect(a, b);
-      if (jcon.size() == 3) { mdef->getMetaData(a, b) = jcon[2]; }
-    }
-  }
-}
-
 //If there is a top module "top" will be loaded with it. loaded_modules will always contain an unordered list of the modules (included generated ones) from this file
 bool load(Context* c, string filename, Module** top, std::vector<Module*>& loaded_modules) {
   std::fstream file;
@@ -374,7 +312,65 @@ bool load(Context* c, string filename, Module** top, std::vector<Module*>& loade
     for (auto &[m, jmod] : modqueue) {
       ASSERT(hasDef(jmod), "Missing Def " + m->getRefName());
       ModuleDef* mdef = m->newModuleDef();
-      makeDef(jmod, mdef, c);
+      if (jmod.count("instances")) {
+        for (auto jinstmap : jmod.at("instances").get<jsonmap>()) {
+          string instname = jinstmap.first;
+          json jinst = jinstmap.second;
+          checkJson(
+            jinst,
+            set<string>(),
+            {
+              "modref",
+              "genref",
+              "genargs",
+              "modargs",
+              "metadata",
+            });
+          // This function can throw an error
+          Instance* inst;
+          if (jinst.count("modref")) {
+            assert(jinst.count("genref") == 0);
+            assert(jinst.count("genargs") == 0);
+            Module* modRef = getModSymbol(c, jinst.at("modref").get<string>());
+            Values modargs;
+            if (jinst.count("modargs")) {
+              modargs = json2Values(c, jinst.at("modargs"), modRef);
+            }
+            inst = mdef->addInstance(instname, modRef, modargs);
+          }
+          else if (
+            jinst.count("genargs") &&
+            jinst.count("genref")) {  // This is a generator
+            auto gref = getRef(jinst.at("genref").get<string>());
+            Generator* genRef = getGenSymbol(c, gref[0], gref[1]);
+            Values genargs = json2Values(c, jinst.at("genargs"));
+            Values modargs;
+            if (jinst.count("modargs")) {
+              modargs = json2Values(c, jinst.at("modargs"));
+            }
+            inst = mdef->addInstance(instname, genRef, genargs, modargs);
+          }
+          else {
+            assert_throw(
+              0,
+              "Bad Instance. Need (modref || (genref && genargs)) " + instname);
+          }
+          if (jinst.count("metadata")) { inst->setMetaData(jinst["metadata"]); }
+        }  // End Instances
+      }
+
+      // Connections
+      if (jmod.count("connections")) {
+        for (auto jcon : jmod.at("connections").get<vector<jsonvector>>()) {
+          assert_throw(
+            jcon.size() == 2 || jcon.size() == 3,
+            "Connection invalid");
+          Wireable* a = mdef->sel(jcon[0].get<string>());
+          Wireable* b = mdef->sel(jcon[1].get<string>());
+          mdef->connect(a, b);
+          if (jcon.size() == 3) { mdef->getMetaData(a, b) = jcon[2]; }
+        }
+      }
       // Add Def back in
       m->setDef(mdef);
       if (jmod.count("linked_definitions")) {
