@@ -11,6 +11,7 @@ namespace CoreIR {
 class Module : public GlobalValue, public Args, public VerilogPrimitive {
   RecordType* type;
   ModuleDef* def = nullptr;
+  std::map<std::string,ModuleDef*> linkedDefinitions;
 
   const Params modparams;
   Values defaultModArgs;
@@ -43,6 +44,8 @@ class Module : public GlobalValue, public Args, public VerilogPrimitive {
   ModuleDef* getDef() const;
   // This will validate def
   void setDef(ModuleDef* def, bool validate = true);
+
+  void linkDefinition(std::string key, ModuleDef* def, bool validate = true);
 
   bool hasVerilogDef();
 

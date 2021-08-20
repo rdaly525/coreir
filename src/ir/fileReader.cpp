@@ -377,6 +377,13 @@ bool load(Context* c, string filename, Module** top, std::vector<Module*>& loade
       makeDef(jmod, mdef, c);
       // Add Def back in
       m->setDef(mdef);
+      if (jmod.count("linked_definitions")) {
+        for (auto entry : jmod.at("linked_definitions").get<jsonmap>()) {
+          ModuleDef* mdef = m->newModuleDef();
+          makeDef(entry.second, mdef, c);
+          m->linkDefinition(entry.first, mdef);
+        }
+      }
     }  // End Module loop
 
     // If top exists return it

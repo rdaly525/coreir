@@ -35,9 +35,9 @@
               }
             },
             "connections": [
-              ["self.I", "my_reg.in"],
-              ["self.O", "my_reg.out"],
-              ["self.CLK", "my_reg.clk"]
+              ["self.I", "stdcell_reg.I"],
+              ["self.O", "stdcell_reg.O"],
+              ["self.CLK", "stdcell_reg.CLK"]
             ]
           }
         }
