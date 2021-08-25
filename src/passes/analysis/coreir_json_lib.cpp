@@ -216,6 +216,15 @@ string Module2Json(Module* m, bool onlyDecl=false) {
     }
     if (m->hasMetaData()) { j.add("metadata", toString(m->getMetaData())); }
   }
+  const auto linked = m->getLinkedModules();
+  if (linked.size() > 0) {
+    Dict linked_json(taboffset + 2);
+    for (const auto& entry : linked) {
+      auto ref_name = quote(entry.second->getRefName());
+      linked_json.add(entry.first, ref_name);
+    }
+    j.add("linked_definitions", linked_json.toMultiString());
+  }
   return j.toMultiString();
 }
 
