@@ -223,7 +223,7 @@ string Module2Json(Module* m, bool onlyDecl=false) {
       auto ref_name = quote(entry.second->getRefName());
       linked_json.add(entry.first, ref_name);
     }
-    j.add("linked_definitions", linked_json.toMultiString());
+    j.add("linked_modules", linked_json.toMultiString());
   }
   return j.toMultiString();
 }

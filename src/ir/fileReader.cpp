@@ -207,7 +207,7 @@ bool load(Context* c, string filename, Module** top, std::vector<Module*>& loade
              "instances",
              "connections",
              "metadata",
-             "linked_definitions"});
+             "linked_modules"});
           Type* t = json2Type(c, jmod.at("type"));
           Params modparams;
           if (jmod.count("modparams")) {
@@ -373,8 +373,8 @@ bool load(Context* c, string filename, Module** top, std::vector<Module*>& loade
       }
       // Add Def back in
       m->setDef(mdef);
-      if (jmod.count("linked_definitions")) {
-        for (auto entry : jmod.at("linked_definitions").get<jsonmap>()) {
+      if (jmod.count("linked_modules")) {
+        for (auto entry : jmod.at("linked_modules").get<jsonmap>()) {
           Module* linked_module = getModSymbol(c, entry.second);
           // Requries that linked modules referenced come first in the json
           m->linkModule(entry.first, linked_module);

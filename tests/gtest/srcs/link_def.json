@@ -44,7 +44,7 @@
           ["self.O", "my_reg.out"],
           ["self.CLK", "my_reg.clk"]
         ],
-        "linked_definitions": {
+        "linked_modules": {
           "SYNTHESIS": "global.my_register_synthesis"
         }
       }
