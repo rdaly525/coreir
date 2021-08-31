@@ -1443,6 +1443,61 @@ Passes::Verilog::compileModuleBody(
   return body;
 }  // namespace CoreIR
 
+std::vector<std::variant<
+  std::unique_ptr<vAST::StructuralStatement>,
+  std::unique_ptr<vAST::Declaration>>>
+Passes::Verilog::compileLinkedModuleBody(Module* module) {
+
+  std::vector<std::variant<
+    std::unique_ptr<vAST::StructuralStatement>,
+    std::unique_ptr<vAST::Declaration>>>
+    body;
+
+  auto linkedModules = module->getLinkedModules();
+  auto linkedModulesIter = linkedModules.begin();
+
+  // Default definition is either default linked module or one and only entry
+  // in linked modules map
+  std::string default_mod_str;
+  if (module->hasDefaultLinkedModule()) {
+    default_mod_str = this->linked_module_map[module->getDefaultLinkedModule()];
+  }
+  else if (linkedModules.size() == 1) {
+    default_mod_str = this->linked_module_map[linkedModulesIter->second];
+    linkedModulesIter = ++linkedModulesIter;
+  }
+
+  if (default_mod_str != "") {
+    body.push_back(
+      std::make_unique<vAST::InlineVerilog>(default_mod_str));
+  }
+
+  if (linkedModules.size() > 0) {
+    while (linkedModulesIter != linkedModules.end()) {
+      auto entry = *linkedModulesIter;
+      std::string linked_module_str = linked_module_map[entry.second];
+      std::vector<std::variant<
+        std::unique_ptr<vAST::StructuralStatement>,
+        std::unique_ptr<vAST::Declaration>>>
+        true_body;
+      true_body.push_back(
+        std::make_unique<vAST::InlineVerilog>(linked_module_str));
+      auto node = std::make_unique<vAST::IfDef>(
+        entry.first,
+        std::move(true_body),
+        std::move(body));
+      std::vector<std::variant<
+        std::unique_ptr<vAST::StructuralStatement>,
+        std::unique_ptr<vAST::Declaration>>>
+        new_body;
+      new_body.push_back(std::move(node));
+      body = std::move(new_body);
+      linkedModulesIter = ++linkedModulesIter;
+    }
+  }
+  return body;
+}
+
 // Convert CoreIR paraemters into vAST Parameters
 vAST::Parameters compile_params(Module* module) {
   vAST::Parameters parameters;
@@ -1544,7 +1599,8 @@ void Passes::Verilog::compileModule(Module* module) {
     verilog_generators_seen.insert(module->getGenerator());
     return;
   }
-  if (!(module->hasDef() || module->hasVerilogDef())) {
+  if (!(module->hasDef() || module->hasVerilogDef() ||
+        module->hasLinkedModule())) {
     extern_modules.push_back(module);
     return;
   }
@@ -1582,6 +1638,10 @@ void Passes::Verilog::compileModule(Module* module) {
       inlined_wires);
   }
 
+  if (module->hasLinkedModule()) {
+    body = this->compileLinkedModuleBody(module);
+  }
+
   if (module->getMetaData().count("filename") > 0) {
     std::string debug_str = "Module `" + module->getName() + "` defined at " +
       module->getMetaData()["filename"].get<std::string>();
@@ -1616,28 +1676,6 @@ void Passes::Verilog::compileModule(Module* module) {
     AlwaysStarMerger always_star_merger;
     verilog_module = always_star_merger.visit(std::move(verilog_module));
   }
-  auto linkedModules = module->getLinkedModules();
-  if (linkedModules.size() > 0) {
-    for (auto entry : linkedModules) {
-      std::string linked_module_str = linked_module_map[entry.second];
-      std::vector<std::variant<
-        std::unique_ptr<vAST::StructuralStatement>,
-        std::unique_ptr<vAST::Declaration>>>
-        true_body;
-      true_body.push_back(
-        std::make_unique<vAST::InlineVerilog>(linked_module_str));
-      auto node = std::make_unique<vAST::IfDef>(
-        entry.first,
-        std::move(true_body),
-        std::move(verilog_module->body));
-      std::vector<std::variant<
-        std::unique_ptr<vAST::StructuralStatement>,
-        std::unique_ptr<vAST::Declaration>>>
-        new_body;
-      new_body.push_back(std::move(node));
-      verilog_module->body = std::move(new_body);
-    }
-  }
   std::string module_str;
   for (auto& statement : verilog_module->body) {
     module_str += variant_to_string(statement) + "\n";
@@ -1659,14 +1697,6 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
     // module instances (but not all the verilog wires are inlined, based on
     // metadata)
     return false;
-  }
-  auto linkedModules = module->getLinkedModules();
-  if (linkedModules.size() > 0) {
-    for (auto entry : linkedModules) {
-      if (linked_module_map.count(entry.second) == 0) {
-        compileModule(entry.second);
-      }
-    }
   }
   compileModule(module);
   return false;

@@ -1,3 +1,4 @@
+// Module `STDCELLREG` defined externally
 module coreir_reg #(
     parameter width = 1,
     parameter clk_posedge = 1,
@@ -14,6 +15,22 @@ module coreir_reg #(
     outReg <= in;
   end
   assign out = outReg;
+endmodule
+
+module default_register (
+    input [15:0] I,
+    output [15:0] O,
+    input CLK
+);
+coreir_reg #(
+    .clk_posedge(1'b1),
+    .init(16'h0000),
+    .width(16)
+) my_reg (
+    .clk(CLK),
+    .in(I),
+    .out(O)
+);
 endmodule
 
 module my_register_synthesis (
@@ -50,6 +67,7 @@ coreir_reg #(
     .in(I),
     .out(O)
 );
+
 `endif
 endmodule
 

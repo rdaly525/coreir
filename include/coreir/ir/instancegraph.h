@@ -60,6 +60,10 @@ class InstanceGraphNode {
     ignList.push_back(ign);
   }
 
+  void addInstanceGraphNode(InstanceGraphNode* ign) {
+    ignList.push_back(ign);
+  }
+
   friend class InstanceGraph;
 };
 

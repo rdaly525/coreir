@@ -26,7 +26,7 @@
           ["self.CLK", "stdcell_reg.CLK"]
         ]
       },
-      "my_register": {
+      "default_register": {
         "type":["Record",[
           ["I",["Array",16,"BitIn"]],
           ["O",["Array",16,"Bit"]],
@@ -43,7 +43,15 @@
           ["self.I", "my_reg.in"],
           ["self.O", "my_reg.out"],
           ["self.CLK", "my_reg.clk"]
-        ],
+        ]
+      },
+      "my_register": {
+        "type":["Record",[
+          ["I",["Array",16,"BitIn"]],
+          ["O",["Array",16,"Bit"]],
+          ["CLK",["Named","coreir.clkIn"]]
+        ]],
+        "default_linked_module": "global.default_register",
         "linked_modules": {
           "SYNTHESIS": "global.my_register_synthesis"
         }

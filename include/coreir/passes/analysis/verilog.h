@@ -75,6 +75,11 @@ class Verilog : public InstanceGraphPass {
     std::set<std::string>& wires,
     std::set<std::string>& inlined_wires);
 
+  std::vector<std::variant<
+    std::unique_ptr<vAST::StructuralStatement>,
+    std::unique_ptr<vAST::Declaration>>>
+  compileLinkedModuleBody(Module* module);
+
   std::unique_ptr<vAST::AbstractModule> compileStringBodyModule(
     json verilog_json,
     std::string name,

@@ -207,7 +207,9 @@ bool load(Context* c, string filename, Module** top, std::vector<Module*>& loade
              "instances",
              "connections",
              "metadata",
-             "linked_modules"});
+             "default_linked_module",
+             "linked_modules",
+             });
           Type* t = json2Type(c, jmod.at("type"));
           Params modparams;
           if (jmod.count("modparams")) {
@@ -240,6 +242,23 @@ bool load(Context* c, string filename, Module** top, std::vector<Module*>& loade
           if (jmod.count("metadata")) { m->setMetaData(jmod["metadata"]); }
           loaded_modules.push_back(m);
           if (loading_def) { modqueue.push_back({m, jmod}); }
+        }
+        // Module linking loop comes after all the declarations have been
+        // created
+        for (auto& [jmodname, jmod] : jns.at("modules").get<jsonmap>()) {
+          Module* m = ns->getModule(jmodname);
+          if (jmod.count("default_linked_module")) {
+            Module* linked_module = getModSymbol(
+              c,
+              jmod.at("default_linked_module").get<string>());
+            m->linkDefaultModule(linked_module);
+          }
+          if (jmod.count("linked_modules")) {
+            for (auto entry : jmod.at("linked_modules").get<jsonmap>()) {
+              Module* linked_module = getModSymbol(c, entry.second);
+              m->linkModule(entry.first, linked_module);
+            }
+          }
         }
       }
       if (jns.count("generators")) {
@@ -373,13 +392,6 @@ bool load(Context* c, string filename, Module** top, std::vector<Module*>& loade
       }
       // Add Def back in
       m->setDef(mdef);
-      if (jmod.count("linked_modules")) {
-        for (auto entry : jmod.at("linked_modules").get<jsonmap>()) {
-          Module* linked_module = getModSymbol(c, entry.second);
-          // Requries that linked modules referenced come first in the json
-          m->linkModule(entry.first, linked_module);
-        }
-      }
     }  // End Module loop
 
     // If top exists return it
