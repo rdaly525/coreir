@@ -581,6 +581,24 @@ bool COREModuleGetLinkedModules(
   return true;
 }
 
+bool COREModuleLinkDefaultModule(COREModule* source, COREModule* target) {
+  auto s = rcast<Module*>(source);
+  auto t = rcast<Module*>(target);
+  s->linkDefaultModule(t);
+  return true;
+}
+
+bool COREModuleHasDefaultLinkedModule(COREModule* source) {
+  auto s = rcast<Module*>(source);
+  return s->hasDefaultLinkedModule();
+}
+
+COREModule* COREModuleGetDefaultLinkedModule(COREModule* source) {
+  auto s = rcast<Module*>(source);
+  auto linked = s->getDefaultLinkedModule();
+  return rcast<COREModule*>(linked);
+}
+
 void COREModuleDefConnect(
   COREModuleDef* module_def,
   COREWireable* a,

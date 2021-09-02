@@ -216,6 +216,11 @@ string Module2Json(Module* m, bool onlyDecl=false) {
     }
     if (m->hasMetaData()) { j.add("metadata", toString(m->getMetaData())); }
   }
+  if (m->hasDefaultLinkedModule()) {
+    auto linked = m->getDefaultLinkedModule();
+    auto ref_name = quote(linked->getRefName());
+    j.add("default_linked_module", ref_name);
+  }
   const auto linked = m->getLinkedModules();
   if (linked.size() > 0) {
     Dict linked_json(taboffset + 2);
