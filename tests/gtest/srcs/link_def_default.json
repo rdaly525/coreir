@@ -1,0 +1,42 @@
+{"top":"global.my_register",
+"namespaces":{
+  "global":{
+    "modules":{
+      "STDCELLREG": {
+        "type":["Record",[
+          ["I",["Array",16,"BitIn"]],
+          ["O",["Array",16,"Bit"]],
+          ["CLK",["Named","coreir.clkIn"]]
+        ]]
+      },
+      "my_register_synthesis": {
+        "type":["Record",[
+          ["I",["Array",16,"BitIn"]],
+          ["O",["Array",16,"Bit"]],
+          ["CLK",["Named","coreir.clkIn"]]
+        ]],
+        "instances": {
+          "stdcell_reg":{
+            "modref": "global.STDCELLREG"
+          }
+        },
+        "connections": [
+          ["self.I", "stdcell_reg.I"],
+          ["self.O", "stdcell_reg.O"],
+          ["self.CLK", "stdcell_reg.CLK"]
+        ]
+      },
+      "my_register": {
+        "type":["Record",[
+          ["I",["Array",16,"BitIn"]],
+          ["O",["Array",16,"Bit"]],
+          ["CLK",["Named","coreir.clkIn"]]
+        ]],
+        "linked_modules": {
+          "SYNTHESIS": "global.my_register_synthesis"
+        }
+      }
+    }
+  }
+}
+}

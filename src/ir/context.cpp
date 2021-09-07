@@ -289,7 +289,8 @@ JsonType* Context::Json() { return JsonType::make(this); }
 
 void Context::setTop(Module* top) {
   ASSERT(
-    top && (top->hasDef() || top->hasVerilogDef()),
+    top && (top->hasDef() || top->hasVerilogDef() ||
+            top->hasLinkedModule()),
     top->toString() + " has no def!");
   this->top = top;
 }
@@ -302,7 +303,8 @@ void Context::setTop(string topRef) {
   ASSERT(topns->hasModule(topsplit[1]), "Missing module " + topRef);
   this->top = topns->getModule(topsplit[1]);
   ASSERT(
-    this->top->hasDef() || this->top->hasVerilogDef(),
+    this->top->hasDef() || this->top->hasVerilogDef() ||
+      top->hasLinkedModule(),
     topRef + " has no def!");
 }
 

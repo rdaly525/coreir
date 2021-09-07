@@ -134,6 +134,13 @@ extern COREModuleDef* COREModuleNewDef(COREModule* m);
 // extern COREModuleDef* COREModuleGetDef(COREModule* m);
 void COREModuleSetDef(COREModule* module, COREModuleDef* module_def);
 extern COREDirectedModule* COREModuleGetDirectedModule(COREModule* module);
+extern bool COREModuleLinkModule(
+    char* key, COREModule* source, COREModule* target);
+extern bool COREModuleGetLinkedModules(
+    COREModule* source, char*** keys, COREModule*** targets, int* size);
+extern bool COREModuleLinkDefaultModule(COREModule* source, COREModule* target);
+extern bool COREModuleHasDefaultLinkedModule(COREModule* source);
+extern COREModule* COREModuleGetDefaultLinkedModule(COREModule* source);
 
 // Errors:
 //  Invalid arg: instance name already exists

@@ -57,6 +57,10 @@ class InstanceGraphNode {
   int mark = 0;  // unmarked=0, temp=1,perm=2
   void addInstance(Instance* i, InstanceGraphNode* ign) {
     instanceList.push_back(i);
+    addInstanceGraphNode(ign);
+  }
+
+  void addInstanceGraphNode(InstanceGraphNode* ign) {
     ignList.push_back(ign);
   }
 

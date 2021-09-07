@@ -206,7 +206,10 @@ bool load(Context* c, string filename, Module** top, std::vector<Module*>& loade
              "defaultmodargs",
              "instances",
              "connections",
-             "metadata"});
+             "metadata",
+             "default_linked_module",
+             "linked_modules",
+             });
           Type* t = json2Type(c, jmod.at("type"));
           Params modparams;
           if (jmod.count("modparams")) {
@@ -239,6 +242,23 @@ bool load(Context* c, string filename, Module** top, std::vector<Module*>& loade
           if (jmod.count("metadata")) { m->setMetaData(jmod["metadata"]); }
           loaded_modules.push_back(m);
           if (loading_def) { modqueue.push_back({m, jmod}); }
+        }
+        // Module linking loop comes after all the declarations have been
+        // created
+        for (auto& [jmodname, jmod] : jns.at("modules").get<jsonmap>()) {
+          Module* m = ns->getModule(jmodname);
+          if (jmod.count("default_linked_module")) {
+            Module* linked_module = getModSymbol(
+              c,
+              jmod.at("default_linked_module").get<string>());
+            m->linkDefaultModule(linked_module);
+          }
+          if (jmod.count("linked_modules")) {
+            for (auto entry : jmod.at("linked_modules").get<jsonmap>()) {
+              Module* linked_module = getModSymbol(c, entry.second);
+              m->linkModule(entry.first, linked_module);
+            }
+          }
         }
       }
       if (jns.count("generators")) {
@@ -370,7 +390,6 @@ bool load(Context* c, string filename, Module** top, std::vector<Module*>& loade
           if (jcon.size() == 3) { mdef->getMetaData(a, b) = jcon[2]; }
         }
       }
-
       // Add Def back in
       m->setDef(mdef);
     }  // End Module loop

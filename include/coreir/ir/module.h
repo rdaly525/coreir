@@ -11,6 +11,8 @@ namespace CoreIR {
 class Module : public GlobalValue, public Args, public VerilogPrimitive {
   RecordType* type;
   ModuleDef* def = nullptr;
+  Module* defaultLinkedModule = nullptr;
+  std::map<std::string,Module*> linkedModules;
 
   const Params modparams;
   Values defaultModArgs;
@@ -43,6 +45,40 @@ class Module : public GlobalValue, public Args, public VerilogPrimitive {
   ModuleDef* getDef() const;
   // This will validate def
   void setDef(ModuleDef* def, bool validate = true);
+
+  void linkDefaultModule(Module* mod) {
+    if (this->hasDef()) {
+      throw std::runtime_error("Cannot link to definition");
+    }
+    this->defaultLinkedModule = mod;
+  };
+
+  bool hasDefaultLinkedModule() {
+    return this->defaultLinkedModule != nullptr;
+  };
+
+  Module* getDefaultLinkedModule() const {
+    return this->defaultLinkedModule;
+  };
+
+  bool hasLinkedModule() const {
+    return this->defaultLinkedModule != nullptr ||
+           this->linkedModules.size() > 0;
+  };
+
+  void linkModule(std::string key, Module* mod) {
+    if (this->hasDef()) {
+      throw std::runtime_error("Cannot link to definition");
+    }
+    if (this->linkedModules.count(key) > 0) {
+      throw std::runtime_error("Key: " + key + "has already been linked");
+    }
+    this->linkedModules[key] = mod;
+  };
+
+  std::map<std::string,Module*> getLinkedModules() const {
+    return this->linkedModules;
+  };
 
   bool hasVerilogDef();
 

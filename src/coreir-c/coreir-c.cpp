@@ -14,6 +14,28 @@
 using namespace std;
 namespace CoreIR {
 
+namespace {
+
+void lowerModuleMap(
+    const std::map<std::string, Module*>& modules,
+    char*** keys,
+    COREModule*** values,
+    int* size) {
+  *size = modules.size();
+  *keys = static_cast<char**>(malloc((*size) * sizeof(char*)));
+  *values = static_cast<COREModule**>(malloc((*size) * sizeof(COREModule*)));
+  int i = 0;
+  for (auto const& item : modules) {
+    const char* key = item.first.c_str();
+    (*keys)[i] = static_cast<char*>(malloc(strlen(key) + 1));
+    strcpy((*keys)[i], key);
+    (*values)[i] = rcast<COREModule*>(item.second);
+    i++;
+  }
+}
+
+}  // namespace
+
 extern "C" {
 
 void* CORENewMap(
@@ -544,6 +566,39 @@ COREDirectedModule* COREModuleGetDirectedModule(COREModule* module) {
     rcast<Module*>(module)->newDirectedModule());
 }
 
+bool COREModuleLinkModule(char* key, COREModule* source, COREModule* target) {
+  auto s = rcast<Module*>(source);
+  auto t = rcast<Module*>(target);
+  s->linkModule(std::string(key), t);
+  return true;
+}
+
+bool COREModuleGetLinkedModules(
+    COREModule* source, char*** keys, COREModule*** targets, int* size) {
+  auto s = rcast<Module*>(source);
+  auto ts = s->getLinkedModules();
+  lowerModuleMap(ts, keys, targets, size);
+  return true;
+}
+
+bool COREModuleLinkDefaultModule(COREModule* source, COREModule* target) {
+  auto s = rcast<Module*>(source);
+  auto t = rcast<Module*>(target);
+  s->linkDefaultModule(t);
+  return true;
+}
+
+bool COREModuleHasDefaultLinkedModule(COREModule* source) {
+  auto s = rcast<Module*>(source);
+  return s->hasDefaultLinkedModule();
+}
+
+COREModule* COREModuleGetDefaultLinkedModule(COREModule* source) {
+  auto s = rcast<Module*>(source);
+  auto linked = s->getDefaultLinkedModule();
+  return rcast<COREModule*>(linked);
+}
+
 void COREModuleDefConnect(
   COREModuleDef* module_def,
   COREWireable* a,
@@ -708,20 +763,8 @@ void CORENamespaceGetModules(
   COREModule*** values,
   int* num_items) {
 
-  std::map<std::string, Module*> modules = rcast<Namespace*>(core_namespace)
-                                             ->getModules();
-
-  *num_items = modules.size();
-  *keys = (char**)malloc(*num_items * sizeof(char*));
-  *values = (COREModule**)malloc(*num_items * sizeof(COREModule*));
-  int i = 0;
-  for (auto const& item : modules) {
-    const char* key = item.first.c_str();
-    (*keys)[i] = (char*)malloc(strlen(key) + 1);
-    strcpy((*keys)[i], key);
-    (*values)[i] = rcast<COREModule*>(item.second);
-    i++;
-  }
+  auto modules = rcast<Namespace*>(core_namespace)->getModules();
+  lowerModuleMap(modules, keys, values, num_items);
 }
 
 void CORENamespaceGetGenerators(

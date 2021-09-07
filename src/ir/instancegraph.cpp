@@ -37,6 +37,16 @@ void InstanceGraph::construct(Context* c) {
   for (auto nodemap : nodeMap) { nodeMap2.insert(nodemap); }
   for (auto nodemap : nodeMap2) {
     Module* m = nodemap.first;
+    if (m->hasLinkedModule()) {
+      if (m->hasDefaultLinkedModule()) {
+        InstanceGraphNode* node = nodeMap[m->getDefaultLinkedModule()];
+        node->addInstanceGraphNode(nodemap.second);
+      }
+      for (auto entry : m->getLinkedModules()) {
+        InstanceGraphNode* node = nodeMap[entry.second];
+        node->addInstanceGraphNode(nodemap.second);
+      }
+    }
     if (!m->hasDef()) continue;
     ModuleDef* mdef = cast<Module>(nodemap.first)->getDef();
     for (auto instmap : mdef->getInstances()) {
@@ -56,6 +66,15 @@ void getAllDependentModules(
   std::set<Module*, InstanceGraph::ModuleCmp>& onlyTopNodes) {
   if (onlyTopNodes.count(m)) { return; }
   onlyTopNodes.insert(m);
+  if (m->hasLinkedModule()) {
+    if (m->hasDefaultLinkedModule()) {
+      getAllDependentModules(m->getDefaultLinkedModule(), onlyTopNodes);
+    }
+    for (auto entry : m->getLinkedModules()) {
+      getAllDependentModules(entry.second, onlyTopNodes);
+    }
+    return;
+  }
   if (!m->hasDef()) { return; }
   for (auto ipair : m->getDef()->getInstances()) {
     Module* imod = ipair.second->getModuleRef();
