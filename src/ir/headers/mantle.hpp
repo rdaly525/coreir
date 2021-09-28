@@ -381,5 +381,43 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
         });
   }
 
+  {
+    Params sliceTParams(
+      {{"t", CoreIRType::make(c)}, {"lo", c->Int()}, {"hi", c->Int()}});
+
+    auto sliceTTypeGen = mantle->newTypeGen(
+      "sliceTTypeFun",
+      sliceTParams,
+      [](Context* c, Values args) {
+        ArrayType* t_arr = _get_array_type_arg(args, "t");
+        uint lo = args.at("lo")->get<int>();
+        uint hi = args.at("hi")->get<int>();
+        ASSERT(
+          lo < hi && hi <= t_arr->getLen(),
+          "Bad slice args! lo=" + to_string(lo) + ", hi=" + to_string(hi));
+
+        ArrayType* t_out = c->Array(
+          hi - lo,
+          t_arr->getElemType()->getFlipped());
+        return c->Record({{"in", t_arr}, {"out", t_out}});
+      });
+    Generator* sliceT = mantle->newGeneratorDecl(
+      "sliceT",
+      sliceTTypeGen,
+      sliceTParams);
+
+    sliceT->setGeneratorDefFromFun(
+      [](Context* c, Values genargs, ModuleDef* def) {
+        uint lo = genargs.at("lo")->get<int>();
+        uint hi = genargs.at("hi")->get<int>();
+
+        for (uint i = 0; i < (hi - lo); i++) {
+          def->connect(
+            "self.in." + toString(lo + i),
+            "self.out." + toString(i));
+        }
+      });
+  }
+
   return mantle;
 }
