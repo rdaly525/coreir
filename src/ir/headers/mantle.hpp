@@ -419,5 +419,29 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
       });
   }
 
+  {
+    Params getTParams({{"t", CoreIRType::make(c)}, {"i", c->Int()}});
+
+    auto getTTypeGen = mantle->newTypeGen(
+      "getTTypeFun",
+      getTParams,
+      [](Context* c, Values args) {
+        ArrayType* t_arr = _get_array_type_arg(args, "t");
+        uint i = args.at("i")->get<int>();
+        ASSERT(i <= t_arr->getLen(), "Bad get args! i=" + to_string(i));
+
+        Type* t_out = t_arr->getElemType()->getFlipped();
+        return c->Record({{"in", t_arr}, {"out", t_out}});
+      });
+    Generator* getT = mantle->newGeneratorDecl("getT", getTTypeGen, getTParams);
+
+    getT->setGeneratorDefFromFun(
+      [](Context* c, Values genargs, ModuleDef* def) {
+        uint i = genargs.at("i")->get<int>();
+
+        def->connect("self.in." + toString(i), "self.out");
+      });
+  }
+
   return mantle;
 }
