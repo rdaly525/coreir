@@ -1,4 +1,4 @@
-module mantle_concatT__t1BitIn329__t2BitIn326 (
+module mantle_concatArrT__t1BitIn329__t2BitIn326 (
     input [31:0] in1 [8:0],
     input [31:0] in2 [5:0],
     output [31:0] out [14:0]
@@ -25,7 +25,7 @@ module Foo (
     input [31:0] I1 [5:0],
     output [31:0] O [14:0]
 );
-mantle_concatT__t1BitIn329__t2BitIn326 concat (
+mantle_concatArrT__t1BitIn329__t2BitIn326 concat (
     .in1(I0),
     .in2(I1),
     .out(O)

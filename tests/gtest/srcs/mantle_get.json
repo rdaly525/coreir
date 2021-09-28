@@ -9,7 +9,7 @@
         ]],
         "instances":{
           "get":{
-            "genref":"mantle.getT",
+            "genref":"mantle.getArrT",
             "genargs":{
                 "t":["CoreIRType",["Array",9,["Array",32,"BitIn"]]],
                 "i": ["Int", 7]

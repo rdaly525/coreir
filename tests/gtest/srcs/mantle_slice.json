@@ -9,7 +9,7 @@
         ]],
         "instances":{
           "slice":{
-            "genref":"mantle.sliceT",
+            "genref":"mantle.sliceArrT",
             "genargs":{
                 "t":["CoreIRType",["Array",9,["Array",32,"BitIn"]]],
                 "hi": ["Int", 7],

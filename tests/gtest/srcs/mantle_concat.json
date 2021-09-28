@@ -10,7 +10,7 @@
         ]],
         "instances":{
           "concat":{
-            "genref":"mantle.concatT",
+            "genref":"mantle.concatArrT",
             "genargs":{
                 "t1":["CoreIRType",["Array",9,["Array",32,"BitIn"]]],
                 "t2":["CoreIRType",["Array",6,["Array",32,"BitIn"]]]

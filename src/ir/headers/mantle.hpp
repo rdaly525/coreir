@@ -349,11 +349,11 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
   }
 
   {
-    Params concatTParams(
+    Params concatArrTParams(
         {{"t1", CoreIRType::make(c)}, {"t2", CoreIRType::make(c)}});
 
-    auto concatTTypeGen = mantle->newTypeGen(
-        "concatTTypeFun", concatTParams, [](Context* c, Values args) {
+    auto concatArrTTypeGen = mantle->newTypeGen(
+        "concatArrTTypeFun", concatArrTParams, [](Context* c, Values args) {
           ArrayType* t1_arr = _get_array_type_arg(args, "t1");
           ArrayType* t2_arr = _get_array_type_arg(args, "t2");
           ASSERT(t1_arr->getElemType() == t2_arr->getElemType(),
@@ -362,10 +362,10 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
                                    t1_arr->getElemType()->getFlipped());
           return c->Record({{"in1", t1_arr}, {"in2", t2_arr}, {"out", t3}});
         });
-    Generator* concatT =
-        mantle->newGeneratorDecl("concatT", concatTTypeGen, concatTParams);
+    Generator* concatArrT =
+        mantle->newGeneratorDecl("concatArrT", concatArrTTypeGen, concatArrTParams);
 
-    concatT->setGeneratorDefFromFun(
+    concatArrT->setGeneratorDefFromFun(
         [](Context* c, Values genargs, ModuleDef* def) {
           ArrayType* t1_arr = _get_array_type_arg(genargs, "t1");
           ArrayType* t2_arr = _get_array_type_arg(genargs, "t2");
@@ -382,12 +382,12 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
   }
 
   {
-    Params sliceTParams(
+    Params sliceArrTParams(
       {{"t", CoreIRType::make(c)}, {"lo", c->Int()}, {"hi", c->Int()}});
 
-    auto sliceTTypeGen = mantle->newTypeGen(
-      "sliceTTypeFun",
-      sliceTParams,
+    auto sliceArrTTypeGen = mantle->newTypeGen(
+      "sliceArrTTypeFun",
+      sliceArrTParams,
       [](Context* c, Values args) {
         ArrayType* t_arr = _get_array_type_arg(args, "t");
         uint lo = args.at("lo")->get<int>();
@@ -401,12 +401,12 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
           t_arr->getElemType()->getFlipped());
         return c->Record({{"in", t_arr}, {"out", t_out}});
       });
-    Generator* sliceT = mantle->newGeneratorDecl(
-      "sliceT",
-      sliceTTypeGen,
-      sliceTParams);
+    Generator* sliceArrT = mantle->newGeneratorDecl(
+      "sliceArrT",
+      sliceArrTTypeGen,
+      sliceArrTParams);
 
-    sliceT->setGeneratorDefFromFun(
+    sliceArrT->setGeneratorDefFromFun(
       [](Context* c, Values genargs, ModuleDef* def) {
         uint lo = genargs.at("lo")->get<int>();
         uint hi = genargs.at("hi")->get<int>();
@@ -420,11 +420,11 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
   }
 
   {
-    Params getTParams({{"t", CoreIRType::make(c)}, {"i", c->Int()}});
+    Params getArrTParams({{"t", CoreIRType::make(c)}, {"i", c->Int()}});
 
-    auto getTTypeGen = mantle->newTypeGen(
-      "getTTypeFun",
-      getTParams,
+    auto getArrTTypeGen = mantle->newTypeGen(
+      "getArrTTypeFun",
+      getArrTParams,
       [](Context* c, Values args) {
         ArrayType* t_arr = _get_array_type_arg(args, "t");
         uint i = args.at("i")->get<int>();
@@ -433,9 +433,9 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
         Type* t_out = t_arr->getElemType()->getFlipped();
         return c->Record({{"in", t_arr}, {"out", t_out}});
       });
-    Generator* getT = mantle->newGeneratorDecl("getT", getTTypeGen, getTParams);
+    Generator* getArrT = mantle->newGeneratorDecl("getArrT", getArrTTypeGen, getArrTParams);
 
-    getT->setGeneratorDefFromFun(
+    getArrT->setGeneratorDefFromFun(
       [](Context* c, Values genargs, ModuleDef* def) {
         uint i = genargs.at("i")->get<int>();
 
