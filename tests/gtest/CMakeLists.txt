@@ -78,3 +78,7 @@ add_test(NAME test_inline_instance COMMAND test_inline_instance WORKING_DIRECTOR
 add_executable(test_link_defs test_link_defs.cpp)
 target_link_libraries(test_link_defs gtest_main coreir coreir-commonlib)
 add_test(NAME test_link_defs COMMAND test_link_defs WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/gtest)
+
+add_executable(test_mantle test_mantle.cpp)
+target_link_libraries(test_mantle gtest_main coreir coreir-commonlib)
+add_test(NAME test_mantle COMMAND test_mantle WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/gtest)

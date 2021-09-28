@@ -1,0 +1,29 @@
+{"top":"global.Foo",
+"namespaces":{
+  "global":{
+    "modules":{
+        "Foo": {
+        "type":["Record",[
+          ["I0",["Array",9,["Array",32,"BitIn"]]],
+          ["I1",["Array",6,["Array",32,"BitIn"]]],
+          ["O",["Array",15,["Array",32,"Bit"]]]
+        ]],
+        "instances":{
+          "concat":{
+            "genref":"mantle.concatT",
+            "genargs":{
+                "t1":["CoreIRType",["Array",9,["Array",32,"BitIn"]]],
+                "t2":["CoreIRType",["Array",6,["Array",32,"BitIn"]]]
+            }
+          }
+        },
+        "connections":[
+            ["self.I0", "concat.in1"],
+            ["self.I1", "concat.in2"],
+            ["self.O", "concat.out"]
+        ]
+        }
+    }
+  }
+}
+}

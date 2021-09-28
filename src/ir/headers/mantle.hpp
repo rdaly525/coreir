@@ -1,5 +1,11 @@
 // This file is just included in context.cpp
 
+ArrayType* _get_array_type_arg(Values args, std::string name) {
+  Type* t = args.at(name)->get<Type*>();
+  ASSERT(isa<ArrayType>(t), name + "t1 needs to be an array");
+  return cast<ArrayType>(t);
+}
+
 Namespace* CoreIRLoadHeader_mantle(Context* c) {
 
   Namespace* mantle = c->newNamespace("mantle");
@@ -341,5 +347,39 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
       "  assign out = value;";
     regCEArst->getMetaData()["verilog"] = vjson;
   }
+
+  {
+    Params concatTParams(
+        {{"t1", CoreIRType::make(c)}, {"t2", CoreIRType::make(c)}});
+
+    auto concatTTypeGen = mantle->newTypeGen(
+        "concatTTypeFun", concatTParams, [](Context* c, Values args) {
+          ArrayType* t1_arr = _get_array_type_arg(args, "t1");
+          ArrayType* t2_arr = _get_array_type_arg(args, "t2");
+          ASSERT(t1_arr->getElemType() == t2_arr->getElemType(),
+                 "t1 and t2 need the same element type");
+          ArrayType* t3 = c->Array(t1_arr->getLen() + t2_arr->getLen(),
+                                   t1_arr->getElemType()->getFlipped());
+          return c->Record({{"in1", t1_arr}, {"in2", t2_arr}, {"out", t3}});
+        });
+    Generator* concatT =
+        mantle->newGeneratorDecl("concatT", concatTTypeGen, concatTParams);
+
+    concatT->setGeneratorDefFromFun(
+        [](Context* c, Values genargs, ModuleDef* def) {
+          ArrayType* t1_arr = _get_array_type_arg(genargs, "t1");
+          ArrayType* t2_arr = _get_array_type_arg(genargs, "t2");
+
+          unsigned int t1_len = t1_arr->getLen();
+          for (unsigned int i = 0; i < t1_len; i++) {
+            def->connect("self.in1." + toString(i), "self.out." + toString(i));
+          }
+          for (unsigned int i = 0; i < t2_arr->getLen(); i++) {
+            def->connect("self.in2." + toString(i),
+                         "self.out." + toString(t1_len + i));
+          }
+        });
+  }
+
   return mantle;
 }
