@@ -1,0 +1,27 @@
+{"top":"global.Foo",
+"namespaces":{
+  "global":{
+    "modules":{
+        "Foo": {
+        "type":["Record",[
+          ["I",["Array",9,["Array",32,"BitIn"]]],
+          ["O",["Array",32,"Bit"]]
+        ]],
+        "instances":{
+          "get":{
+            "genref":"mantle.getT",
+            "genargs":{
+                "t":["CoreIRType",["Array",9,["Array",32,"BitIn"]]],
+                "i": ["Int", 7]
+            }
+          }
+        },
+        "connections":[
+            ["self.I", "get.in"],
+            ["self.O", "get.out"]
+        ]
+        }
+    }
+  }
+}
+}
