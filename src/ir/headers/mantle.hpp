@@ -350,33 +350,33 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
 
   {
     Params concatArrTParams(
-        {{"t1", CoreIRType::make(c)}, {"t2", CoreIRType::make(c)}});
+        {{"t0", CoreIRType::make(c)}, {"t1", CoreIRType::make(c)}});
 
     auto concatArrTTypeGen = mantle->newTypeGen(
         "concatArrTTypeFun", concatArrTParams, [](Context* c, Values args) {
+          ArrayType* t0_arr = _get_array_type_arg(args, "t0");
           ArrayType* t1_arr = _get_array_type_arg(args, "t1");
-          ArrayType* t2_arr = _get_array_type_arg(args, "t2");
-          ASSERT(t1_arr->getElemType() == t2_arr->getElemType(),
-                 "t1 and t2 need the same element type");
-          ArrayType* t3 = c->Array(t1_arr->getLen() + t2_arr->getLen(),
-                                   t1_arr->getElemType()->getFlipped());
-          return c->Record({{"in1", t1_arr}, {"in2", t2_arr}, {"out", t3}});
+          ASSERT(t0_arr->getElemType() == t1_arr->getElemType(),
+                 "t0 and t1 need the same element type");
+          ArrayType* t2 = c->Array(t0_arr->getLen() + t1_arr->getLen(),
+                                   t0_arr->getElemType()->getFlipped());
+          return c->Record({{"in0", t0_arr}, {"in1", t1_arr}, {"out", t2}});
         });
     Generator* concatArrT =
         mantle->newGeneratorDecl("concatArrT", concatArrTTypeGen, concatArrTParams);
 
     concatArrT->setGeneratorDefFromFun(
         [](Context* c, Values genargs, ModuleDef* def) {
+          ArrayType* t0_arr = _get_array_type_arg(genargs, "t0");
           ArrayType* t1_arr = _get_array_type_arg(genargs, "t1");
-          ArrayType* t2_arr = _get_array_type_arg(genargs, "t2");
 
-          unsigned int t1_len = t1_arr->getLen();
-          for (unsigned int i = 0; i < t1_len; i++) {
-            def->connect("self.in1." + toString(i), "self.out." + toString(i));
+          unsigned int t0_len = t0_arr->getLen();
+          for (unsigned int i = 0; i < t0_len; i++) {
+            def->connect("self.in0." + toString(i), "self.out." + toString(i));
           }
-          for (unsigned int i = 0; i < t2_arr->getLen(); i++) {
-            def->connect("self.in2." + toString(i),
-                         "self.out." + toString(t1_len + i));
+          for (unsigned int i = 0; i < t1_arr->getLen(); i++) {
+            def->connect("self.in1." + toString(i),
+                         "self.out." + toString(t0_len + i));
           }
         });
   }

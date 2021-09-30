@@ -12,14 +12,14 @@
           "concat":{
             "genref":"mantle.concatArrT",
             "genargs":{
-                "t1":["CoreIRType",["Array",9,["Array",32,"BitIn"]]],
-                "t2":["CoreIRType",["Array",6,["Array",32,"BitIn"]]]
+                "t0":["CoreIRType",["Array",9,["Array",32,"BitIn"]]],
+                "t1":["CoreIRType",["Array",6,["Array",32,"BitIn"]]]
             }
           }
         },
         "connections":[
-            ["self.I0", "concat.in1"],
-            ["self.I1", "concat.in2"],
+            ["self.I0", "concat.in0"],
+            ["self.I1", "concat.in1"],
             ["self.O", "concat.out"]
         ]
         }
