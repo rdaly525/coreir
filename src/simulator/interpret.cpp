@@ -489,7 +489,7 @@ void SimulatorState::initializeState(
 
   map<vdisc, vdisc> rcvToSrc;
   for (auto rcv : pluginReceivers) {
-    bool foundSrc = false;
+    bool foundSrc;
     vdisc srcV = 0;
     for (auto src : pluginSources) {
       if (gr.getNode(src).getWire() == gr.getNode(rcv).getWire()) {
@@ -498,7 +498,7 @@ void SimulatorState::initializeState(
         break;
       }
     }
-    assert(foundSrc == true);
+    assert(foundSrc);
     rcvToSrc[rcv] = srcV;
   }
 
