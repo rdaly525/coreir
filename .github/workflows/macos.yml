@@ -24,7 +24,7 @@ jobs:
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
       
     - name: Install Dependencies
-      run: brew install -y verilator
+      run: brew install verilator
 
     - name: Build
       # Build your program with the given configuration
