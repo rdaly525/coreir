@@ -359,7 +359,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       def->addInstance("sextb", "coreir.sext", sextArgs);
 
       def->addInstance("mult", "coreir.mul", {{"width", Const::make(c, 2*width)}});
-      
+
       Values sliceArgs = {{"width", Const::make(c, 2*width)},
                           {"lo", Const::make(c, width/2)},
                           {"hi", Const::make(c, 3*width/2)}};
@@ -382,7 +382,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       def->addInstance("sextb", "coreir.sext", sextArgs);
 
       def->addInstance("mult", "coreir.mul", {{"width", Const::make(c, 2*width)}});
-      
+
       Values sliceArgs = {{"width", Const::make(c, 2*width)},
                           {"lo", Const::make(c, width)},
                           {"hi", Const::make(c, 2*width)}};
@@ -1384,9 +1384,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     {{"width", c->Int()}, {"iterations", c->Int()}},  // generater parameters
     [](Context* c, Values args) {  // Function to compute type
       uint width = args.at("width")->get<int>();
-      uint iterations = args.at("iterations")->get<int>();
       assert(width > 0);
-      assert(iterations > 1);
 
       return c->Record({{"in_valid", c->BitIn()},
                         {"reset", c->BitIn()},
@@ -1407,6 +1405,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
                                       ModuleDef* def) {
     uint width = args.at("width")->get<int>();
     uint iterations = args.at("iterations")->get<int>();
+    assert(iterations > 1);
 
     Const* aBitwidth = Const::make(c, width);
     Values bitwidthParams = {{"width", aBitwidth}};
