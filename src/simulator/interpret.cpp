@@ -4,6 +4,9 @@
 
 #include <functional>
 
+https://stackoverflow.com/questions/777261/avoiding-unused-variables-warnings-when-using-assert-in-a-release-build
+#define _unused(x) ((void)(x))
+
 using namespace std;
 
 namespace CoreIR {
@@ -489,7 +492,7 @@ void SimulatorState::initializeState(
 
   map<vdisc, vdisc> rcvToSrc;
   for (auto rcv : pluginReceivers) {
-    bool foundSrc;
+    bool foundSrc = false;
     vdisc srcV = 0;
     for (auto src : pluginSources) {
       if (gr.getNode(src).getWire() == gr.getNode(rcv).getWire()) {
@@ -499,6 +502,7 @@ void SimulatorState::initializeState(
       }
     }
     assert(foundSrc);
+    _unused(foundSrc);
     rcvToSrc[rcv] = srcV;
   }
 
