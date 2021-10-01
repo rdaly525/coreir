@@ -28,6 +28,7 @@ std::string ValueType::toString() {
     return "Any";
   default:
     assert(0);
+  return "";  // -Werror=return-type
   }
 }
 AnyType* AnyType::make(Context* c) { return c->typecache->getAny(); }
