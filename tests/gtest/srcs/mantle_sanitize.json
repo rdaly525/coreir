@@ -1,0 +1,114 @@
+{"top":"global.Foo",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Foo":{
+        "type":["Record",[
+          ["I",["Array",4,["Record",[["_0","BitIn"],["_1",["Array",2,"BitIn"]]]]]],
+          ["O0",["Array",4,["Record",[["_0","Bit"],["_1",["Array",2,"Bit"]]]]]],
+          ["O1",["Array",4,["Record",[["_0","Bit"],["_1",["Array",2,"Bit"]]]]]],
+          ["O2",["Array",4,["Record",[["_0","Bit"],["_1",["Array",2,"Bit"]]]]]],
+          ["O3",["Array",4,["Record",[["_0","Bit"],["_1",["Array",2,"Bit"]]]]]]
+        ]],
+        "instances":{
+          "Concat_inst0":{
+            "genref":"mantle.concatArrT",
+            "genargs":{"t0":["CoreIRType",["Array",2,["Record",[["_0","BitIn"],["_1",["Array",2,"BitIn"]]]]]], "t1":["CoreIRType",["Array",2,["Record",[["_0","BitIn"],["_1",["Array",2,"BitIn"]]]]]]}
+          },
+          "Concat_inst1":{
+            "genref":"mantle.concatArrT",
+            "genargs":{"t0":["CoreIRType",["Array",1,["Record",[["_0","BitIn"],["_1",["Array",2,"BitIn"]]]]]], "t1":["CoreIRType",["Array",1,["Record",[["_0","BitIn"],["_1",["Array",2,"BitIn"]]]]]]}
+          },
+          "Concat_inst2":{
+            "genref":"mantle.concatArrT",
+            "genargs":{"t0":["CoreIRType",["Array",2,["Record",[["_0","BitIn"],["_1",["Array",2,"BitIn"]]]]]], "t1":["CoreIRType",["Array",1,["Record",[["_0","BitIn"],["_1",["Array",2,"BitIn"]]]]]]}
+          },
+          "Concat_inst3":{
+            "genref":"mantle.concatArrT",
+            "genargs":{"t0":["CoreIRType",["Array",3,["Record",[["_0","BitIn"],["_1",["Array",2,"BitIn"]]]]]], "t1":["CoreIRType",["Array",1,["Record",[["_0","BitIn"],["_1",["Array",2,"BitIn"]]]]]]}
+          },
+          "Concat_inst4":{
+            "genref":"mantle.concatArrT",
+            "genargs":{"t0":["CoreIRType",["Array",2,["Record",[["_0","BitIn"],["_1",["Array",2,"BitIn"]]]]]], "t1":["CoreIRType",["Array",2,["Record",[["_0","BitIn"],["_1",["Array",2,"BitIn"]]]]]]}
+          },
+          "Index_inst0":{
+            "genref":"mantle.getArrT",
+            "genargs":{"i":["Int",1], "t":["CoreIRType",["Array",4,["Record",[["_0","BitIn"],["_1",["Array",2,"BitIn"]]]]]]}
+          },
+          "Index_inst1":{
+            "genref":"mantle.getArrT",
+            "genargs":{"i":["Int",0], "t":["CoreIRType",["Array",4,["Record",[["_0","BitIn"],["_1",["Array",2,"BitIn"]]]]]]}
+          },
+          "Index_inst2":{
+            "genref":"mantle.getArrT",
+            "genargs":{"i":["Int",3], "t":["CoreIRType",["Array",4,["Record",[["_0","BitIn"],["_1",["Array",2,"BitIn"]]]]]]}
+          },
+          "Index_inst3":{
+            "genref":"mantle.getArrT",
+            "genargs":{"i":["Int",2], "t":["CoreIRType",["Array",4,["Record",[["_0","BitIn"],["_1",["Array",2,"BitIn"]]]]]]}
+          },
+          "Slice_inst0":{
+            "genref":"mantle.sliceArrT",
+            "genargs":{"hi":["Int",4], "lo":["Int",2], "t":["CoreIRType",["Array",4,["Record",[["_0","BitIn"],["_1",["Array",2,"BitIn"]]]]]]}
+          },
+          "Slice_inst1":{
+            "genref":"mantle.sliceArrT",
+            "genargs":{"hi":["Int",2], "lo":["Int",0], "t":["CoreIRType",["Array",4,["Record",[["_0","BitIn"],["_1",["Array",2,"BitIn"]]]]]]}
+          },
+          "Slice_inst2":{
+            "genref":"mantle.sliceArrT",
+            "genargs":{"hi":["Int",4], "lo":["Int",2], "t":["CoreIRType",["Array",4,["Record",[["_0","BitIn"],["_1",["Array",2,"BitIn"]]]]]]}
+          },
+          "Slice_inst3":{
+            "genref":"mantle.sliceArrT",
+            "genargs":{"hi":["Int",2], "lo":["Int",0], "t":["CoreIRType",["Array",4,["Record",[["_0","BitIn"],["_1",["Array",2,"BitIn"]]]]]]}
+          }
+        },
+        "connections":[
+          ["Slice_inst0.out","Concat_inst0.in0"],
+          ["Slice_inst1.out","Concat_inst0.in1"],
+          ["self.O1","Concat_inst0.out"],
+          ["Index_inst0.out","Concat_inst1.in0.0"],
+          ["Index_inst1.out","Concat_inst1.in1.0"],
+          ["Concat_inst2.in0","Concat_inst1.out"],
+          ["Index_inst2.out","Concat_inst2.in1.0"],
+          ["Concat_inst3.in0","Concat_inst2.out"],
+          ["Index_inst3.out","Concat_inst3.in1.0"],
+          ["self.O2","Concat_inst3.out"],
+          ["Slice_inst2.out","Concat_inst4.in0"],
+          ["Slice_inst3.out","Concat_inst4.in1"],
+          ["self.O3","Concat_inst4.out"],
+          ["self.I","Index_inst0.in"],
+          ["self.I","Index_inst1.in"],
+          ["self.I","Index_inst2.in"],
+          ["self.I","Index_inst3.in"],
+          ["self.I","Slice_inst0.in"],
+          ["self.I","Slice_inst1.in"],
+          ["self.I","Slice_inst2.in"],
+          ["self.I","Slice_inst3.in"],
+          ["self.O0","self.I"]
+        ]
+      },
+      "concatArrT":{
+        "type":["Record",[
+          ["I0",["Array",2,["Record",[["_0","BitIn"],["_1",["Array",2,"BitIn"]]]]]],
+          ["I1",["Array",2,["Record",[["_0","BitIn"],["_1",["Array",2,"BitIn"]]]]]],
+          ["O",["Array",4,["Record",[["_0","Bit"],["_1",["Array",2,"Bit"]]]]]]
+        ]]
+      },
+      "getArrT":{
+        "type":["Record",[
+          ["I",["Array",4,["Record",[["_0","BitIn"],["_1",["Array",2,"BitIn"]]]]]],
+          ["O",["Record",[["_0","Bit"],["_1",["Array",2,"Bit"]]]]]
+        ]]
+      },
+      "sliceArrT":{
+        "type":["Record",[
+          ["I",["Array",4,["Record",[["_0","BitIn"],["_1",["Array",2,"BitIn"]]]]]],
+          ["O",["Array",2,["Record",[["_0","Bit"],["_1",["Array",2,"Bit"]]]]]]
+        ]]
+      }
+    }
+  }
+}
+}
