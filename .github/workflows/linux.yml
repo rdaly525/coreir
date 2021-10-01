@@ -33,7 +33,7 @@ jobs:
         cd build
         sudo make install
         cd -
-        pip install pytest delegator.py
+        pip install pytest
     - name: Test
       run: |
         pytest tests/binary

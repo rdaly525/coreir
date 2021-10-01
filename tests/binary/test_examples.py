@@ -1,4 +1,4 @@
-import delegator
+import subprocess
 import os
 import pytest
 
@@ -16,26 +16,20 @@ def test_examples(example):
 
         libs = "-l commonlib,float,float_CW"
         #Test input parsing and serializing to json
-        res = delegator.run(f"bin/coreir -i examples/{example} {libs} -o examples/build/{name}.json")
-        assert not res.return_code, res.out + res.err
+        subprocess.run(f"bin/coreir -i examples/{example} {libs} -o examples/build/{name}.json", shell=True, check=True)
 
         #Test syntax of serialized json
-        res = delegator.run(f"bin/coreir -i examples/build/{name}.json {libs}")
-        assert not res.return_code, res.out + res.err
+        subprocess.run(f"bin/coreir -i examples/build/{name}.json {libs}", shell=True, check=True)
 
         #Test serializing to verilog
-        res = delegator.run(f"bin/coreir -i examples/{example} {libs} -p wireclocks-clk -o examples/build/{name}.sv")
-        assert not res.return_code, res.out + res.err
+        subprocess.run(f"bin/coreir -i examples/{example} {libs} -p wireclocks-clk -o examples/build/{name}.sv", shell=True, check=True)
 
         #Verify verilog syntax
-        res = delegator.run(f"verilator --lint-only examples/build/{name}.sv")
-        assert not res.return_code, res.out + res.err
+        subprocess.run(f"verilator --lint-only examples/build/{name}.sv", shell=True, check=True)
 
         #Test serializing to verilog (inlined)
         #TODO this hangs sometimes for some examples
-        #res = delegator.run(f"bin/coreir -i examples/{example} -o examples/build/{name}_inline.v --inline")
-        #assert not res.return_code, res.out + res.err
+        #subprocess.run(f"bin/coreir -i examples/{example} -o examples/build/{name}_inline.v --inline", shell=True, check=True)
 
         #Verify verilog syntax (inlined)
-        #res = delegator.run(f"verilator --lint-only examples/build/{name}_inline.v")
-        #assert not res.return_code, res.out + res.err
+        #subprocess.run(f"verilator --lint-only examples/build/{name}_inline.v", shell=True, check=True)

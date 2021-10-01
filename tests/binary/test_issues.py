@@ -1,53 +1,53 @@
-import delegator
+import subprocess
 
 
 def test_verilator_compat():
-    res = delegator.run(
+    subprocess.run(
         'coreir -i tests/binary/src/verilator_compat.json'
         '           -o tests/binary/build/out.v'
-        '           -l commonlib --verilator_compat'
+        '           -l commonlib --verilator_compat',
+        shell=True, check=True
     )
-    assert not res.return_code, res.out + res.err
 
-    res = delegator.run('verilator --lint-only -Wall -Wno-DECLFILENAME '
-                        'tests/binary/build/out.v')
-    assert not res.return_code, res.out + res.err
+    subprocess.run('verilator --lint-only -Wall -Wno-DECLFILENAME '
+                   'tests/binary/build/out.v',
+                   shell=True, check=True)
 
 
 def test_garnet_interconnect_name_clobber():
-    res = delegator.run(
+    subprocess.run(
         'coreir -i tests/binary/src/Interconnect.json'
         '           -o tests/binary/build/out.v'
-        '           -l commonlib'
+        '           -l commonlib',
+        shell=True, check=True
     )
-    assert not res.return_code, res.out + res.err
 
-    res = delegator.run('verilator --lint-only tests/binary/build/out.v -I '
-                        'tests/binary/stubs.v')
-    assert not res.return_code, res.out + res.err
+    subprocess.run('verilator --lint-only tests/binary/build/out.v -I '
+                  'tests/binary/stubs.v',
+                   shell=True, check=True)
 
 
 def test_name_clobber():
     # https://github.com/rdaly525/coreir/issues/954
-    res = delegator.run(
+    subprocess.run(
         'coreir -i tests/binary/src/name_clobber.json'
         '           -o tests/binary/build/out.v'
-        '           -l commonlib'
+        '           -l commonlib',
+        shell=True, check=True
     )
-    assert not res.return_code, res.out + res.err
 
-    res = delegator.run('verilator --lint-only tests/binary/build/out.v')
-    assert not res.return_code, res.out + res.err
+    subprocess.run('verilator --lint-only tests/binary/build/out.v',
+                   shell=True, check=True)
 
 
 def test_953():
-    res = delegator.run(
+    subprocess.run(
         'coreir -i tests/binary/src/simple_mux.json'
         '           -o tests/binary/build/out.v'
-        '           -l commonlib --inline'
+        '           -l commonlib --inline',
+        shell=True, check=True
     )
-    assert not res.return_code, res.out + res.err
 
-    res = delegator.run('diff tests/binary/build/out.v  '
-                        '     tests/binary/gold/simple_mux.v')
-    assert not res.return_code, res.out + res.err
+    subprocess.run('diff tests/binary/build/out.v  '
+                   '     tests/binary/gold/simple_mux.v',
+                   shell=True, check=True)
