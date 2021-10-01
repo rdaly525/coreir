@@ -30,8 +30,10 @@ string instStr(SelectPath wire) {
 }
 
 bool isSource(Wireable* wire) {
-  Select* child;
   Wireable* parent = wire;
+  ASSERT(isa<Select>(parent), "Expected select");
+  // Need to initialize otherwise error=maybe-uninitialized
+  Select* child = cast<Select>(parent);
 
   while (isa<Select>(parent)) {
     child = cast<Select>(parent);
@@ -71,7 +73,7 @@ bool ModuleToDot(Module* m, std::ostream& stream) {
         }
       } else if (moduleName == "reg") {
         displayName = "__/\\\\__";
-          
+
       } else if (moduleName == "const") {
         if ((*inst)->getModArgs().count("value") > 0) {
           auto bv = (*inst)->getModArgs().at("value")->get<BitVector>();
