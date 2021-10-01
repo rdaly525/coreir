@@ -498,7 +498,7 @@ void SimulatorState::initializeState(
         break;
       }
     }
-    assert(foundSrc);
+    assert(foundSrc == true);
     rcvToSrc[rcv] = srcV;
   }
 
