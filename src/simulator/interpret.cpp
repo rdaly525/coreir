@@ -4,7 +4,7 @@
 
 #include <functional>
 
-https://stackoverflow.com/questions/777261/avoiding-unused-variables-warnings-when-using-assert-in-a-release-build
+// https://stackoverflow.com/questions/777261/avoiding-unused-variables-warnings-when-using-assert-in-a-release-build
 #define _unused(x) ((void)(x))
 
 using namespace std;

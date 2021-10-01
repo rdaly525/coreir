@@ -3,6 +3,9 @@
 
 COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(commonlib);
 
+// https://stackoverflow.com/questions/777261/avoiding-unused-variables-warnings-when-using-assert-in-a-release-build
+#define _unused(x) ((void)(x))
+
 using namespace std;
 using namespace CoreIR;
 
@@ -1384,7 +1387,10 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     {{"width", c->Int()}, {"iterations", c->Int()}},  // generater parameters
     [](Context* c, Values args) {  // Function to compute type
       uint width = args.at("width")->get<int>();
+      uint iterations = args.at("iterations")->get<int>();
       assert(width > 0);
+      assert(iterations > 1);
+      _unused(iterations);
 
       return c->Record({{"in_valid", c->BitIn()},
                         {"reset", c->BitIn()},
@@ -1405,7 +1411,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
                                       ModuleDef* def) {
     uint width = args.at("width")->get<int>();
     uint iterations = args.at("iterations")->get<int>();
-    assert(iterations > 1);
 
     Const* aBitwidth = Const::make(c, width);
     Values bitwidthParams = {{"width", aBitwidth}};
