@@ -363,9 +363,10 @@ bool load(Context* c, string filename, Module** top, std::vector<Module*>& loade
             auto gref = getRef(jinst.at("genref").get<string>());
             Generator* genRef = getGenSymbol(c, gref[0], gref[1]);
             Values genargs = json2Values(c, jinst.at("genargs"));
+            Module* modRef = genRef->getModule(genargs);
             Values modargs;
             if (jinst.count("modargs")) {
-              modargs = json2Values(c, jinst.at("modargs"));
+              modargs = json2Values(c, jinst.at("modargs"), modRef);
             }
             inst = mdef->addInstance(instname, genRef, genargs, modargs);
           }
