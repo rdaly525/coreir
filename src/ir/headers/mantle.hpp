@@ -443,5 +443,30 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
       });
   }
 
+  {
+    Params liftArrTParams({{"t", CoreIRType::make(c)}});
+
+    auto liftArrTTypeGen = mantle->newTypeGen(
+      "liftArrTTypeFun",
+      liftArrTParams,
+      [](Context* c, Values args) {
+        ArrayType* t_arr = _get_array_type_arg(args, "t");
+        int n = t_arr->getLen();
+        ASSERT(
+          n == 1,
+          "Bad lift args! array length must be 1 not " + to_string(n));
+
+        Type* in_type = t_arr->getElemType()->getFlipped();
+        return c->Record({{"in", in_type}, {"out", t_arr}});
+      });
+    Generator* liftArrT = mantle->newGeneratorDecl("liftArrT", liftArrTTypeGen, liftArrTParams);
+
+    liftArrT->setGeneratorDefFromFun(
+      [](Context* c, Values genargs, ModuleDef* def) {
+
+        def->connect("self.in", "self.out.0");
+      });
+  }
+
   return mantle;
 }

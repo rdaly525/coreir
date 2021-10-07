@@ -1,0 +1,26 @@
+{"top":"global.Foo",
+"namespaces":{
+  "global":{
+    "modules":{
+        "Foo": {
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O",["Array",1,"Bit"]]
+        ]],
+        "instances":{
+          "lift":{
+            "genref":"mantle.liftArrT",
+            "genargs":{
+                "t":["CoreIRType",["Array",1,"Bit"]]
+            }
+          }
+        },
+        "connections":[
+            ["self.I", "lift.in"],
+            ["self.O", "lift.out"]
+        ]
+        }
+    }
+  }
+}
+}
