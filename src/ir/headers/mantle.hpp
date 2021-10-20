@@ -468,5 +468,75 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
       });
   }
 
+  {
+    Params setIdxArrTParams({{"t", CoreIRType::make(c)}, {"i", c->Int()}});
+
+    auto setIdxArrTTypeGen = mantle->newTypeGen(
+      "setIdxArrTTypeFun",
+      setIdxArrTParams,
+      [](Context* c, Values args) {
+        ArrayType* t_arr = _get_array_type_arg(args, "t");
+        uint i = args.at("i")->get<int>();
+        ASSERT(i <= t_arr->getLen(), "Bad get args! i=" + to_string(i));
+
+        Type* elem_type = t_arr->getElemType();
+        return c->Record(
+          {{"in", t_arr}, {"val", elem_type}, {"out", t_arr->getFlipped()}});
+      });
+    Generator* setIdxArrT = mantle->newGeneratorDecl(
+      "setIdxArrT",
+      setIdxArrTTypeGen,
+      setIdxArrTParams);
+
+    setIdxArrT->setGeneratorDefFromFun(
+      [](Context* c, Values genargs, ModuleDef* def) {
+        uint i = genargs.at("i")->get<int>();
+        ArrayType* t_arr = _get_array_type_arg(genargs, "t");
+        for (uint j = 0; j < t_arr->getLen(); j++) {
+          if (j == i) { def->connect("self.val", "self.out." + to_string(j)); }
+          else {
+            def->connect("self.in." + to_string(j), "self.out." + to_string(j));
+          }
+        }
+      });
+  }
+
+  {
+    Params setSliceArrTParams({{"t", CoreIRType::make(c)}, {"lo", c->Int()}, {"hi", c->Int()}});
+
+    auto setSliceArrTTypeGen = mantle->newTypeGen(
+      "setSliceArrTTypeFun",
+      setSliceArrTParams,
+      [](Context* c, Values args) {
+        ArrayType* t_arr = _get_array_type_arg(args, "t");
+        uint lo = args.at("lo")->get<int>();
+        uint hi = args.at("hi")->get<int>();
+        ASSERT(
+          lo < hi && hi <= t_arr->getLen(),
+          "Bad slice args! lo=" + to_string(lo) + ", hi=" + to_string(hi));
+
+        Type* val_type = c->Array(hi - lo, t_arr->getElemType());
+        return c->Record(
+          {{"in", t_arr}, {"val", val_type}, {"out", t_arr->getFlipped()}});
+      });
+    Generator* setSliceArrT = mantle->newGeneratorDecl(
+      "setSliceArrT",
+      setSliceArrTTypeGen,
+      setSliceArrTParams);
+
+    setSliceArrT->setGeneratorDefFromFun(
+      [](Context* c, Values genargs, ModuleDef* def) {
+        uint lo = genargs.at("lo")->get<int>();
+        uint hi = genargs.at("hi")->get<int>();
+        ArrayType* t_arr = _get_array_type_arg(genargs, "t");
+        for (uint j = 0; j < t_arr->getLen(); j++) {
+          if (j >= lo && j < hi) { def->connect("self.val." + to_string(j - lo), "self.out." + to_string(j)); }
+          else {
+            def->connect("self.in." + to_string(j), "self.out." + to_string(j));
+          }
+        }
+      });
+  }
+
   return mantle;
 }

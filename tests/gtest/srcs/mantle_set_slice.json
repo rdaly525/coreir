@@ -1,0 +1,32 @@
+{"top":"global.Foo",
+"namespaces":{
+  "global":{
+    "modules":{
+        "Foo": {
+        "type":["Record",[
+          ["I",["Array",9,["Array",32,"BitIn"]]],
+          ["O",["Array",9,["Array",32,"Bit"]]]
+        ]],
+        "instances":{
+          "set":{
+            "genref":"mantle.setSliceArrT",
+            "genargs":{
+                "t":["CoreIRType",["Array",9,["Array",32,"BitIn"]]],
+                "hi": ["Int", 7],
+                "lo": ["Int", 3]
+            }
+          }
+        },
+        "connections":[
+            ["self.I", "set.in"],
+            ["self.I.0", "set.val.0"],
+            ["self.I.1", "set.val.1"],
+            ["self.I.2", "set.val.2"],
+            ["self.I.3", "set.val.3"],
+            ["self.O", "set.out"]
+        ]
+        }
+    }
+  }
+}
+}
