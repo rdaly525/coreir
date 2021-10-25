@@ -97,6 +97,24 @@ TEST(MantleVerilogTests, TestLift) {
   assertPassEq(c, "verilog", "golds/mantle_lift.v");
   deleteContext(c);
 }
+
+TEST(MantleVerilogTests, TestConcatN) {
+  Context* c = newContext();
+  Module* top;
+
+  if (!loadFromFile(c, "srcs/mantle_concat_n.json", &top)) { c->die(); }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {
+    "rungenerators",
+    "removebulkconnections",
+    "flattentypes --ndarray",
+    "verilog --inline"};
+  c->runPasses(passes, {});
+  assertPassEq(c, "verilog", "golds/mantle_concat_n.v");
+  deleteContext(c);
+}
 }  // namespace
 
 int main(int argc, char** argv) {

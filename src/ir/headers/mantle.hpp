@@ -382,6 +382,47 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
   }
 
   {
+    Params concatNArrTParams(
+      {{"t_child", CoreIRType::make(c)}, {"Ns", JsonType::make(c)}});
+
+    auto concatNArrTTypeGen = mantle->newTypeGen(
+      "concatNArrTTypeFun",
+      concatNArrTParams,
+      [](Context* c, Values args) {
+        Type* t_child = args.at("t_child")->get<Type*>();
+        json Ns = args.at("Ns")->get<json>();
+        ASSERT(Ns.is_array(), "expected array");
+        RecordParams rp;
+        unsigned int outN = 0;
+        for (unsigned int i = 0; i < Ns.size(); i++) {
+          rp.push_back({"in" + to_string(i), c->Array(Ns.at(i).get<unsigned int>(), t_child)});
+          outN += Ns.at(i).get<unsigned int>();
+        }
+        rp.push_back({"out", c->Array(outN, t_child->getFlipped())});
+        return c->Record(rp);
+      });
+    Generator* concatNArrT = mantle->newGeneratorDecl(
+      "concatNArrT",
+      concatNArrTTypeGen,
+      concatNArrTParams);
+
+    concatNArrT->setGeneratorDefFromFun(
+      [](Context* c, Values genargs, ModuleDef* def) {
+        json Ns = genargs.at("Ns")->get<json>();
+        unsigned int offset = 0;
+
+        for (unsigned int i = 0; i < Ns.size(); i++) {
+          for (unsigned int j = 0; j < Ns.at(i).get<unsigned int>(); j++) {
+            def->connect(
+              "self.in" + toString(i) + "." + toString(j),
+              "self.out." + toString(offset + j));
+          }
+          offset += Ns.at(i).get<unsigned int>();
+        }
+      });
+  }
+
+  {
     Params sliceArrTParams(
       {{"t", CoreIRType::make(c)}, {"lo", c->Int()}, {"hi", c->Int()}});
 
