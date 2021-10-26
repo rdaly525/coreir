@@ -1,0 +1,31 @@
+{"top":"global.Foo",
+"namespaces":{
+  "global":{
+    "modules":{
+        "Foo": {
+        "type":["Record",[
+          ["I0",["Array",9,["Array",32,"BitIn"]]],
+          ["I1",["Array",6,["Array",32,"BitIn"]]],
+          ["I2",["Array",7,["Array",32,"BitIn"]]],
+          ["O",["Array",22,["Array",32,"Bit"]]]
+        ]],
+        "instances":{
+          "concat":{
+            "genref":"mantle.concatNArrT",
+            "genargs":{
+                "t_child":["CoreIRType",["Array",32,"BitIn"]],
+                "Ns": ["Json", [9, 6, 7]]
+            }
+          }
+        },
+        "connections":[
+            ["self.I0", "concat.in0"],
+            ["self.I1", "concat.in1"],
+            ["self.I2", "concat.in2"],
+            ["self.O", "concat.out"]
+        ]
+        }
+    }
+  }
+}
+}
