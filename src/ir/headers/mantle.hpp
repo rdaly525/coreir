@@ -461,6 +461,57 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
   }
 
   {
+    Params slicesArrTParams(
+      {{"t", CoreIRType::make(c)}, {"slices", JsonType::make(c)}});
+
+    auto slicesArrTTypeGen = mantle->newTypeGen(
+      "slicesArrTTypeFun",
+      slicesArrTParams,
+      [](Context* c, Values args) {
+        ArrayType* t = _get_array_type_arg(args, "t");
+
+        json slices = args.at("slices")->get<json>();
+        ASSERT(slices.is_array(), "expected array");
+
+        Type* elem_type = t->getElemType()->getFlipped();
+
+        RecordParams rp;
+        rp.push_back({"in", t});
+
+        for (unsigned int i = 0; i < slices.size(); i++) {
+          json slice = slices.at(i);
+          ASSERT(
+            slice.is_array() && slice.size() == 2,
+            "expected array of length 2");
+          unsigned int n = slice.at(0).get<unsigned int>() -
+            slice.at(1).get<unsigned int>();
+          rp.push_back({"out" + to_string(i), c->Array(n, elem_type)});
+        }
+        return c->Record(rp);
+      });
+    Generator* slicesArrT = mantle->newGeneratorDecl(
+      "slicesArrT",
+      slicesArrTTypeGen,
+      slicesArrTParams);
+
+    slicesArrT->setGeneratorDefFromFun(
+      [](Context* c, Values genargs, ModuleDef* def) {
+        json slices = genargs.at("slices")->get<json>();
+
+        for (unsigned int i = 0; i < slices.size(); i++) {
+          json slice = slices.at(i);
+          unsigned int hi = slice.at(0).get<unsigned int>();
+          unsigned int lo = slice.at(1).get<unsigned int>();
+          for (unsigned int j = lo; j < hi; j++) {
+            def->connect(
+              "self.in." + toString(j),
+              "self.out" + toString(i) + "." + toString(j - lo));
+          }
+        }
+      });
+  }
+
+  {
     Params getArrTParams({{"t", CoreIRType::make(c)}, {"i", c->Int()}});
 
     auto getArrTTypeGen = mantle->newTypeGen(

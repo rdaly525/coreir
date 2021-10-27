@@ -1,0 +1,29 @@
+{"top":"global.Foo",
+"namespaces":{
+  "global":{
+    "modules":{
+        "Foo": {
+        "type":["Record",[
+          ["I",["Array",9,["Array",32,"BitIn"]]],
+          ["O0",["Array",4,["Array",32,"Bit"]]],
+          ["O1",["Array",2,["Array",32,"Bit"]]]
+        ]],
+        "instances":{
+          "slices":{
+            "genref":"mantle.slicesArrT",
+            "genargs":{
+                "t":["CoreIRType",["Array",9,["Array",32,"BitIn"]]],
+                "slices": ["Json", [[7, 3], [8,6]]]
+            }
+          }
+        },
+        "connections":[
+            ["self.I", "slices.in"],
+            ["self.O0", "slices.out0"],
+            ["self.O1", "slices.out1"]
+        ]
+        }
+    }
+  }
+}
+}
