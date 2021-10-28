@@ -133,6 +133,24 @@ TEST(MantleVerilogTests, TestSlices) {
   assertPassEq(c, "verilog", "golds/mantle_slices.v");
   deleteContext(c);
 }
+
+TEST(MantleVerilogTests, TestGets) {
+  Context* c = newContext();
+  Module* top;
+
+  if (!loadFromFile(c, "srcs/mantle_gets.json", &top)) { c->die(); }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {
+    "rungenerators",
+    "removebulkconnections",
+    "flattentypes --ndarray",
+    "verilog --inline"};
+  c->runPasses(passes, {});
+  assertPassEq(c, "verilog", "golds/mantle_gets.v");
+  deleteContext(c);
+}
 }  // namespace
 
 int main(int argc, char** argv) {

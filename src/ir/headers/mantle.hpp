@@ -536,6 +536,48 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
   }
 
   {
+    Params getsArrTParams(
+      {{"t", CoreIRType::make(c)}, {"gets", JsonType::make(c)}});
+
+    auto getsArrTTypeGen = mantle->newTypeGen(
+      "getsArrTTypeFun",
+      getsArrTParams,
+      [](Context* c, Values args) {
+        ArrayType* t = _get_array_type_arg(args, "t");
+
+        json gets = args.at("gets")->get<json>();
+        ASSERT(gets.is_array(), "expected array");
+
+        Type* elem_type = t->getElemType()->getFlipped();
+
+        RecordParams rp;
+        rp.push_back({"in", t});
+
+        for (unsigned int i = 0; i < gets.size(); i++) {
+          rp.push_back({"out" + to_string(i), elem_type});
+        }
+        return c->Record(rp);
+      });
+
+    Generator* getsArrT = mantle->newGeneratorDecl(
+      "getsArrT",
+      getsArrTTypeGen,
+      getsArrTParams);
+
+    getsArrT->setGeneratorDefFromFun(
+      [](Context* c, Values genargs, ModuleDef* def) {
+        json gets = genargs.at("gets")->get<json>();
+
+        for (unsigned int i = 0; i < gets.size(); i++) {
+          unsigned int get_idx = gets.at(i).get<unsigned int>();
+          def->connect(
+            "self.in." + toString(get_idx),
+            "self.out" + toString(i));
+        }
+      });
+  }
+
+  {
     Params liftArrTParams({{"t", CoreIRType::make(c)}});
 
     auto liftArrTTypeGen = mantle->newTypeGen(
