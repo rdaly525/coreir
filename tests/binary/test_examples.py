@@ -56,7 +56,7 @@ def test_examples_noverilog(example):
 
         libs = "-l commonlib,float,float_CW"
         #Test input parsing and serializing to json
-        res = delegator.run(f"bin/coreir -i examples/{example} {libs} -o examples/build/{name}.json")
+        res = delegator.run(f"bin/coreir -i examples/no_verilog/{example} {libs} -o examples/build/{name}.json")
         assert not res.return_code, res.out + res.err
 
         #Test syntax of serialized json
