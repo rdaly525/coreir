@@ -192,6 +192,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
        "div",
        "mult_middle",
        "mult_high",
+       "adc"
      }},
     {"ternary", {"MAD"}},
   });
@@ -396,6 +397,21 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       def->connect("slice.out", "self.out");
   });
 
+  Generator* add_with_carry = c->getGenerator("commonlib.adc");
+  add_with_carry->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+      uint width = args.at("width")->get<int>();
+      def->addInstance("add", "coreir.add", args);
+      def->addInstance("plus_one", "coreir.add", args);
+      def->addInstance("one", "coreir.const",
+                       {{"width", Const::make(c, width)},{"value", Const::make(c, width, 1)}});
+
+      def->connect("self.in0", "add.in0");
+      def->connect("self.in1", "add.in1");
+      def->connect("add.out", "plus_one.in0");
+      def->connect("one.out", "plus_one.in1");
+      def->connect("plus_one.out", "self.out");
+  });
+  
   //*** Define demux2 ***//
   // TODO: implement demux
 
