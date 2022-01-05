@@ -403,7 +403,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       def->addInstance("add", "coreir.add", args);
       def->addInstance("plus_one", "coreir.add", args);
       def->addInstance("one", "coreir.const",
-                       {{"width", Const::make(c, width)},{"value", Const::make(c, width, 1)}});
+                       {{"width", Const::make(c, width)}},
+                       {{"value", Const::make(c, width, 1)}});
 
       def->connect("self.in0", "add.in0");
       def->connect("self.in1", "add.in1");
