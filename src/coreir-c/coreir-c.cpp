@@ -296,7 +296,6 @@ void CORESaveContext(
   bool* err) {
 
   string file(filename);
-  std::cout << filename << std::endl;
   bool correct = saveToFile(
     rcast<Context*>(context),
     file,
