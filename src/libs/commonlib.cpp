@@ -147,6 +147,33 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
          {"out", c->Bit()->Arr(width)}});
     });
 
+  // muxN type for bundles for select that is 1 hot
+  commonlib->newTypeGen(
+    "muxN_onehot_type",                                // name for the typegen
+    {{"type", CoreIRType::make(c)}, {"N", c->Int()}},  // generater parameters
+    [](Context* c, Values genargs) {         // Function to compute type
+      Type* t = genargs.at("type")->get<Type*>();
+      uint N = genargs.at("N")->get<int>();
+      return c->Record(
+        {{"in",
+          c->Record({{"data", t->Arr(N)},
+                     {"sel", c->BitIn()->Arr(N)}})},
+         {"out", t->getFlipped()}});
+    });
+
+  // mux2 type for bundles
+  commonlib->newTypeGen(
+    "mux2_bundle_type",
+    {{"type", CoreIRType::make(c)}},  // generater parameters
+    [](Context* c, Values genargs) {  // Function to compute type
+      Type* t = genargs.at("type")->get<Type*>();
+      return c->Record(
+        {{"in",
+          c->Record({{"data", t->Arr(2)},
+                     {"sel", c->BitIn()}})},
+         {"out", t->getFlipped()}});
+    });
+
   // opN type
   commonlib->newTypeGen(
     "opN_type",  // name for the typegen
@@ -192,6 +219,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
        "div",
        "mult_middle",
        "mult_high",
+       "adc"
      }},
     {"ternary", {"MAD"}},
   });
@@ -348,7 +376,22 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->connect("add.out", "self.out");
   });
 
+  Generator* add_with_carry = c->getGenerator("commonlib.adc");
+  add_with_carry->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+      uint width = args.at("width")->get<int>();
+      def->addInstance("add", "coreir.add", args);
+      def->addInstance("plus_one", "coreir.add", args);
+      def->addInstance("one", "coreir.const",
+                       {{"width", Const::make(c, width)}},
+                       {{"value", Const::make(c, width, 1)}});
 
+      def->connect("self.in0", "add.in0");
+      def->connect("self.in1", "add.in1");
+      def->connect("add.out", "plus_one.in0");
+      def->connect("one.out", "plus_one.in1");
+      def->connect("plus_one.out", "self.out");
+  });
+  
   //*** Define multiplier variations ***//
   Generator* mult_middle = c->getGenerator("commonlib.mult_middle");
   mult_middle->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
@@ -684,6 +727,126 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     }
   });
 
+  //////////////////////////////////
+  //*** mux2 bundle definition ***//
+  //////////////////////////////////
+
+  Generator* mux2_bundle = commonlib->newGeneratorDecl(
+    "mux2_bundle",
+    commonlib->getTypeGen("mux2_bundle_type"),
+    {{"type", CoreIRType::make(c)}});
+
+  mux2_bundle->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+    Type* t = genargs.at("type")->get<Type*>();
+    auto dims = get_dims(t);
+
+    if (dims.size() == 1) {
+      auto bitwidth = dims[0];
+      Const* aWidth = Const::make(c, bitwidth);
+      def->addInstance("_join", "coreir.mux", {{"width", aWidth}});
+      def->connect("self.in.data.0", "_join.in0");
+      def->connect("self.in.data.1", "_join.in1");
+      def->connect("self.in.sel", "_join.sel");
+      def->connect("self.out", "_join.out");
+    } else {
+      auto last_dim = dims.size()-1;
+      auto aType = dyn_cast<ArrayType>(t);
+      auto baseType = Const::make(c, aType->getElemType());
+      for (size_t i=0; i<dims[last_dim]; ++i) {
+        string idx = std::to_string(i);
+        string join_name = "_joinb" + idx;
+        def->addInstance("_joinb"+idx, "commonlib.mux2_bundle", {{"type", baseType}});
+        def->connect("self.in.data.0."+idx, join_name+".in.data.0");
+        def->connect("self.in.data.1."+idx, join_name+".in.data.1");
+        def->connect("self.in.sel", join_name+".in.sel");
+        def->connect("self.out."+idx, join_name+".out");
+      }
+    }
+    
+  });
+
+  //////////////////////////////////
+  //*** muxN onehot definition ***//
+  //////////////////////////////////
+
+  Generator* muxN_onehot = commonlib->newGeneratorDecl(
+    "muxn_onehot",
+    commonlib->getTypeGen("muxN_onehot_type"),
+    {{"type", CoreIRType::make(c)}, {"N", c->Int()}});
+
+  muxN_onehot->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+    Type* t = genargs.at("type")->get<Type*>();
+    auto aType = CoreIR::Const::make(c, t);
+    uint N = genargs.at("N")->get<int>();
+    assert(N > 0);
+    Namespace* commonlib = c->getNamespace("commonlib");
+    Generator* mux2 = commonlib->getGenerator("mux2_bundle");
+    Generator* muxN = commonlib->getGenerator("muxn_onehot");
+
+    if (N == 1) {
+      def->connect("self.in.data.0", "self.out");
+      def->addInstance("term_sel", "corebit.term");
+      def->connect("self.in.sel.0", "term_sel.in");
+    }
+    else if (N == 2) {
+      def->addInstance("_join", mux2, {{"type", aType}});
+      def->addInstance("term_sel", "corebit.term");
+
+      def->connect("self.in.data.0", "_join.in.data.0");
+      def->connect("self.in.data.1", "_join.in.data.1");
+      def->connect("_join.out", "self.out");
+      def->connect("self.in.sel.0", "term_sel.in");
+      def->connect("self.in.sel.1", "_join.in.sel"); // select is i1
+    }
+    else {
+      def->addInstance("_join", mux2, {{"type", aType}});
+      def->connect("_join.out", "self.out");
+
+      // Connect half instances
+      uint Nbits = num_bits(N - 1);  // 4 inputs has a max index of 3
+      uint Nlargehalf = 1 << (Nbits - 1);
+      uint Nsmallhalf = N - Nlargehalf;
+
+      // cout << "N=" << N << " which has bitwidth " << Nbits << ", breaking
+      // into " << Nlargehalf << " and " << Nsmallhalf <<endl;
+
+      Const* aNlarge = Const::make(c, Nlargehalf);
+      Const* aNsmall = Const::make(c, Nsmallhalf);
+
+      def->addInstance("muxN_0", muxN, {{"type", aType}, {"N", aNlarge}});
+      def->addInstance("muxN_1", muxN, {{"type", aType}, {"N", aNsmall}});
+
+      def->addInstance("orr_1", "coreir.orr", {{"width", aNsmall}});
+
+      for (uint i = 0; i < Nlargehalf; ++i) {
+        def->connect(
+          {"self", "in", "data", to_string(i)},
+          {"muxN_0", "in", "data", to_string(i)});
+        def->connect(
+          {"self", "in", "sel", to_string(i)},
+          {"muxN_0", "in", "sel", to_string(i)});
+      }
+
+      for (uint i = 0; i < Nsmallhalf; ++i) {
+        def->connect(
+          {"self", "in", "data", to_string(i + Nlargehalf)},
+          {"muxN_1", "in", "data", to_string(i)});
+        def->connect(
+          {"self", "in", "sel", to_string(i + Nlargehalf)},
+          {"muxN_1", "in", "sel", to_string(i)});
+        def->connect(
+          {"self", "in", "sel", to_string(i + Nlargehalf)},
+          {"orr_1", "in", to_string(i)});
+      }
+
+      def->connect("muxN_0.out", "_join.in.data.0");
+      def->connect("muxN_1.out", "_join.in.data.1");
+
+      // wire up select
+      def->connect("orr_1.out", "_join.in.sel"); // choose second half if any sel is hot
+    }
+  });
+  
   /////////////////////////////////
   //*** opN definition        ***//
   /////////////////////////////////
