@@ -73,7 +73,8 @@ int main(int argc, char* argv[]) {
     "splits output files by name (expects '-o <path>/*.<ext>')")(
     "product",
     "specify product list filename",
-    cxxopts::value<std::string>());
+    cxxopts::value<std::string>())(
+    "use-packed-arrays", "use packed arrays");
 
   // Do the parsing of the arguments
   auto opts = options.parse(argc, argv);
@@ -239,6 +240,9 @@ int main(int argc, char* argv[]) {
     }
     if (opts.count("verilog-prefix-extern")) {
       vstr += " --prefix-extern";
+    }
+    if (opts.count("use-packed-arrays")) {
+      vstr += " --use-packed-arrays";
     }
     std::string flattentypes_str = "flattentypes";
     if (!opts.count("x")) { flattentypes_str += " --ndarray"; }

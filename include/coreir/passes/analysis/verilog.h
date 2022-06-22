@@ -21,6 +21,8 @@ class Verilog : public InstanceGraphPass {
   bool verilator_debug = false;
   bool disable_width_cast = false;
 
+  bool use_packed_arrays = false;
+
   std::string module_name_prefix = "";
   bool prefix_extern = false;
 

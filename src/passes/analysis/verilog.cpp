@@ -6,6 +6,7 @@
 #include "coreir/passes/analysis/verilog/inline_utils.hpp"
 #include "coreir/tools/cxxopts.h"
 #include "verilogAST/assign_inliner.hpp"
+#include "verilogAST/make_packed.hpp"
 #include "verilogAST/transformer.hpp"
 #include "coreir/ir/symbol_table_interface.hpp"
 
@@ -95,7 +96,8 @@ void Passes::Verilog::initialize(int argc, char** argv) {
     "Prefix for emitted module names",
     cxxopts::value<std::string>())(
     "prefix-extern",
-    "Use prefix (-p) for externally defined modules");
+    "Use prefix (-p) for externally defined modules")(
+    "use-packed-arrays", "use packed arrays");
   auto opts = options.parse(argc, argv);
   if (opts.count("i")) { this->_inline = true; }
   if (opts.count("y")) { this->verilator_debug = true; }
@@ -105,6 +107,7 @@ void Passes::Verilog::initialize(int argc, char** argv) {
     this->module_name_prefix = opts["p"].as<std::string>();
   }
   if (opts.count("prefix-extern")) { this->prefix_extern = true; }
+  if (opts.count("use-packed-arrays")) this->use_packed_arrays = true;
 }
 
 // Helper function that prepends a prefix contained in json metadata if it
@@ -1666,6 +1669,10 @@ void Passes::Verilog::compileModule(Module* module) {
       std::move(body),
       std::move(parameters));
 
+  if (this->use_packed_arrays) {
+    vAST::MakePacked make_packed {};
+    verilog_module = make_packed.visit(std::move(verilog_module));
+  }
   if (this->_inline) {
     for (auto wire : inlined_wires) {
       // force inlining of wires based on metadata
