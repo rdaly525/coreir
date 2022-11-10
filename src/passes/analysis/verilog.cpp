@@ -1139,12 +1139,9 @@ Passes::Verilog::compileModuleBody(
   for (auto instance : instances) {
     Module* instance_module = instance.second->getModuleRef();
     std::string module_name = instance_module->getLongName();
-    if (instance_module->isGenerated()) {
-      if (instance_module->getGenerator()->getMetaData().count("verilog") > 0) {
-        json verilog_json = instance_module->getGenerator()
-                              ->getMetaData()["verilog"];
-        module_name = make_name(instance_module->getName(), verilog_json);
-      }
+    if (instance_module->isGenerated() && instance_module->getGenerator()->getMetaData().count("verilog") > 0) {
+      json verilog_json = instance_module->getGenerator()->getMetaData()["verilog"];
+      module_name = make_name(instance_module->getName(), verilog_json);
     }
     else if (instance_module->getMetaData().count("verilog") > 0) {
       json verilog_json = instance_module->getMetaData()["verilog"];

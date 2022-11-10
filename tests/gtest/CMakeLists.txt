@@ -29,6 +29,10 @@ add_executable(test_verilog test_verilog.cpp)
 target_link_libraries(test_verilog gtest_main coreir coreir-commonlib)
 add_test(NAME test_verilog COMMAND test_verilog WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/gtest)
 
+add_executable(test_verilog_metadata test_verilog_metadata.cpp)
+target_link_libraries(test_verilog_metadata gtest_main coreir coreir-commonlib)
+add_test(NAME test_verilog_metadata COMMAND test_verilog_metadata WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/gtest)
+
 add_executable(test_inline_wires test_inline_wires.cpp)
 target_link_libraries(test_inline_wires gtest_main coreir coreir-commonlib)
 add_test(NAME test_inline_wires COMMAND test_inline_wires WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/gtest)
