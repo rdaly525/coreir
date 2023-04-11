@@ -48,7 +48,8 @@
 
 #include "coreir/passes/transform/isolate_primitives.h"
 #include "transform/adddirected.h"
-#include "transform/clock_gate.h"
+#include "transform/transform2combview.h"
+#include "transform/netify.h"
 #include "transform/inline_single_instances.h"
 #include "transform/transform2combview.h"
 
@@ -110,6 +111,8 @@ void initializePasses(PassManager& pm) {
   pm.addPass(new Passes::InlineSingleInstances());
   pm.addPass(new Passes::ClockGate());
   pm.addPass(new Passes::IsolatePrimitives());
+  pm.addPass(new Passes::Netify());
+
 }
 }  // namespace CoreIR
 
